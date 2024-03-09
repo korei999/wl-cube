@@ -12,6 +12,7 @@ struct Shader
     Shader() = default;
     Shader(std::string_view vertShaderPath, std::string_view fragShaderPath);
     Shader(Shader&& other);
+    Shader(Shader& other) = delete;
     ~Shader();
 
     void operator=(Shader&& other);

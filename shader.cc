@@ -32,6 +32,10 @@ Shader::Shader(std::string_view vertexPath, std::string_view fragmentPath)
         LOG(FATAL, "error linking program.\n");
     }
 
+#ifdef DEBUG
+    D( glValidateProgram(programObject) );
+#endif
+
     D( glDeleteShader(vertex) );
     D( glDeleteShader(fragment) );
 }
@@ -44,6 +48,8 @@ Shader::Shader(Shader&& other)
 void
 Shader::operator=(Shader&& other)
 {
+    LOG(OK, "Shader '{}' moved\n", other.programObject);
+
     this->programObject = other.programObject;
     other.programObject = 0;
 }

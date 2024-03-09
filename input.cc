@@ -44,20 +44,20 @@ keyboardKeyHandle(void* data,
                   u32 serial,
                   u32 time,
                   u32 key,
-                  u32 state)
+                  u32 keyState)
 {
     //
-    LOG(OK, "key: {}\tstate: {}\n", key, state);
+    LOG(OK, "key: {}\tstate: {}\n", key, keyState);
     switch (key)
     {
         default:
             break;
 
         case KEY_ESC:
-            if (state == 0)
+            if (keyState == 0)
             {
-                programIsRunning = false;
-                LOG(OK, "Good bye!\n");
+                appState.programIsRunning = false;
+                LOG(OK, "quit...\n");
             }
             break;
     }
@@ -122,12 +122,12 @@ pointerButtonHandle(void* data,
                     u32 serial,
                     u32 time,
                     u32 button,
-                    u32 state)
+                    u32 buttonState)
 {
     wl_seat* seat = (wl_seat*)data;
 
-    if (button == BTN_LEFT && state == WL_POINTER_BUTTON_STATE_PRESSED)
-        xdg_toplevel_move(xdg_toplevel, seat, serial);
+    if (button == BTN_LEFT && buttonState == WL_POINTER_BUTTON_STATE_PRESSED)
+        xdg_toplevel_move(appState.xdgToplevel, seat, serial);
 }
 
 void

@@ -37,7 +37,7 @@ loadVertices()
 void
 setupDraw()
 {
-    if (!eglMakeCurrent(egl_display, egl_surface, egl_surface, egl_context))
+    if (!eglMakeCurrent(appState.eglDisplay, appState.eglSurface, appState.eglSurface, appState.eglContext))
         LOG(FATAL, "eglMakeCurrent failed\n");
 
     // By default, eglSwapBuffers blocks until we receive the next frame event.
@@ -45,7 +45,7 @@ setupDraw()
     // (such as input events) while waiting for the next frame event. Setting
     // the swap interval to zero and managing frame events manually prevents
     // this behavior.
-    EGLD( eglSwapInterval(egl_display, 0) );
+    EGLD( eglSwapInterval(appState.eglDisplay, 0) );
 
     setupShaders();
 
@@ -65,11 +65,10 @@ drawFrame(void)
     simpleShader.use();
 
     m4 tm = IDENT;
-
-    static f32 inc = 0;
-
     v3 rot {0.5f, 0.5f, 0.5f};
     vec3Norm(rot);
+
+    static f32 inc = 0;
     mat4Rot(tm, TO_RAD(inc), rot);
 
     inc += 0.5;
@@ -84,10 +83,10 @@ static void
 swapFrames()
 {
     // Register a frame callback to know when we need to draw the next frame
-    struct wl_callback* callback = wl_surface_frame(surface);
-    wl_callback_add_listener(callback, &frame_listener, NULL);
+    wl_callback* callback = wl_surface_frame(appState.surface);
+    wl_callback_add_listener(callback, &frameListener, NULL);
 
     // This will attach a new buffer and commit the surface
-    if (!eglSwapBuffers(egl_display, egl_surface))
+    if (!eglSwapBuffers(appState.eglDisplay, appState.eglSurface))
         LOG(FATAL, "eglSwapBuffers failed\n");
 }
