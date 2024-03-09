@@ -1,4 +1,5 @@
 .cache/
+glueCode/
 build/
 compile_commands.json
 tags
