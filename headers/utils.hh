@@ -1,0 +1,97 @@
+#pragma once
+#include <string_view>
+#include <print>
+#include <GLES3/gl3.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
+enum LogSeverity : int
+{
+    OK,
+    GOOD,
+    WARNING,
+    BAD,
+    FATAL
+};
+
+std::vector<char> loadFileToStr(const std::string_view path, size_t addBytes = 1);
+
+const std::string_view severityStr[FATAL + 1] {
+    "",
+    "[GOOD]",
+    "[WARNING]",
+    "[BAD]",
+    "[FATAL]"
+};
+
+extern GLenum glLastErrorCode;
+extern EGLint eglLastErrorCode;
+
+#ifdef LOGS
+#    define LOG(severity, ...)                                                                                         \
+        do                                                                                                             \
+        {                                                                                                              \
+            std::print(stderr, "{}({}): {} ", __FILE__, __LINE__, severityStr[severity]);                              \
+            std::print(stderr, __VA_ARGS__);                                                                           \
+            if (severity == FATAL)                                                                                     \
+                abort();                                                                                               \
+        } while (0)
+#else
+#    define LOG(severity, ...) (void)0;
+#endif
+
+#ifdef DEBUG
+#    define D(C)                                                                                                       \
+        {                                                                                                              \
+            /* call function C and check for error, enabled if -DDEBUG and -DLOGS */                                   \
+            C;                                                                                                         \
+            while ((glLastErrorCode = glGetError()))                                                                   \
+            {                                                                                                          \
+                switch (glLastErrorCode)                                                                               \
+                {                                                                                                      \
+                    default:                                                                                           \
+                        LOG(WARNING, "unknown error: {:#x}\n", glLastErrorCode);                                       \
+                        break;                                                                                         \
+                                                                                                                       \
+                    case 0x506:                                                                                        \
+                        LOG(BAD, "GL_INVALID_FRAMEBUFFER_OPERATION\n");                                                \
+                        break;                                                                                         \
+                                                                                                                       \
+                    case GL_INVALID_ENUM:                                                                              \
+                        LOG(BAD, "GL_INVALID_ENUM\n");                                                                 \
+                        break;                                                                                         \
+                                                                                                                       \
+                    case GL_INVALID_VALUE:                                                                             \
+                        LOG(BAD, "GL_INVALID_VALUE\n");                                                                \
+                        break;                                                                                         \
+                                                                                                                       \
+                    case GL_INVALID_OPERATION:                                                                         \
+                        LOG(BAD, "GL_INVALID_OPERATION\n");                                                            \
+                        break;                                                                                         \
+                                                                                                                       \
+                    case GL_OUT_OF_MEMORY:                                                                             \
+                        LOG(BAD, "GL_OUT_OF_MEMORY\n");                                                                \
+                        break;                                                                                         \
+                }                                                                                                      \
+            }                                                                                                          \
+        }
+#else
+#    define D(C) C;
+#endif
+
+#ifdef DEBUG
+#    define EGLD(C)                                                                                                    \
+        {                                                                                                              \
+            C;                                                                                                         \
+            if ((eglLastErrorCode = eglGetError()) != EGL_SUCCESS)                                                     \
+                LOG(WARNING, "eglLastErrorCode: {:#x}\n", eglLastErrorCode);                                           \
+        }
+#else
+#    define EGLD(C) C
+#endif
+
+#define COLOR(hex)                                                                                                     \
+    {                                                                                                                  \
+        ((hex >> 24) & 0xFF) / 255.0f, ((hex >> 16) & 0xFF) / 255.0f, ((hex >> 8) & 0xFF) / 255.0f,                    \
+            (hex & 0xFF) / 255.0f                                                                                      \
+    }
