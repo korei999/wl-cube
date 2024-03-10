@@ -16,8 +16,6 @@ CXXFLAGS := -std=c++23 $(PKG)
 CFLAGS := -std=c2x $(PGK)
 LDFLAGS := $(PKG_LIB) -fuse-ld=lld
 
-WAYLAND_FLAGS := $(shell pkg-config wayland-client wayland-egl --cflags --libs)
-GL_FLAGS := $(shell pkg-config egl glesv2 --cflags --libs)
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)
 WAYLAND_SCANNER := $(shell pkg-config --variable=wayland_scanner wayland-scanner)
 
@@ -25,7 +23,7 @@ XDG_SHELL_PROTOCOL := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
 
 SRCD := .
 BD := ./build
-WD := ./glueCode
+GD := ./glueCode
 BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
@@ -52,19 +50,18 @@ $(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell-protocol.c.o
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# this has to be build with c compiler because of linkage
-$(BD)/xdg-shell-protocol.c.o: $(WD)/xdg-shell-protocol.c
+$(BD)/xdg-shell-protocol.c.o: $(GD)/xdg-shell-protocol.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(WD)/xdg-shell-client-protocol.h:
-	mkdir -p $(WD)
+$(GD)/xdg-shell-client-protocol.h:
+	mkdir -p $(GD)
 	$(WAYLAND_SCANNER) client-header $(XDG_SHELL_PROTOCOL) $@ 
 
-$(WD)/xdg-shell-protocol.c: $(WD)/xdg-shell-client-protocol.h
-	mkdir -p $(WD)
+$(GD)/xdg-shell-protocol.c: $(GD)/xdg-shell-client-protocol.h
+	mkdir -p $(GD)
 	$(WAYLAND_SCANNER) private-code $(XDG_SHELL_PROTOCOL) $@
 
 .PHONY: clean
 clean:
-	rm -rf $(BD) $(WD)
+	rm -rf $(BD) $(GD)
