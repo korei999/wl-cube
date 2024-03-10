@@ -3,6 +3,7 @@
 #include <GLES3/gl3.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl-core.h>
+#include <string_view>
 
 #include "../glueCode/xdg-shell-client-protocol.h"
 
@@ -25,6 +26,8 @@ struct AppState {
     EGLDisplay eglDisplay;
     EGLContext eglContext;
     EGLSurface eglSurface;
+
+    std::string_view nameStr;
 };
 
 extern AppState appState;

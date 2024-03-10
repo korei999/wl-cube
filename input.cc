@@ -53,6 +53,7 @@ keyboardKeyHandle(void* data,
         default:
             break;
 
+        case KEY_CAPSLOCK:
         case KEY_ESC:
             if (keyState == 0)
             {

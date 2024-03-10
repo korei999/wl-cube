@@ -3,18 +3,13 @@
 #include "headers/utils.hh"
 #include "headers/input.hh"
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES3/gl32.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <wayland-client-protocol.h>
-#include <wayland-client.h>
-#include <wayland-egl.h>
+#include <vector>
 #ifdef __linux__
 #    include <linux/input-event-codes.h>
 #elif __FreeBSD__
@@ -35,6 +30,8 @@ AppState appState {
     .eglDisplay = nullptr,
     .eglContext = nullptr,
     .eglSurface = nullptr,
+
+    .nameStr {}
 };
 
 static wl_compositor* compositor = nullptr;
@@ -238,8 +235,11 @@ main(int argc, char* argv[])
     appState.xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, appState.surface);
     appState.xdgToplevel = xdg_surface_get_toplevel(appState.xdgSurface);
 
-    xdg_toplevel_set_title(appState.xdgToplevel, "wl-cube");
-    xdg_toplevel_set_app_id(appState.xdgToplevel, "wl-cube");
+    std::vector<char> nameStr = loadFileToStr("name", 1);
+    appState.nameStr = nameStr.data();
+
+    xdg_toplevel_set_title(appState.xdgToplevel, appState.nameStr.data());
+    xdg_toplevel_set_app_id(appState.xdgToplevel, appState.nameStr.data());
 
     xdg_surface_add_listener(appState.xdgSurface, &xdg_surface_listener, nullptr);
     xdg_toplevel_add_listener(appState.xdgToplevel, &xdg_toplevel_listener, nullptr);

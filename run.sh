@@ -2,7 +2,7 @@
 set -e
 set -x
 
-BIN=wl-cube
+BIN=$(cat name)
 
 cd $(dirname $0)
 if make debug

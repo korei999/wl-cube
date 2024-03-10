@@ -26,7 +26,7 @@ XDG_SHELL_PROTOCOL := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
 SRCD := .
 BD := ./build
 WD := ./glueCode
-BIN := wl-cube
+BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
 SRCS := $(shell find $(SRCD) -name '*.cc')
