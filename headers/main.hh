@@ -32,6 +32,7 @@ struct AppState
     wl_seat *seat {};
 
     wl_pointer* pointer {};
+    u32 lastPointerSerial = 0;
     zwp_pointer_constraints_v1* pointerConstraints {};
     zwp_locked_pointer_v1* lockedPointer {};
     zwp_confined_pointer_v1* confinedPointer {};

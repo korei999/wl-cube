@@ -53,19 +53,18 @@ static const zwp_relative_pointer_v1_listener relativePointerListener = {
 void
 AppState::togglePointerRelativeMode()
 {
-    wl_region* jointRegion = wl_compositor_create_region(compositor);
-
     if (!pointerLocked)
     {
         pointerLocked = true;
         lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
                                                                 surface,
                                                                 pointer,
-                                                                jointRegion,
-                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
-        // zwp_locked_pointer_v1_set_cursor_position_hint(lockedPointer, wl_fixed_from_int(128), wl_fixed_from_int(128));
+                                                                nullptr,
+                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
+        // zwp_locked_pointer_v1_set_cursor_position_hint(lockedPointer, wl_fixed_from_int(-1), wl_fixed_from_int(-1));
         relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
         zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, nullptr);
+
     }
     else
     {
