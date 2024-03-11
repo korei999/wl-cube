@@ -83,11 +83,11 @@ pointerEnterHandle(void* data,
                    wl_fixed_t surfaceX,
                    wl_fixed_t surfaceY)
 {
-    appState.lastPointerSerial = serial;
+    appState.pointerSerial = serial;
 
     LOG(OK, "ENTER\n");
-    if (appState.pointerLocked)
-        wl_pointer_set_cursor(appState.pointer, appState.lastPointerSerial, NULL, 0, 0);
+    if (appState.relativeMode)
+        wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
 }
 
 void

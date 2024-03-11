@@ -53,9 +53,9 @@ static const zwp_relative_pointer_v1_listener relativePointerListener = {
 void
 AppState::togglePointerRelativeMode()
 {
-    if (!pointerLocked)
+    if (!relativeMode)
     {
-        pointerLocked = true;
+        relativeMode = true;
         lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
                                                                 surface,
                                                                 pointer,
@@ -68,7 +68,7 @@ AppState::togglePointerRelativeMode()
     }
     else
     {
-        pointerLocked = false;
+        relativeMode = false;
         zwp_locked_pointer_v1_destroy(lockedPointer);
         zwp_relative_pointer_v1_destroy(relativePointer);
     }

@@ -29,21 +29,20 @@ struct AppState
     EGLContext eglContext;
     EGLSurface eglSurface;
 
-    wl_seat *seat {};
+    wl_seat* seat {};
 
     wl_pointer* pointer {};
-    u32 lastPointerSerial = 0;
+    u32 pointerSerial = 0;
     zwp_pointer_constraints_v1* pointerConstraints {};
     zwp_locked_pointer_v1* lockedPointer {};
     zwp_confined_pointer_v1* confinedPointer {};
     zwp_relative_pointer_v1* relativePointer {};
-    /* lock/unlock pointer and switch to relative mode */
     zwp_relative_pointer_manager_v1* relativePointerManager {};
 
     std::string_view nameStr;
 
     bool paused = false;
-    bool pointerLocked = false;
+    bool relativeMode = false;
 
     void togglePointerRelativeMode();
 };
