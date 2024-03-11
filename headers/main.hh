@@ -27,11 +27,19 @@ struct AppState {
     EGLContext eglContext;
     EGLSurface eglSurface;
 
+    struct wl_seat *seat {};
+
+    wl_pointer* pointer {};
     zwp_pointer_constraints_v1* pointerConstraints {};
+    zwp_locked_pointer_v1* lockedPointer {};
+    zwp_confined_pointer_v1* confinedPointer {};
 
     std::string_view nameStr;
 
     bool paused = false;
+    bool pointerLocked = false;
+
+    void lockPointer();
 };
 
 extern const wl_callback_listener frameListener;

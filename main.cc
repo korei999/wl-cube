@@ -34,10 +34,39 @@ AppState appState {
     .nameStr {}
 };
 
+enum
+{
+	REGION_TYPE_NONE,
+	REGION_TYPE_DISJOINT,
+	REGION_TYPE_JOINT,
+	REGION_TYPE_MAX
+} region_type = REGION_TYPE_NONE;
+
 static wl_compositor* compositor = nullptr;
 static xdg_wm_base* xdgWmBase = nullptr;
-
 static u32 xdgConfigureSerial = 0;
+
+void
+AppState::lockPointer()
+{
+    wl_region* jointRegion = wl_compositor_create_region(compositor);
+
+    if (!pointerLocked)
+    {
+        pointerLocked = true;
+        lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
+                                                                surface,
+                                                                pointer,
+                                                                jointRegion,
+                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
+        // zwp_locked_pointer_v1_set_cursor_position_hint(lockedPointer, wl_fixed_from_int(128), wl_fixed_from_int(128));
+    }
+    else
+    {
+        pointerLocked = false;
+        zwp_locked_pointer_v1_destroy(lockedPointer);
+    }
+}
 
 static void
 frameHandleDone(void* data, wl_callback* callback, u32 time)
@@ -106,8 +135,8 @@ seatHandleCapabilities(void* data, wl_seat* seat, u32 capabilities)
 {
     if (capabilities & WL_SEAT_CAPABILITY_POINTER)
     {
-        wl_pointer* pointer = wl_seat_get_pointer(seat);
-        wl_pointer_add_listener(pointer, &pointerListener, seat);
+        appState.pointer = wl_seat_get_pointer(seat);
+        wl_pointer_add_listener(appState.pointer, &pointerListener, seat);
         LOG(GOOD, "pointer works.\n");
     }
     if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
@@ -132,8 +161,8 @@ handleGlobal(void* data, wl_registry* registry, u32 name, const char* interface,
 {
     if (strcmp(interface, wl_seat_interface.name) == 0)
     {
-        wl_seat* seat = (wl_seat*)wl_registry_bind(registry, name, &wl_seat_interface, 1);
-        wl_seat_add_listener(seat, &seatListener, nullptr);
+        appState.seat = (wl_seat*)wl_registry_bind(registry, name, &wl_seat_interface, 1);
+        wl_seat_add_listener(appState.seat, &seatListener, nullptr);
     }
     else if (strcmp(interface, wl_compositor_interface.name) == 0)
     {

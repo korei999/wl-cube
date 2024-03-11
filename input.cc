@@ -65,6 +65,11 @@ keyboardKeyHandle(void* data,
                 LOG(WARNING, "paused: {}\n", appState.paused);
             }
             break;
+
+        case KEY_Q:
+            if (keyState == 1)
+                appState.lockPointer();
+            break;
     }
 }
 
