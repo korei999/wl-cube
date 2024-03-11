@@ -28,6 +28,8 @@ struct AppState {
     EGLSurface eglSurface;
 
     std::string_view nameStr;
+
+    bool paused = false;
 };
 
 extern AppState appState;

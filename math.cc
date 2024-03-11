@@ -78,7 +78,7 @@ v4Dot(const v4& l, const v4& r)
 }
 
 m4
-m4Identity()
+m4Iden()
 {
     return m4 {.e {
         {1, 0, 0, 0},
@@ -202,7 +202,7 @@ m4Trans(const m4& m, const v3& tv)
 }
 
 m4
-mat4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f)
+m4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f)
 {
     /* b(back), l(left) are not needed if our viewing volume is symmetric */
     f32 t = n * tan(fov / 2);
@@ -217,7 +217,7 @@ mat4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f)
 }
 
 m4
-mat4Ortho(cf32 l, cf32 r, cf32 b, cf32 t, cf32 n, cf32 f)
+m4Ortho(cf32 l, cf32 r, cf32 b, cf32 t, cf32 n, cf32 f)
 {
     return m4 {.e {
         {2/(r-l),       0,            0,           0},
@@ -231,7 +231,7 @@ static m4
 m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P)
 {
     /* NOTE: it has to be initialized anyway, otherwise weird bugs occur. */
-    m4 res = m4Identity();
+    m4 res = m4Iden();
 
     m4 m0 {.e {
         {R.x,  U.x,  D.x,  0},

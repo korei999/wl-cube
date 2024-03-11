@@ -75,8 +75,7 @@ f32 v3Rad(const v3& l, const v3& r);
 f32 v3Dist(const v3& l, const v3& r);
 f32 v3Dot(const v3& l, const v3& r);
 f32 v4Dot(const v4& l, const v4& r);
-
-m4 m4Identity();
+m4 m4Iden();
 m4 m4Rot(const m4& m, cf32 th, const v3& ax);
 m4 m4RotX(const m4& m, cf32 angle);
 m4 m4RotY(const m4& m, cf32 angle);
@@ -84,6 +83,6 @@ m4 m4RotZ(const m4& m, cf32 angle);
 m4 m4Scale(const m4& m, cf32 s);
 m4 m4Scale(const m4& m, const v3& s);
 m4 m4Trans(const m4& m, const v3& tv);
-m4 mat4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f);
-m4 mat4Ortho(cf32 l, cf32 r, cf32 b, cf32 t, cf32 n, cf32 f);
+m4 m4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f);
+m4 m4Ortho(cf32 l, cf32 r, cf32 b, cf32 t, cf32 n, cf32 f);
 m4 m4LookAt(const v3& eyeV, const v3& centerV, const v3& upV);

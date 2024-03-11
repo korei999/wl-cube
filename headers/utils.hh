@@ -5,6 +5,8 @@
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#define LEN(A) (sizeof(A) / sizeof(A[0]))
+
 enum LogSeverity : int
 {
     OK,

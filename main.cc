@@ -198,20 +198,13 @@ main(int argc, char* argv[])
     EGLD(eglGetConfigs(appState.eglDisplay, nullptr, 0, &count));
 
     EGLint configAttribs[] = {
-        EGL_SURFACE_TYPE,
-        EGL_WINDOW_BIT,
-        EGL_RED_SIZE,
-        8,
-        EGL_GREEN_SIZE,
-        8,
-        EGL_BLUE_SIZE,
-        6,
-        EGL_DEPTH_SIZE,
-        24,
-        EGL_RENDERABLE_TYPE,
-        EGL_OPENGL_ES3_BIT_KHR,
-        EGL_MIN_SWAP_INTERVAL,
-        0,
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_RED_SIZE, 8,
+        EGL_GREEN_SIZE, 8,
+        EGL_BLUE_SIZE, 8,
+        EGL_DEPTH_SIZE, 24,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+        EGL_MIN_SWAP_INTERVAL, 0,
         EGL_NONE,
     };
     EGLint n = 0;
@@ -236,6 +229,7 @@ main(int argc, char* argv[])
     appState.xdgToplevel = xdg_surface_get_toplevel(appState.xdgSurface);
 
     std::vector<char> nameStr = loadFileToStr("name", 1);
+    nameStr[nameStr.size() - 2] = '\0'; /* remove '\n' */
     appState.nameStr = nameStr.data();
 
     xdg_toplevel_set_title(appState.xdgToplevel, appState.nameStr.data());
@@ -249,6 +243,8 @@ main(int argc, char* argv[])
 
     wl_surface_commit(appState.surface);
     wl_display_roundtrip(display);
+
+    // wl_event_queue* q = wl_display_create_queue(display);
 
     // Draw the first frame
     setupDraw();

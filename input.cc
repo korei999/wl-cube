@@ -3,12 +3,6 @@
 #include "glueCode/xdg-shell-client-protocol.h"
 #include "headers/utils.hh"
 
-#ifdef __linux__
-#    include <linux/input-event-codes.h>
-#elif __FreeBSD__
-#    include <dev/evdev/input-event-codes.h>
-#endif
-
 void
 keyboardKeymapHandle(void* data,
                      wl_keyboard* keyboard,
@@ -61,6 +55,14 @@ keyboardKeyHandle(void* data,
                 LOG(OK, "quit...\n");
             }
             break;
+
+        case KEY_SPACE:
+            if (keyState == 1)
+            {
+                appState.paused = !appState.paused;
+                LOG(WARNING, "paused: {}\n", appState.paused);
+            }
+            break;
     }
 }
 
@@ -82,7 +84,6 @@ keyboardRepeatInfo(void* data,
                    s32 rate,
                    s32 delay)
 {
-    //
     LOG(OK, "rate: {}\tdelay: {}\n", rate, delay);
 }
 
@@ -114,7 +115,8 @@ pointerMotionHandle(void* data,
                     wl_fixed_t surfaceX,
                     wl_fixed_t surfaceY)
 {
-    //
+    mouse.lastX = wl_fixed_to_double(surfaceX);
+    mouse.lastY = wl_fixed_to_double(surfaceY);
 }
 
 void
@@ -125,10 +127,12 @@ pointerButtonHandle(void* data,
                     u32 button,
                     u32 buttonState)
 {
-    wl_seat* seat = (wl_seat*)data;
+    // wl_seat* seat = (wl_seat*)data;
+    // if (button == BTN_LEFT && buttonState == WL_POINTER_BUTTON_STATE_PRESSED)
+        // xdg_toplevel_move(appState.xdgToplevel, seat, serial);
 
-    if (button == BTN_LEFT && buttonState == WL_POINTER_BUTTON_STATE_PRESSED)
-        xdg_toplevel_move(appState.xdgToplevel, seat, serial);
+    mouse.button = button;
+    mouse.state = buttonState;
 }
 
 void

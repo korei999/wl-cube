@@ -2,14 +2,15 @@
 
 layout(location = 0) in vec4 vPosition;
 
-out vec4 position;
+uniform mat4 proj;
+uniform mat4 view;
+uniform mat4 model;
 
-uniform mat4 transform;
+out vec4 position;
 
 void
 main()
 {
-    vec4 nt = transform * vPosition;
-    position = nt;
-    gl_Position = nt;
+    position = vPosition;
+    gl_Position = proj * view * model * vPosition;
 }
