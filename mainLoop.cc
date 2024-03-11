@@ -1,5 +1,5 @@
 #include "headers/main.hh"
-#include "headers/mmath.hh"
+#include "headers/math.hh"
 #include "headers/utils.hh"
 #include "headers/shader.hh"
 
@@ -51,8 +51,8 @@ setupDraw()
 
     // D( glEnable(GL_DEPTH_TEST) );
 
-    GLfloat gray[] = COLOR(0x121212ff);
-    D( glClearColor(gray[0], gray[1], gray[2], gray[3]) );
+    v4 gray = COLOR(0x121212ff);
+    D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
 
     loadVertices();
 }
@@ -62,20 +62,18 @@ drawFrame(void)
 {
     D( glClear(GL_COLOR_BUFFER_BIT) );
 
-    simpleShader.use();
-
-    m4 tm = IDENT;
-    v3 rot {0.5f, 0.5f, 0.5f};
-    vec3Norm(rot);
-
     static f32 inc = 0;
-    mat4Rot(tm, TO_RAD(inc), rot);
 
-    inc += 0.5;
+    m4 tm = m4Identity();
+    tm = m4RotX(tm, TO_RAD(inc));
+    tm = m4Trans(tm, {sin(inc/10)/2, 0, 0});
+
+    simpleShader.use();
     simpleShader.setMat4("transform", tm);
 
-    D( glDrawArrays(GL_TRIANGLES, 0, 3) );
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 
+    inc += 0.3;
     swapFrames();
 }
 

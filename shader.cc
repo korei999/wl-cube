@@ -105,9 +105,9 @@ Shader::use()
 }
 
 void 
-Shader::setMat4(std::string_view name, cm4 matrix)
+Shader::setMat4(std::string_view name, const m4& matrix)
 {
     auto tU = glGetUniformLocation(programObject, name.data());
     D( );
-    D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)matrix););
+    D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)matrix.e););
 }

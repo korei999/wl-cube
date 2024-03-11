@@ -1,5 +1,5 @@
 #pragma once
-#include "mmath.hh"
+#include "math.hh"
 
 #include <GLES3/gl3.h>
 #include <string_view>
@@ -18,7 +18,7 @@ struct Shader
     void operator=(Shader&& other);
 
     void use();
-    void setMat4(std::string_view name, cm4 matrix);
+    void setMat4(std::string_view name, const m4& matrix);
 
 private:
     GLuint loadShader(GLenum type, std::string_view path);
