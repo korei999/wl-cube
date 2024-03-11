@@ -1,5 +1,6 @@
 #pragma once
 #include "ultratypes.h"
+#include "../wayland/relative-pointer-unstable-v1.h"
 
 #include <wayland-client-protocol.h>
 #ifdef __linux__
@@ -36,3 +37,5 @@ void pointerLeaveHandle(void* data, wl_pointer* pointer, u32 serial, wl_surface*
 void pointerMotionHandle(void* data, wl_pointer* pointer, u32 time, wl_fixed_t surfaceX, wl_fixed_t surfaceY);
 void pointerButtonHandle(void* data, wl_pointer* pointer, u32 serial, u32 time, u32 button, u32 state);
 void pointerAxisHandle(void* data, wl_pointer* pointer, u32 time, u32 axis, wl_fixed_t value);
+
+void relativePointerHandleMotion(void *data, zwp_relative_pointer_v1 *zwp_relative_pointer_v1, u32 utime_hi, u32 utime_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel);

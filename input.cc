@@ -68,7 +68,7 @@ keyboardKeyHandle(void* data,
 
         case KEY_Q:
             if (keyState == 1)
-                appState.lockPointer();
+                appState.togglePointerRelativeMode();
             break;
     }
 }
@@ -150,4 +150,18 @@ pointerAxisHandle(void* data,
                   wl_fixed_t value)
 {
     //
+}
+
+void
+relativePointerHandleMotion(void *data,
+				            zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
+				            u32 utime_hi,
+				            u32 utime_lo,
+				            wl_fixed_t dx,
+				            wl_fixed_t dy,
+				            wl_fixed_t dxUnaccel,
+				            wl_fixed_t dyUnaccel)
+{
+    player.mouse.currX += wl_fixed_to_int(dxUnaccel);
+    player.mouse.currY += wl_fixed_to_int(dyUnaccel);
 }

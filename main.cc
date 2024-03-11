@@ -46,8 +46,12 @@ static wl_compositor* compositor = nullptr;
 static xdg_wm_base* xdgWmBase = nullptr;
 static u32 xdgConfigureSerial = 0;
 
+static const zwp_relative_pointer_v1_listener relativePointerListener = {
+	.relative_motion = relativePointerHandleMotion
+};
+
 void
-AppState::lockPointer()
+AppState::togglePointerRelativeMode()
 {
     wl_region* jointRegion = wl_compositor_create_region(compositor);
 
@@ -60,11 +64,14 @@ AppState::lockPointer()
                                                                 jointRegion,
                                                                 ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
         // zwp_locked_pointer_v1_set_cursor_position_hint(lockedPointer, wl_fixed_from_int(128), wl_fixed_from_int(128));
+        relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
+        zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, nullptr);
     }
     else
     {
         pointerLocked = false;
         zwp_locked_pointer_v1_destroy(lockedPointer);
+        zwp_relative_pointer_v1_destroy(relativePointer);
     }
 }
 
@@ -176,6 +183,14 @@ handleGlobal(void* data, wl_registry* registry, u32 name, const char* interface,
     {
         appState.pointerConstraints = (zwp_pointer_constraints_v1*)wl_registry_bind(registry, name, &zwp_pointer_constraints_v1_interface, version);
     }
+    else if (strcmp(interface, zwp_relative_pointer_manager_v1_interface.name) == 0)
+    {
+        appState.relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
+    }
+    // else if (strcmp(interface, zwp_relative_pointer_v1_interface.name) == 0)
+    // {
+        // appState.relativePointer = (zwp_relative_pointer_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_v1_interface, version);
+    // }
 }
 
 static void

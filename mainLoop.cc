@@ -1,8 +1,8 @@
 #include "headers/controls.hh"
 #include "headers/main.hh"
 #include "headers/math.hh"
-#include "headers/utils.hh"
 #include "headers/shader.hh"
+#include "headers/utils.hh"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -94,6 +94,7 @@ setupDraw()
     EGLD( eglSwapInterval(appState.eglDisplay, 0) );
 
     setupShaders();
+    appState.togglePointerRelativeMode();
 
     D( glEnable(GL_DEPTH_TEST) );
 

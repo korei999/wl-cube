@@ -21,6 +21,7 @@ WAYLAND_SCANNER := $(shell pkg-config --variable=wayland_scanner wayland-scanner
 
 XDG_SHELL_PROTOCOL := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
 POINTER_CONSTRAINTS := $(WAYLAND_PROTOCOLS_DIR)/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml
+RELATIVE_POINTER := $(WAYLAND_PROTOCOLS_DIR)/unstable/relative-pointer/relative-pointer-unstable-v1.xml
 
 SRCD := .
 BD := ./build
@@ -44,10 +45,10 @@ debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
 # rules to build everything
-$(EXEC): $(OBJ) $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o
+$(EXEC): $(OBJ) $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o
+$(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -70,6 +71,14 @@ $(WLD)/pointer-constraints-unstable-v1-protocol.h:
 $(WLD)/pointer-constraints-unstable-v1-protocol.c: $(WLD)/pointer-constraints-unstable-v1-protocol.h
 	mkdir -p $(WLD)
 	$(WAYLAND_SCANNER) private-code $(POINTER_CONSTRAINTS) $@ 
+
+$(WLD)/relative-pointer-unstable-v1.h:
+	mkdir -p $(WLD)
+	$(WAYLAND_SCANNER) client-header $(RELATIVE_POINTER) $@ 
+
+$(WLD)/relative-pointer-unstable-v1.c: $(WLD)/relative-pointer-unstable-v1.h
+	mkdir -p $(WLD)
+	$(WAYLAND_SCANNER) private-code $(RELATIVE_POINTER) $@ 
 
 .PHONY: clean
 clean:
