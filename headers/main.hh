@@ -1,16 +1,16 @@
 #pragma once
+#include "../glueCode/xdg-shell-client-protocol.h"
+#include "controls.hh"
+
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl-core.h>
 #include <string_view>
 
-#include "../glueCode/xdg-shell-client-protocol.h"
-
 void drawFrame(void);
 void setupDraw();
 
-extern const wl_callback_listener frameListener;
 
 struct AppState {
     int windowWidth;
@@ -32,4 +32,7 @@ struct AppState {
     bool paused = false;
 };
 
+extern const wl_callback_listener frameListener;
+
+extern PlayerControls player;
 extern AppState appState;

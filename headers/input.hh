@@ -13,11 +13,11 @@ struct Mouse
     f64 prevX = 0;
     f64 prevY = 0;
 
-    f64 lastX = 0;
-    f64 lastY = 0;
+    f64 currX = 0;
+    f64 currY = 0;
 
-    f64 sens = 0.5f;
-    f64 yaw = -90.f;
+    f64 sens = 0.05;
+    f64 yaw = -90.0;
     f64 pitch = 0;
 
     u32 button = BTN_MOUSE;
@@ -36,5 +36,3 @@ void pointerLeaveHandle(void* data, wl_pointer* pointer, u32 serial, wl_surface*
 void pointerMotionHandle(void* data, wl_pointer* pointer, u32 time, wl_fixed_t surfaceX, wl_fixed_t surfaceY);
 void pointerButtonHandle(void* data, wl_pointer* pointer, u32 serial, u32 time, u32 button, u32 state);
 void pointerAxisHandle(void* data, wl_pointer* pointer, u32 time, u32 axis, wl_fixed_t value);
-
-extern Mouse mouse;

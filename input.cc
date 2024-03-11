@@ -1,3 +1,4 @@
+#include "headers/controls.hh"
 #include "headers/main.hh"
 #include "headers/input.hh"
 #include "glueCode/xdg-shell-client-protocol.h"
@@ -115,8 +116,8 @@ pointerMotionHandle(void* data,
                     wl_fixed_t surfaceX,
                     wl_fixed_t surfaceY)
 {
-    mouse.lastX = wl_fixed_to_double(surfaceX);
-    mouse.lastY = wl_fixed_to_double(surfaceY);
+    player.mouse.currX = wl_fixed_to_double(surfaceX);
+    player.mouse.currY = wl_fixed_to_double(surfaceY);
 }
 
 void
@@ -131,8 +132,8 @@ pointerButtonHandle(void* data,
     // if (button == BTN_LEFT && buttonState == WL_POINTER_BUTTON_STATE_PRESSED)
         // xdg_toplevel_move(appState.xdgToplevel, seat, serial);
 
-    mouse.button = button;
-    mouse.state = buttonState;
+    player.mouse.button = button;
+    player.mouse.state = buttonState;
 }
 
 void

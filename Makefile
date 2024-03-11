@@ -4,7 +4,7 @@ CXX := clang++ -stdlib=libc++ -fcolor-diagnostics -fansi-escape-codes -fdiagnost
 # we have to compile wayland glue code with c compiler due to linkage issues
 CC := clang -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
 
-WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-braces
+WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-braces -Wno-c99-designator
 
 include debug.mk
 
