@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <fstream>
+#include <chrono>
 
 GLenum glLastErrorCode = 0;
 EGLint eglLastErrorCode = EGL_SUCCESS;
@@ -21,4 +22,14 @@ loadFileToStr(const std::string_view path, size_t addBytes)
     file.close();
 
     return buffer;
+}
+
+f64
+getTimeSec()
+{
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::duration<f64> fsec;
+
+    fsec fs = Time::now().time_since_epoch();
+    return fs.count();
 }

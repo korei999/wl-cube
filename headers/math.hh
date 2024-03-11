@@ -32,6 +32,9 @@ union v3
         f32 ignoredZ;
     };
     f32 e[3];
+
+    v3& operator+=(const v3& other);
+    v3& operator-=(const v3& other);
 };
 
 union v4
@@ -69,6 +72,7 @@ v3 v3Norm(const v3& a);
 v3 v3Cross(const v3& l, const v3& r);
 v3 operator-(const v3& l, const v3& r);
 v3 operator+(const v3& l, const v3& r);
+v3 operator*(const v3& v, f32 s);
 /* degree(IN RADIANS) between two vectors */
 f32 v3Rad(const v3& l, const v3& r);
 /* distance between two points in space (vectors) */

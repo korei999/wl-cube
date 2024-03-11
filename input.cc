@@ -31,7 +31,9 @@ keyboardLeaveHandle(void* data,
                     u32 serial,
                     wl_surface* surface)
 {
-    //
+    LOG(OK, "KB LEAVE, zeroing input...\n");
+    for (size_t i = 0; i < LEN(pressedKeys); i++)
+        pressedKeys[i] = 0;
 }
 
 void
@@ -42,35 +44,13 @@ keyboardKeyHandle(void* data,
                   u32 key,
                   u32 keyState)
 {
-    //
-    LOG(OK, "key: {}\tstate: {}\n", key, keyState);
-    switch (key)
-    {
-        default:
-            break;
-
-        case KEY_CAPSLOCK:
-        case KEY_ESC:
-            if (keyState == 0)
-            {
-                appState.programIsRunning = false;
-                LOG(OK, "quit...\n");
-            }
-            break;
-
-        case KEY_SPACE:
-            if (keyState == 1)
-            {
-                appState.paused = !appState.paused;
-                LOG(WARNING, "paused: {}\n", appState.paused);
-            }
-            break;
-
-        case KEY_Q:
-            if (keyState == 1)
-                appState.togglePointerRelativeMode();
-            break;
+    if (key >= LEN(pressedKeys)) {
+        LOG(WARNING, "out of range key '{}'\n", key);
+        return;
     }
+
+    pressedKeys[key] = keyState;
+    LOG(OK, "{}: {}\n", key, pressedKeys[key]);
 }
 
 void

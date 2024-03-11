@@ -18,7 +18,8 @@ static void swapFrames();
 Shader simpleShader;
 
 PlayerControls player {
-    .mouse.sens = 0.05
+    .mouse.sens = 0.07,
+    .moveSpeed = 5.0
 };
 
 GLfloat vCube[][4] {
@@ -105,35 +106,33 @@ setupDraw()
 }
 
 m4 proj = m4Pers(90.0f, (f32)appState.windowWidth / (f32)appState.windowHeight, 0.01f, 100.0f);
-m4 view = m4LookAt(player.pos, player.pos + player.front, player.up);
+m4 view;
 
 void
 drawFrame(void)
 {
-    if (!appState.paused)
-    {
+    player.updateDeltaTime();
+    player.procMouse();
+    player.procKeys();
 
-        D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
+    view = m4LookAt(player.pos, player.pos + player.front, player.up);
 
-        m4 tm = m4Iden();
+    D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
 
-        player.procMouse();
+    m4 tm = m4Iden();
 
-        static f64 inc = 0;
-        tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
+    static f64 inc = 0;
+    tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
 
-        proj = m4Pers(90.0f, (f32)appState.windowWidth / (f32)appState.windowHeight, 0.01f, 100.0f);
-        view = m4LookAt(player.pos, player.pos + player.front, player.up);
+    simpleShader.use();
+    simpleShader.setMat4("proj", proj);
+    simpleShader.setMat4("view", view);
+    simpleShader.setMat4("model", tm);
 
-        simpleShader.use();
-        simpleShader.setMat4("proj", proj);
-        simpleShader.setMat4("view", view);
-        simpleShader.setMat4("model", tm);
+    D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
 
-        D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
+    inc += 0.5;
 
-        inc += 0.5;
-    }
     swapFrames();
 }
 

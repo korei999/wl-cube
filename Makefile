@@ -48,7 +48,7 @@ debug: $(EXEC)
 $(EXEC): $(OBJ) $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
+$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 

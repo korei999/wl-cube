@@ -1,11 +1,12 @@
 #pragma once
+#include "ultratypes.h"
+
 #include <string_view>
 #include <print>
 #include <GLES3/gl3.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 
-#define LEN(A) (sizeof(A) / sizeof(A[0]))
 
 enum LogSeverity : int
 {
@@ -17,6 +18,7 @@ enum LogSeverity : int
 };
 
 std::vector<char> loadFileToStr(const std::string_view path, size_t addBytes = 1);
+f64 getTimeSec();
 
 const std::string_view severityStr[FATAL + 1] {
     "",
@@ -28,6 +30,8 @@ const std::string_view severityStr[FATAL + 1] {
 
 extern GLenum glLastErrorCode;
 extern EGLint eglLastErrorCode;
+
+#define LEN(A) (sizeof(A) / sizeof(A[0]))
 
 #ifdef LOGS
 #    define LOG(severity, ...)                                                                                         \

@@ -52,6 +52,30 @@ operator+(const v3& l, const v3& r)
     };
 }
 
+v3&
+v3::operator+=(const v3& other)
+{
+    *this = *this + other;
+    return *this;
+}
+
+v3&
+v3::operator-=(const v3& other)
+{
+    *this = *this - other;
+    return *this;
+}
+
+v3
+operator*(const v3& v, f32 s)
+{
+    return v3 {
+        v.x * s,
+        v.y * s,
+        v.z * s
+    };
+}
+
 f32
 v3Rad(const v3& l, const v3& r)
 {
