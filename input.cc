@@ -1,7 +1,8 @@
+#include "wayland/pointer-constraints-unstable-v1-protocol.h"
+#include "wayland/xdg-shell-client-protocol.h"
 #include "headers/controls.hh"
-#include "headers/main.hh"
 #include "headers/input.hh"
-#include "glueCode/xdg-shell-client-protocol.h"
+#include "headers/main.hh"
 #include "headers/utils.hh"
 
 void

@@ -1,5 +1,6 @@
 #pragma once
-#include "../glueCode/xdg-shell-client-protocol.h"
+#include "../wayland/xdg-shell-client-protocol.h"
+#include "../wayland/pointer-constraints-unstable-v1-protocol.h"
 #include "controls.hh"
 
 #include <EGL/egl.h>
@@ -10,7 +11,6 @@
 
 void drawFrame(void);
 void setupDraw();
-
 
 struct AppState {
     int windowWidth;
@@ -26,6 +26,8 @@ struct AppState {
     EGLDisplay eglDisplay;
     EGLContext eglContext;
     EGLSurface eglSurface;
+
+    zwp_pointer_constraints_v1* pointerConstraints {};
 
     std::string_view nameStr;
 

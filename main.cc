@@ -143,6 +143,10 @@ handleGlobal(void* data, wl_registry* registry, u32 name, const char* interface,
     {
         xdgWmBase = (xdg_wm_base*)wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
     }
+    else if (strcmp(interface, zwp_pointer_constraints_v1_interface.name) == 0)
+    {
+        appState.pointerConstraints = (zwp_pointer_constraints_v1*)wl_registry_bind(registry, name, &zwp_pointer_constraints_v1_interface, version);
+    }
 }
 
 static void

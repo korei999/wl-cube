@@ -20,10 +20,11 @@ WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdata
 WAYLAND_SCANNER := $(shell pkg-config --variable=wayland_scanner wayland-scanner)
 
 XDG_SHELL_PROTOCOL := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
+POINTER_CONSTRAINTS := $(WAYLAND_PROTOCOLS_DIR)/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml
 
 SRCD := .
 BD := ./build
-GD := ./glueCode
+WLD := ./wayland
 BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
@@ -36,32 +37,40 @@ all: CXXFLAGS += -g -O3 -march=native $(WARNING) -DNDEBUG
 all: CFLAGS += -g -O3 -march=native $(WARNING) -DNDEBUG
 all: $(EXEC)
 
-debug: CC += $(ASAN)
 debug: CXX += $(ASAN)
+debug: CC += $(ASAN)
 debug: CXXFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
 # rules to build everything
-$(EXEC): $(OBJ) $(BD)/xdg-shell-protocol.c.o
+$(EXEC): $(OBJ) $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell-protocol.c.o
+$(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BD)/xdg-shell-protocol.c.o: $(GD)/xdg-shell-protocol.c
+$(BD)/%.c.o: $(WLD)/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(GD)/xdg-shell-client-protocol.h:
-	mkdir -p $(GD)
+$(WLD)/xdg-shell-client-protocol.h:
+	mkdir -p $(WLD)
 	$(WAYLAND_SCANNER) client-header $(XDG_SHELL_PROTOCOL) $@ 
 
-$(GD)/xdg-shell-protocol.c: $(GD)/xdg-shell-client-protocol.h
-	mkdir -p $(GD)
+$(WLD)/xdg-shell-protocol.c: $(WLD)/xdg-shell-client-protocol.h
+	mkdir -p $(WLD)
 	$(WAYLAND_SCANNER) private-code $(XDG_SHELL_PROTOCOL) $@
+
+$(WLD)/pointer-constraints-unstable-v1-protocol.h:
+	mkdir -p $(WLD)
+	$(WAYLAND_SCANNER) client-header $(POINTER_CONSTRAINTS) $@ 
+
+$(WLD)/pointer-constraints-unstable-v1-protocol.c: $(WLD)/pointer-constraints-unstable-v1-protocol.h
+	mkdir -p $(WLD)
+	$(WAYLAND_SCANNER) private-code $(POINTER_CONSTRAINTS) $@ 
 
 .PHONY: clean
 clean:
-	rm -rf $(BD) $(GD)
+	rm -rf $(BD) $(WLD)
