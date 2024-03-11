@@ -1,5 +1,5 @@
 .cache/
-glueCode/
+wayland/
 build/
 compile_commands.json
 tags
