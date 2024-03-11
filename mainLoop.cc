@@ -122,16 +122,22 @@ drawFrame(void)
     m4 tm = m4Iden();
 
     static f64 inc = 0;
-    tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
+    // tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
 
     simpleShader.use();
     simpleShader.setMat4("proj", proj);
     simpleShader.setMat4("view", view);
-    simpleShader.setMat4("model", tm);
 
-    D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
+    for (int i = 0; i < 20; i++)
+    {
+        tm = m4Trans(tm, {(f32)sin(inc), (f32)i, 0});
+        tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
 
-    inc += 0.5;
+        simpleShader.setMat4("model", tm);
+        D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
+    }
+
+    inc += 0.01;
 
     swapFrames();
 }
