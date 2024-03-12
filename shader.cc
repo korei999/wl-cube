@@ -104,8 +104,56 @@ Shader::use()
     D( glUseProgram(programObject) );
 }
 
+void
+Shader::queryActiveUniforms()
+{
+    GLint maxUniformLen;
+    GLint nUniforms;
+
+    D( glGetProgramiv(programObject, GL_ACTIVE_UNIFORMS, &nUniforms) );
+    D( glGetProgramiv(programObject, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen) );
+
+    std::vector<char> uniformName(maxUniformLen, '\0');
+
+    for (int i = 0; i < nUniforms; i++)
+    {
+        GLint size, location;
+        GLenum type;
+        std::string_view typeName;
+
+        D( glGetActiveUniform(programObject, i, maxUniformLen, nullptr, &size, &type, uniformName.data()) );
+        switch (type)
+        {
+            case GL_FLOAT:
+                typeName = "GL_FLOAT";
+                break;
+
+            case GL_FLOAT_VEC2:
+                typeName = "GL_FLOAT_VEC2";
+                break;
+
+            case GL_FLOAT_VEC3:
+                typeName = "GL_FLOAT_VEC3";
+                break;
+
+            case GL_FLOAT_VEC4:
+                typeName = "GL_FLOAT_VEC4";
+                break;
+
+            case GL_FLOAT_MAT4:
+                typeName = "GL_FLOAT_MAT4";
+                break;
+
+            default:
+                typeName = "unknown";
+                break;
+        }
+        LOG(OK, "uniformName: '{}', type: '{}'\n", uniformName.data(), typeName);
+    }
+}
+
 void 
-Shader::setMat4(std::string_view name, const m4& matrix)
+Shader::setM4(std::string_view name, const m4& matrix)
 {
     auto tU = glGetUniformLocation(programObject, name.data());
     D( );

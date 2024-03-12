@@ -2,6 +2,8 @@
 #include "math.hh"
 #include "input.hh"
 
+#include <vector>
+
 enum KeyState : int
 {
     RELEASED,
@@ -26,4 +28,6 @@ struct PlayerControls
     void updateDeltaTime();
 };
 
-extern int pressedKeys[300];
+void procKeysOnce(u32 key, u32 keyState);
+
+extern std::vector<int> pressedKeys;

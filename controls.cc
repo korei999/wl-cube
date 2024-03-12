@@ -2,14 +2,7 @@
 #include "headers/main.hh"
 #include "headers/utils.hh"
 
-int pressedKeys[300] {
-    // [KEY_W] = 0,
-    // [KEY_A] = 0,
-    // [KEY_S] = 0,
-    // [KEY_D] = 0,
-    // [KEY_SPACE] = 0,
-    // [KEY_LEFTCTRL] = 0,
-};
+std::vector<int> pressedKeys(300, 0);
 
 m4 
 PlayerControls::getLookAt()
@@ -20,48 +13,64 @@ PlayerControls::getLookAt()
 void
 PlayerControls::procMouse()
 {
-    auto offsetX = (this->mouse.currX - this->mouse.prevX) * this->mouse.sens;
-    auto offsetY = (this->mouse.prevY - this->mouse.currY) * this->mouse.sens;
+    auto offsetX = (mouse.currX - mouse.prevX) * mouse.sens;
+    auto offsetY = (mouse.prevY - mouse.currY) * mouse.sens;
 
-    this->mouse.prevX = this->mouse.currX;
-    this->mouse.prevY = this->mouse.currY;
+    mouse.prevX = mouse.currX;
+    mouse.prevY = mouse.currY;
 
-    this->mouse.yaw += offsetX;
-    this->mouse.pitch += offsetY;
+    mouse.yaw += offsetX;
+    mouse.pitch += offsetY;
 
-    if (this->mouse.pitch > 89.9)
-        this->mouse.pitch = 89.9;
-    if (this->mouse.pitch < -89.9)
-        this->mouse.pitch = -89.9;
+    if (mouse.pitch > 89.9)
+        mouse.pitch = 89.9;
+    if (mouse.pitch < -89.9)
+        mouse.pitch = -89.9;
 
-    this->front = v3Norm({
-        (f32)cos(TO_RAD(this->mouse.yaw)) * (f32)cos(TO_RAD(this->mouse.pitch)),
-        (f32)sin(TO_RAD(this->mouse.pitch)),
-        (f32)sin(TO_RAD(this->mouse.yaw)) * (f32)cos(TO_RAD(this->mouse.pitch))
+    front = v3Norm({
+        (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
+        (f32)sin(TO_RAD(mouse.pitch)),
+        (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
     });
 
-    this->right = v3Norm(v3Cross(this->front, this->up));
+    right = v3Norm(v3Cross(front, up));
+}
+
+void
+procKeysOnce(u32 key, u32 keyState)
+{
+    switch (key)
+    {
+        case KEY_P:
+        case KEY_GRAVE:
+            if (keyState == PRESSED)
+            {
+                appState.paused = !appState.paused;
+                if (appState.paused)
+                    LOG(WARNING, "paused: {}\n", appState.paused);
+            }
+            break;
+
+        case KEY_Q:
+            if (keyState == PRESSED)
+                appState.togglePointerRelativeMode();
+            break;
+
+        case KEY_ESC:
+        case KEY_CAPSLOCK:
+            appState.programIsRunning = false;
+            LOG(OK, "quit...\n");
+            break;
+
+        default:
+            break;
+    }
 }
 
 void
 PlayerControls::procKeys()
 {
     auto moveSpeed = player.moveSpeed * player.deltaTime;
-
-    if (pressedKeys[KEY_Q])
-    {
-        appState.togglePointerRelativeMode();
-    }
-    if (pressedKeys[KEY_CAPSLOCK] || pressedKeys[KEY_ESC])
-    {
-        appState.programIsRunning = false;
-        LOG(OK, "quit...\n");
-    }
-    // if (pressedKeys[KEY_P] && !appState.paused)
-    // {
-        // appState.paused = true;
-        // LOG(WARNING, "paused: {}\n", appState.paused);
-    // }
 
     if (pressedKeys[KEY_W])
     {

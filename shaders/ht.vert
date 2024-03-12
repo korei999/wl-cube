@@ -11,6 +11,6 @@ out vec4 position;
 void
 main()
 {
-    position = vPosition;
+    position = model * vPosition;
     gl_Position = proj * view * model * vPosition;
 }

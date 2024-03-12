@@ -18,7 +18,8 @@ struct Shader
     void operator=(Shader&& other);
 
     void use();
-    void setMat4(std::string_view name, const m4& matrix);
+    void setM4(std::string_view name, const m4& matrix);
+    void queryActiveUniforms();
 
 private:
     GLuint loadShader(GLenum type, std::string_view path);

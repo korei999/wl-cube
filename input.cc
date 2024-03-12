@@ -44,13 +44,20 @@ keyboardKeyHandle(void* data,
                   u32 key,
                   u32 keyState)
 {
-    if (key >= LEN(pressedKeys)) {
-        LOG(WARNING, "out of range key '{}'\n", key);
-        return;
+    if (key >= pressedKeys.size())
+    {
+        if (key > 10000)
+        {
+            LOG(WARNING, "key '{}' is too big?\n", key);
+            return;
+        }
+        pressedKeys.resize(key + 1, 0);
     }
 
     pressedKeys[key] = keyState;
     LOG(OK, "{}: {}\n", key, pressedKeys[key]);
+
+    procKeysOnce(key, keyState);
 }
 
 void

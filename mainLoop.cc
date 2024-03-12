@@ -77,6 +77,7 @@ static void
 setupShaders()
 {
     simpleShader = {"shaders/ht.vert", "shaders/ht.frag"};
+    simpleShader.queryActiveUniforms();
 }
 
 void
@@ -115,30 +116,32 @@ drawFrame(void)
     player.procMouse();
     player.procKeys();
 
-    view = m4LookAt(player.pos, player.pos + player.front, player.up);
-
-    D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
-
-    m4 tm = m4Iden();
-
-    static f64 inc = 0;
-    // tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
-
-    simpleShader.use();
-    simpleShader.setMat4("proj", proj);
-    simpleShader.setMat4("view", view);
-
-    for (int i = 0; i < 20; i++)
+    if (!appState.paused)
     {
-        tm = m4Trans(tm, {(f32)sin(inc), (f32)i, 0});
-        tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.5f, 0.5f, 0.5f}));
+        view = m4LookAt(player.pos, player.pos + player.front, player.up);
 
-        simpleShader.setMat4("model", tm);
-        D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
+        D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
+
+        m4 tm = m4Iden();
+
+        static f64 inc = 0;
+        tm = m4Scale(tm, 0.5f);
+
+        simpleShader.use();
+        simpleShader.setM4("proj", proj);
+        simpleShader.setM4("view", view);
+
+        for (int i = 0; i < 20; i++)
+        {
+            tm = m4Trans(tm, {0, (f32)i, 0});
+            tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.25f, 0.25f, 0.25f}));
+
+            simpleShader.setM4("model", tm);
+            D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
+        }
+
+        inc += 0.01;
     }
-
-    inc += 0.01;
-
     swapFrames();
 }
 

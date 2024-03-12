@@ -10,11 +10,6 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <vector>
-#ifdef __linux__
-#    include <linux/input-event-codes.h>
-#elif __FreeBSD__
-#    include <dev/evdev/input-event-codes.h>
-#endif
 
 AppState appState {
     .windowWidth = 640,
@@ -252,6 +247,7 @@ main(int argc, char* argv[])
         EGL_DEPTH_SIZE, 24,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
         EGL_MIN_SWAP_INTERVAL, 0,
+        EGL_MAX_SWAP_INTERVAL, 1,
         EGL_NONE,
     };
     EGLint n = 0;
