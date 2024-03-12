@@ -48,9 +48,10 @@ static const zwp_relative_pointer_v1_listener relativePointerListener = {
 void
 AppState::togglePointerRelativeMode()
 {
-    if (!relativeMode)
+    if (!pointerRelativeMode)
     {
-        relativeMode = true;
+        wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
+        pointerRelativeMode = true;
         lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
                                                                 surface,
                                                                 pointer,
@@ -63,7 +64,8 @@ AppState::togglePointerRelativeMode()
     }
     else
     {
-        relativeMode = false;
+        // wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
+        pointerRelativeMode = false;
         zwp_locked_pointer_v1_destroy(lockedPointer);
         zwp_relative_pointer_v1_destroy(relativePointer);
     }
@@ -246,8 +248,8 @@ main(int argc, char* argv[])
         EGL_BLUE_SIZE, 8,
         EGL_DEPTH_SIZE, 24,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
-        EGL_MIN_SWAP_INTERVAL, 0,
-        EGL_MAX_SWAP_INTERVAL, 1,
+        // // EGL_MIN_SWAP_INTERVAL, 0,
+        // EGL_MAX_SWAP_INTERVAL, 1,
         EGL_NONE,
     };
     EGLint n = 0;

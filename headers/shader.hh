@@ -6,13 +6,13 @@
 
 struct Shader
 {
-    GLuint programObject = 0;
+    GLuint programObj = 0;
     //
 
     Shader() = default;
     Shader(std::string_view vertShaderPath, std::string_view fragShaderPath);
     Shader(Shader&& other);
-    Shader(Shader& other) = delete;
+    Shader(const Shader& other) = delete;
     ~Shader();
 
     void operator=(Shader&& other);

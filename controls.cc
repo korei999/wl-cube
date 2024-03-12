@@ -4,6 +4,8 @@
 
 std::vector<int> pressedKeys(300, 0);
 
+static void procMovements();
+
 m4 
 PlayerControls::getLookAt()
 {
@@ -13,27 +15,30 @@ PlayerControls::getLookAt()
 void
 PlayerControls::procMouse()
 {
-    auto offsetX = (mouse.currX - mouse.prevX) * mouse.sens;
-    auto offsetY = (mouse.prevY - mouse.currY) * mouse.sens;
+    if (appState.pointerRelativeMode)
+    {
+        auto offsetX = (mouse.currX - mouse.prevX) * mouse.sens;
+        auto offsetY = (mouse.prevY - mouse.currY) * mouse.sens;
 
-    mouse.prevX = mouse.currX;
-    mouse.prevY = mouse.currY;
+        mouse.prevX = mouse.currX;
+        mouse.prevY = mouse.currY;
 
-    mouse.yaw += offsetX;
-    mouse.pitch += offsetY;
+        mouse.yaw += offsetX;
+        mouse.pitch += offsetY;
 
-    if (mouse.pitch > 89.9)
-        mouse.pitch = 89.9;
-    if (mouse.pitch < -89.9)
-        mouse.pitch = -89.9;
+        if (mouse.pitch > 89.9)
+            mouse.pitch = 89.9;
+        if (mouse.pitch < -89.9)
+            mouse.pitch = -89.9;
 
-    front = v3Norm({
-        (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
-        (f32)sin(TO_RAD(mouse.pitch)),
-        (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
-    });
+        front = v3Norm({
+                (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
+                (f32)sin(TO_RAD(mouse.pitch)),
+                (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
+                });
 
-    right = v3Norm(v3Cross(front, up));
+        right = v3Norm(v3Cross(front, up));
+    }
 }
 
 void
@@ -70,38 +75,50 @@ procKeysOnce(u32 key, u32 keyState)
 void
 PlayerControls::procKeys()
 {
-    auto moveSpeed = player.moveSpeed * player.deltaTime;
+    procMovements();
+}
 
+static void
+procMovements()
+{
+    f64 moveSpeed = player.moveSpeed * player.deltaTime;
+
+    v3 combinedMove {};
     if (pressedKeys[KEY_W])
     {
         v3 forward = player.front;
         forward.y = 0;
-        player.pos += (v3Norm(forward) * moveSpeed);
+        combinedMove += (v3Norm(forward));
     }
     if (pressedKeys[KEY_S])
     {
         v3 forward = player.front;
         forward.y = 0;
-        player.pos -= (v3Norm(forward) * moveSpeed);
+        combinedMove -= (v3Norm(forward));
     }
     if (pressedKeys[KEY_A])
     {
         v3 left = v3Norm(v3Cross(player.front, player.up));
-        player.pos -= (left * moveSpeed);
+        combinedMove -= (left);
     }
     if (pressedKeys[KEY_D])
     {
         v3 left = v3Norm(v3Cross(player.front, player.up));
-        player.pos += (left * moveSpeed);
+        combinedMove += (left);
     }
     if (pressedKeys[KEY_SPACE])
     {
-        player.pos += (player.up * moveSpeed);
+        combinedMove += player.up;
     }
     if (pressedKeys[KEY_LEFTCTRL])
     {
-        player.pos -= (player.up * moveSpeed);
+        combinedMove -= player.up;
     }
+
+    if (v3Length(combinedMove) > 0)
+        combinedMove = v3Norm(combinedMove);
+
+    player.pos += combinedMove * moveSpeed;
 }
 
 void

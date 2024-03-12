@@ -42,7 +42,7 @@ struct AppState
     std::string_view nameStr;
 
     bool paused = false;
-    bool relativeMode = false;
+    bool pointerRelativeMode = false;
 
     void togglePointerRelativeMode();
 };

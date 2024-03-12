@@ -76,6 +76,13 @@ operator*(const v3& v, f32 s)
     };
 }
 
+v3&
+v3::operator*=(cf32 s)
+{
+    *this = *this * s;
+    return *this;
+}
+
 f32
 v3Rad(const v3& l, const v3& r)
 {

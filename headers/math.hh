@@ -28,13 +28,14 @@ union v3
     };
     struct
     {
-        f32 v2;
+        f32 xy;
         f32 ignoredZ;
     };
     f32 e[3];
 
     v3& operator+=(const v3& other);
     v3& operator-=(const v3& other);
+    v3& operator*=(cf32 s);
 };
 
 union v4

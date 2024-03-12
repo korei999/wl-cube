@@ -19,7 +19,8 @@ Shader simpleShader;
 
 PlayerControls player {
     .mouse.sens = 0.07,
-    .moveSpeed = 5.0
+    .pos {0.0, 0.0, 0.1},
+    .moveSpeed = 0.2,
 };
 
 GLfloat vCube[][4] {
@@ -80,11 +81,20 @@ setupShaders()
     simpleShader.queryActiveUniforms();
 }
 
+GLuint posBufferObj;
+
 void
 loadVertices()
 {
-    D( glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, vCube) );
+    // bindless option
+    // D( glEnableVertexAttribArray(0) );
+    // D( glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, vCube) );
+
+    D( glGenBuffers(1, &posBufferObj) );
+    D( glBindBuffer(GL_ARRAY_BUFFER, posBufferObj) );
+    D( glBufferData(GL_ARRAY_BUFFER, sizeof(vCube), vCube, GL_STATIC_DRAW) );
     D( glEnableVertexAttribArray(0) );
+    D( glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0) );
 }
 
 void
@@ -99,15 +109,13 @@ setupDraw()
     appState.togglePointerRelativeMode();
 
     D( glEnable(GL_DEPTH_TEST) );
+    D( glDepthFunc(GL_LESS) );
 
     v4 gray = COLOR(0x121212ff);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
 
     loadVertices();
 }
-
-m4 proj = m4Pers(90.0f, (f32)appState.windowWidth / (f32)appState.windowHeight, 0.01f, 100.0f);
-m4 view;
 
 void
 drawFrame(void)
@@ -118,14 +126,14 @@ drawFrame(void)
 
     if (!appState.paused)
     {
-        view = m4LookAt(player.pos, player.pos + player.front, player.up);
-
         D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
 
+        m4 proj = m4Pers(90.0f, (f32)appState.windowWidth / (f32)appState.windowHeight, 0.01f, 100.0f);
+        m4 view = m4LookAt(player.pos, player.pos + player.front, player.up);
         m4 tm = m4Iden();
 
         static f64 inc = 0;
-        tm = m4Scale(tm, 0.5f);
+        tm = m4Scale(tm, 0.05f);
 
         simpleShader.use();
         simpleShader.setM4("proj", proj);
@@ -134,7 +142,7 @@ drawFrame(void)
         for (int i = 0; i < 20; i++)
         {
             tm = m4Trans(tm, {0, (f32)i, 0});
-            tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.25f, 0.25f, 0.25f}));
+            tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.25f, 0.25f, 0.75f}));
 
             simpleShader.setM4("model", tm);
             D( glDrawArrays(GL_TRIANGLES, 0, LEN(vCube)) );
@@ -148,11 +156,11 @@ drawFrame(void)
 static void
 swapFrames()
 {
-    // Register a frame callback to know when we need to draw the next frame
+    /* Register a frame callback to know when we need to draw the next frame */
     wl_callback* callback = wl_surface_frame(appState.surface);
     wl_callback_add_listener(callback, &frameListener, NULL);
 
-    // This will attach a new buffer and commit the surface
+    /* This will attach a new buffer and commit the surface */
     if (!eglSwapBuffers(appState.eglDisplay, appState.eglSurface))
         LOG(FATAL, "eglSwapBuffers failed\n");
 }

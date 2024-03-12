@@ -55,8 +55,7 @@ keyboardKeyHandle(void* data,
     }
 
     pressedKeys[key] = keyState;
-    LOG(OK, "{}: {}\n", key, pressedKeys[key]);
-
+    // LOG(OK, "key: {},\tstate: {}\n", key, pressedKeys[key]);
     procKeysOnce(key, keyState);
 }
 
@@ -93,7 +92,7 @@ pointerEnterHandle(void* data,
     appState.pointerSerial = serial;
 
     LOG(OK, "ENTER\n");
-    if (appState.relativeMode)
+    if (appState.pointerRelativeMode)
         wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
 }
 
