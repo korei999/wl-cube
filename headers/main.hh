@@ -15,8 +15,8 @@ void setupDraw();
 
 struct AppState
 {
-    int windowWidth;
-    int windowHeight;
+    int wWidth;
+    int wHeight;
 
     bool programIsRunning;
 

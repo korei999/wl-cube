@@ -4,8 +4,8 @@
 #include "headers/input.hh"
 
 AppState appState {
-    .windowWidth = 640,
-    .windowHeight = 480,
+    .wWidth = 640,
+    .wHeight = 480,
 
     .programIsRunning = true,
 
@@ -87,11 +87,11 @@ static const xdg_surface_listener xdg_surface_listener = {
 static void
 configureHandle(void* data, xdg_toplevel* xdgToplevel, s32 width, s32 height, wl_array* states)
 {
-    if (width != appState.windowWidth || height != appState.windowHeight)
+    if (width != appState.wWidth || height != appState.wHeight)
     {
         wl_egl_window_resize(appState.eglWindow, width, height, 0, 0);
-        appState.windowWidth = width;
-        appState.windowHeight = height;
+        appState.wWidth = width;
+        appState.wHeight = height;
 
         D(glViewport(0, 0, width, height));
     }
@@ -275,7 +275,7 @@ main(int argc, char* argv[])
     xdg_surface_add_listener(appState.xdgSurface, &xdg_surface_listener, nullptr);
     xdg_toplevel_add_listener(appState.xdgToplevel, &xdg_toplevel_listener, nullptr);
 
-    appState.eglWindow = wl_egl_window_create(appState.surface, appState.windowWidth, appState.windowHeight);
+    appState.eglWindow = wl_egl_window_create(appState.surface, appState.wWidth, appState.wHeight);
     EGLD(appState.eglSurface = eglCreateWindowSurface(appState.eglDisplay, eglConfig, (EGLNativeWindowType)appState.eglWindow, nullptr));
 
     wl_surface_commit(appState.surface);

@@ -1,4 +1,5 @@
 .cache/
+.vscode/
 wayland/
 build/
 compile_commands.json
