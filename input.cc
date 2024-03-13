@@ -4,6 +4,7 @@
 #include "headers/input.hh"
 #include "headers/main.hh"
 #include "headers/utils.hh"
+#include "headers/frame.hh"
 
 void
 keyboardKeymapHandle(void* data,

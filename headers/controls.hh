@@ -1,5 +1,5 @@
 #pragma once
-#include "math.hh"
+#include "gmath.hh"
 #include "input.hh"
 
 #include <vector>
@@ -18,6 +18,9 @@ struct PlayerControls
     v3 right {1, 0, 0};
     const v3 up {0, 1, 0};
 
+    m4 proj {};
+    m4 view {};
+
     f64 deltaTime = 0;
     f64 lastFrameTime = 0;
     f64 moveSpeed = 5.0;
@@ -26,6 +29,8 @@ struct PlayerControls
     void procMouse();
     void procKeys();
     void updateDeltaTime();
+    void updateView();
+    void updateProj(f32 fov, f32 aspect, f32 near, f32 far);
 };
 
 void procKeysOnce(u32 key, u32 keyState);

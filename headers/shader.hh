@@ -1,5 +1,5 @@
 #pragma once
-#include "math.hh"
+#include "gmath.hh"
 
 #include <GLES3/gl3.h>
 #include <string_view>

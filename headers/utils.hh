@@ -1,12 +1,12 @@
 #pragma once
 #include "ultratypes.h"
 
-#include <string_view>
-#include <print>
-#include <GLES3/gl3.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-
+#include <GLES3/gl3.h>
+#include <print>
+#include <string_view>
+#include <vector>
 
 enum LogSeverity : int
 {
@@ -101,3 +101,12 @@ extern EGLint eglLastErrorCode;
         ((hex >> 24) & 0xFF) / 255.0f, ((hex >> 16) & 0xFF) / 255.0f, ((hex >> 8) & 0xFF) / 255.0f,                    \
             (hex & 0xFF) / 255.0f                                                                                      \
     }
+
+inline constexpr size_t
+hashFNV(std::string_view str)
+{
+	size_t hash = 0xCBF29CE484222325;
+	for (size_t i = 0; i < str.size(); i++)
+        hash = (hash ^ str[i]) * 0x100000001B3;
+	return hash;
+}

@@ -1,5 +1,6 @@
 #include "headers/controls.hh"
 #include "headers/main.hh"
+#include "headers/frame.hh"
 #include "headers/utils.hh"
 
 std::vector<int> pressedKeys(300, 0);
@@ -127,4 +128,16 @@ PlayerControls::updateDeltaTime()
     f64 currTime = getTimeSec();
     player.deltaTime = currTime - player.lastFrameTime;
     player.lastFrameTime = currTime;
+}
+
+void 
+PlayerControls::updateView()
+{
+    view = m4LookAt(player.pos, player.pos + player.front, player.up);
+}
+
+void 
+PlayerControls::updateProj(f32 fov, f32 aspect, f32 near, f32 far)
+{
+    proj = m4Pers(fov, aspect, near, far);
 }

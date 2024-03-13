@@ -2,7 +2,7 @@
 #include "../wayland/xdg-shell-client-protocol.h"
 #include "../wayland/pointer-constraints-unstable-v1-protocol.h"
 #include "../wayland/relative-pointer-unstable-v1.h"
-#include "controls.hh"
+#include "ultratypes.h"
 
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
@@ -48,6 +48,4 @@ struct AppState
 };
 
 extern const wl_callback_listener frameListener;
-
-extern PlayerControls player;
 extern AppState appState;

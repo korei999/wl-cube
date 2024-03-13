@@ -5,10 +5,12 @@ ASAN :=
 ASAN += -fsanitize=address
 
 LOGS := -DLOGS
+MODEL := -DMODEL
 
 DEBUG :=
 DEBUG += -DDEBUG 
 DEBUG += $(LOGS)
+# DEBUG += $(MODEL)
 
 WNO := 
 WNO += -Wno-unused-parameter

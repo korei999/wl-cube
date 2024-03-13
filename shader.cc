@@ -1,8 +1,6 @@
 #include "headers/shader.hh"
 #include "headers/utils.hh"
 
-#include <vector>
-
 Shader::Shader(std::string_view vertexPath, std::string_view fragmentPath)
 {
     GLint linked;
@@ -48,8 +46,6 @@ Shader::Shader(Shader&& other)
 void
 Shader::operator=(Shader&& other)
 {
-    LOG(OK, "Shader '{}' moved\n", other.programObj);
-
     this->programObj = other.programObj;
     other.programObj = 0;
 }
