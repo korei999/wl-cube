@@ -16,6 +16,10 @@ struct Vertex
 
 struct Mesh
 {
+    GLuint vao;
+    GLuint vbo;
+    GLuint ebo;
+
     std::vector<Vertex> vs;
     std::vector<GLuint> indices;
 };
@@ -27,7 +31,7 @@ struct Model
     GLuint vbo;
     GLuint ebo;
 
-    std::vector<Mesh> meshes;
+    std::vector<Mesh> ms;
 
     Model() = default;
     Model(std::string_view path);

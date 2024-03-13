@@ -260,9 +260,6 @@ m4Ortho(cf32 l, cf32 r, cf32 b, cf32 t, cf32 n, cf32 f)
 static m4
 m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P)
 {
-    /* NOTE: it has to be initialized anyway, otherwise weird bugs occur. */
-    m4 res = m4Iden();
-
     m4 m0 {.e {
         {R.x,  U.x,  D.x,  0},
         {R.y,  U.y,  D.y,  0},
@@ -270,7 +267,7 @@ m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P)
         {0,    0,    0,    1}
     }};
 
-    return res * (m4Trans(m0, {-P.x, -P.y, -P.z}));
+    return m4Iden() * (m4Trans(m0, {-P.x, -P.y, -P.z}));
 }
 
 m4

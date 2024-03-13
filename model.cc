@@ -154,16 +154,17 @@ Model::parseOBJ(std::string_view path)
 
     /* next we need to compose vertex buffer from faces */
     Mesh buff;
+    buff.vs.reserve(vs.size());
+    buff.indices.reserve(faces.size() * 3);
 
     if (!vts.size())
         vts.push_back({0, 0});
     if (!vns.size())
         vns.push_back({0, 0, 0});
 
-    /* hash face vertex with element buffer index */
     std::unordered_map<VertexPos, GLuint> uniqFaces;
-
     GLuint faceIdx = 0;
+
     for (auto& face : faces)
     {
         /* three vertices for each face */
@@ -173,8 +174,8 @@ Model::parseOBJ(std::string_view path)
             if (p[1] == -1)
                 p[1] = 0;
 
-            auto tried = uniqFaces.try_emplace(p, faceIdx);
-            if (tried.second) /* false if we tried to insert duplicate */
+            auto insTry = uniqFaces.insert({p, faceIdx});
+            if (insTry.second) /* false if we tried to insert duplicate */
             {
                 /* first v3 positions, second v2 textures, last v3 normals */
                 buff.vs.push_back({vs[ p[0] ], vts[ p[1] ], vns[ p[2] ]});
@@ -182,7 +183,7 @@ Model::parseOBJ(std::string_view path)
             }
             else
             {
-                buff.indices.push_back(tried.first->second);
+                buff.indices.push_back(insTry.first->second);
             }
         }
     }

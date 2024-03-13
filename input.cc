@@ -33,8 +33,8 @@ keyboardLeaveHandle(void* data,
                     wl_surface* surface)
 {
     LOG(OK, "KB LEAVE, zeroing input...\n");
-    for (size_t i = 0; i < LEN(pressedKeys); i++)
-        pressedKeys[i] = 0;
+    for (auto& key : pressedKeys)
+        key = 0;
 }
 
 void
@@ -113,8 +113,8 @@ pointerMotionHandle(void* data,
                     wl_fixed_t surfaceX,
                     wl_fixed_t surfaceY)
 {
-    player.mouse.currX = wl_fixed_to_double(surfaceX);
-    player.mouse.currY = wl_fixed_to_double(surfaceY);
+    player.mouse.absX = wl_fixed_to_double(surfaceX);
+    player.mouse.absY = wl_fixed_to_double(surfaceY);
 }
 
 void
@@ -153,6 +153,6 @@ relativePointerHandleMotion(void *data,
 				            wl_fixed_t dxUnaccel,
 				            wl_fixed_t dyUnaccel)
 {
-    player.mouse.currX += wl_fixed_to_int(dxUnaccel);
-    player.mouse.currY += wl_fixed_to_int(dyUnaccel);
+    player.mouse.relX += wl_fixed_to_int(dxUnaccel);
+    player.mouse.relY += wl_fixed_to_int(dyUnaccel);
 }

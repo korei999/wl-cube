@@ -18,11 +18,11 @@ PlayerControls::procMouse()
 {
     if (appState.pointerRelativeMode)
     {
-        auto offsetX = (mouse.currX - mouse.prevX) * mouse.sens;
-        auto offsetY = (mouse.prevY - mouse.currY) * mouse.sens;
+        auto offsetX = (mouse.relX - mouse.prevRelX) * mouse.sens;
+        auto offsetY = (mouse.prevRelY - mouse.relY) * mouse.sens;
 
-        mouse.prevX = mouse.currX;
-        mouse.prevY = mouse.currY;
+        mouse.prevRelX = mouse.relX;
+        mouse.prevRelY = mouse.relY;
 
         mouse.yaw += offsetX;
         mouse.pitch += offsetY;

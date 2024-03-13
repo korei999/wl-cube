@@ -32,6 +32,8 @@ extern GLenum glLastErrorCode;
 extern EGLint eglLastErrorCode;
 
 #define LEN(A) (sizeof(A) / sizeof(A[0]))
+#define ODD(A) (A & 1)
+#define EVEN(A) (!ODD(A))
 
 #ifdef LOGS
 #    define LOG(severity, ...)                                                                                         \

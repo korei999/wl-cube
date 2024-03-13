@@ -11,11 +11,17 @@
 
 struct Mouse
 {
-    f64 prevX = 0;
-    f64 prevY = 0;
+    f64 prevAbsX = 0;
+    f64 prevAbsY = 0;
 
-    f64 currX = 0;
-    f64 currY = 0;
+    f64 prevRelX = 0;
+    f64 prevRelY = 0;
+
+    f64 absX = 0;
+    f64 absY = 0;
+
+    f64 relX = 0;
+    f64 relY = 0;
 
     f64 sens = 0.05;
     f64 yaw = -90.0;

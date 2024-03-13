@@ -7,13 +7,16 @@
 
 static void swapFrames();
 
-Shader simpleShader;
-
 PlayerControls player {
     .mouse.sens = 0.07,
     .pos {0.0, 0.0, 1.0},
     .moveSpeed = 1.0,
 };
+
+Shader simpleShader;
+GLuint posBufferObj;
+Model icosphere;
+Model cube;
 
 static void
 setupShaders()
@@ -22,14 +25,12 @@ setupShaders()
     simpleShader.queryActiveUniforms();
 }
 
-GLuint posBufferObj;
-
-Model cube;
 
 void
 setupModels()
 {
-    cube.loadOBJ("assets/models/backpack/backpack.obj");
+    icosphere = {"assets/models/icosphere/icosphere.obj"};
+    cube = {"assets/models/cube/cube.obj"};
 }
 
 void
@@ -80,7 +81,7 @@ drawFrame(void)
         for (int i = 0; i < 20; i++)
         {
             tm = m4Trans(tm, {0, (f32)i, 0});
-            tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.25f, 0.25f, 0.75f}));
+            tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.25f, 0.50f, 1.00f}));
 
             simpleShader.setM4("model", tm);
             cube.drawMesh();
