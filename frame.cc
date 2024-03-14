@@ -15,13 +15,12 @@ PlayerControls player {
 
 Shader simpleShader;
 GLuint posBufferObj;
-Model icosphere;
-Model cube;
+Model backpack;
 
 static void
 setupShaders()
 {
-    simpleShader = {"shaders/sm.vert", "shaders/ht.frag"};
+    simpleShader = {"shaders/ht.vert", "shaders/ht.frag"};
     simpleShader.queryActiveUniforms();
 }
 
@@ -29,8 +28,8 @@ setupShaders()
 void
 setupModels()
 {
-    icosphere = {"assets/models/icosphere/icosphere.obj"};
-    cube = {"assets/models/cube/cube.obj"};
+    backpack = {"assets/models/backpack/backpack.obj"};
+    // backpack = {"assets/models/pitun/pitun.obj"};
 }
 
 void
@@ -41,8 +40,9 @@ setupDraw()
 
     EGLD( eglSwapInterval(appState.eglDisplay, 0) );
 
-    setupShaders();
     appState.togglePointerRelativeMode();
+    setupShaders();
+    setupModels();
 
     D( glEnable(GL_CULL_FACE) );
     D( glEnable(GL_DEPTH_TEST) );
@@ -50,9 +50,10 @@ setupDraw()
 
     v4 gray = COLOR(0x121212ff);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
-
-    setupModels();
 }
+
+
+f64 incCounter = 0;
 
 void
 drawFrame(void)
@@ -71,23 +72,23 @@ drawFrame(void)
         player.updateView();
         m4 tm = m4Iden();
 
-        static f64 inc = 0;
-        tm = m4Scale(tm, 0.5f);
+        tm = m4Scale(tm, 0.1f);
+        tm = m4Trans(tm, {0.5f, 0.5f, 0.5f});
 
         simpleShader.use();
         simpleShader.setM4("proj", player.proj);
         simpleShader.setM4("view", player.view);
 
-        for (int i = 0; i < 20; i++)
+        for (size_t i = 0; i < backpack.meshes.size(); i++)
         {
-            tm = m4Trans(tm, {0, (f32)i, 0});
-            tm = m4Rot(tm, TO_RAD(inc), v3Norm({0.25f, 0.50f, 1.00f}));
+            tm = m4Trans(tm, v3(sin(incCounter) / 10, -sin(incCounter) / 10, 0));
+            tm = m4Rot(tm, TO_RAD(incCounter), v3(1, 0.5, 0.25));
 
             simpleShader.setM4("model", tm);
-            cube.drawMesh();
+            backpack.draw(i);
         }
 
-        inc += 0.02;
+        incCounter += 0.005;
     }
     swapFrames();
 }

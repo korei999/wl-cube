@@ -33,10 +33,10 @@ PlayerControls::procMouse()
             mouse.pitch = -89.9;
 
         front = v3Norm({
-                (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
-                (f32)sin(TO_RAD(mouse.pitch)),
-                (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
-                });
+            (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
+            (f32)sin(TO_RAD(mouse.pitch)),
+            (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
+        });
 
         right = v3Norm(v3Cross(front, up));
     }
@@ -49,7 +49,7 @@ procKeysOnce(u32 key, u32 keyState)
     {
         case KEY_P:
         case KEY_GRAVE:
-            if (keyState == PRESSED)
+            if (keyState)
             {
                 appState.paused = !appState.paused;
                 if (appState.paused)
@@ -58,7 +58,7 @@ procKeysOnce(u32 key, u32 keyState)
             break;
 
         case KEY_Q:
-            if (keyState == PRESSED)
+            if (keyState)
                 appState.togglePointerRelativeMode();
             break;
 
@@ -66,6 +66,11 @@ procKeysOnce(u32 key, u32 keyState)
         case KEY_CAPSLOCK:
             appState.programIsRunning = false;
             LOG(OK, "quit...\n");
+            break;
+
+        case KEY_R:
+            if (keyState)
+                incCounter = 0;
             break;
 
         default:

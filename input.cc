@@ -23,7 +23,6 @@ keyboardEnterHandle(void* data,
                     wl_surface* surface,
                     wl_array* keys)
 {
-    //
 }
 
 void
@@ -32,7 +31,6 @@ keyboardLeaveHandle(void* data,
                     u32 serial,
                     wl_surface* surface)
 {
-    LOG(OK, "KB LEAVE, zeroing input...\n");
     for (auto& key : pressedKeys)
         key = 0;
 }
@@ -92,7 +90,6 @@ pointerEnterHandle(void* data,
 {
     appState.pointerSerial = serial;
 
-    LOG(OK, "ENTER\n");
     if (appState.pointerRelativeMode)
         wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
 }

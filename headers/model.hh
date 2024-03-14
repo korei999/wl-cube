@@ -26,29 +26,28 @@ struct Mesh
 
 struct Model
 {
-    Mesh m;
-    GLuint vao;
-    GLuint vbo;
-    GLuint ebo;
-
-    std::vector<Mesh> ms;
+    std::vector<Mesh> meshes;
 
     Model() = default;
     Model(std::string_view path);
 
     void loadOBJ(std::string_view path);
-    void drawMesh();
+    void draw();
+    void draw(const Mesh& mesh);
+    void draw(size_t i);
 
 private:
-    Mesh parseOBJ(std::string_view path);
-    void setBuffers();
+    void parseOBJ(std::string_view path);
+    void setBuffers(Mesh& mesh);
 };
 
 inline u64
 hashFaceVertex(const VertexPos& p)
 {
     auto cantorPair = [](int a, int b) -> u64
-    { return ((a + b + 1) * ((a + b) / 2) + b); };
+    {
+        return ((a + b + 1) * ((a + b) / 2) + b);
+    };
 
     return cantorPair(cantorPair(p[0], p[1]), p[2]);
 }

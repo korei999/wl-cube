@@ -10,7 +10,7 @@ MODEL := -DMODEL
 DEBUG :=
 DEBUG += -DDEBUG 
 DEBUG += $(LOGS)
-# DEBUG += $(MODEL)
+DEBUG += $(MODEL)
 
 WNO := 
 WNO += -Wno-unused-parameter
