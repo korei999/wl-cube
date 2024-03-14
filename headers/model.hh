@@ -28,6 +28,7 @@ struct Model
 
     Model() = default;
     Model(std::string_view path);
+    ~Model();
 
     void loadOBJ(std::string_view path);
     void draw();
@@ -36,7 +37,7 @@ struct Model
 
 private:
     void parseOBJ(std::string_view path);
-    /* copy our buffers to the gpu, no need to hold in ram */
+    /* copy buffers to the gpu */
     void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh);
 };
 

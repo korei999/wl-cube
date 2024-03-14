@@ -37,6 +37,8 @@ struct Parser
 
     void nextWord(std::string_view separators);
     void nextWord();
+    void skipWord(std::string_view separators);
+    void skipWord();
     size_t size() const { return file.size(); };
     bool finished();
 

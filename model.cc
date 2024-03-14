@@ -23,6 +23,14 @@ Model::Model(std::string_view path)
     loadOBJ(path);
 }
 
+Model::~Model()
+{
+    if (this->meshes.size())
+    {
+        LOG(OK, "cleaning up vertex buffers...\n");
+    }
+}
+
 void
 Model::parseOBJ(std::string_view path)
 {
@@ -53,7 +61,7 @@ Model::parseOBJ(std::string_view path)
         switch (wordHash)
         {
             case commentHash:
-                parse.nextWord("\n");
+                parse.skipWord("\n");
 #ifdef MODEL
                 LOG(OK, "{}\n", parse.word);
 #endif
@@ -138,15 +146,19 @@ Model::parseOBJ(std::string_view path)
 
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
 
+    /* if no textures or normals just add one with zeros */
     if (!vts.size())
         vts.push_back({});
     if (!vns.size())
         vns.push_back({});
 
     std::unordered_map<VertexPos, GLuint> uniqFaces;
-    std::vector<Vertex> verts(vs.size());
-    std::vector<GLuint> inds(vs.size());
+    std::vector<Vertex> verts;
+    std::vector<GLuint> inds;
+    verts.reserve(vs.size());
+    inds.reserve(vs.size());
 
+    this->meshes.clear();
     for (auto& faces : objects)
     {
         Mesh buff;

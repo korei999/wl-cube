@@ -89,6 +89,21 @@ Parser::nextWord()
     nextWord(defSeps);
 }
 
+void
+Parser::skipWord(std::string_view separators)
+{
+    while (file[end] && !isSeparator(file[end], separators))
+        end++;
+
+    start = end = end + 1;
+}
+
+void
+Parser::skipWord()
+{
+    skipWord(defSeps);
+}
+
 bool
 Parser::finished()
 {

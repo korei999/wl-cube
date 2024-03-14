@@ -28,8 +28,8 @@ setupShaders()
 void
 setupModels()
 {
-    backpack = {"assets/models/backpack/backpack.obj"};
-    // backpack = {"assets/models/cube/cube.obj"};
+    backpack.loadOBJ("assets/models/backpack/backpack.obj");
+    // backpack.loadOBJ("assets/models/cube/cube.obj");
 }
 
 void
@@ -79,22 +79,22 @@ drawFrame(void)
         simpleShader.setM4("proj", player.proj);
         simpleShader.setM4("view", player.view);
 
-        simpleShader.setM4("model", tm);
-        backpack.draw();
+        // simpleShader.setM4("model", tm);
+        // backpack.draw();
 
-        // for (size_t i = 0; i < backpack.meshes.size(); i++)
-        // {
-            // auto time = sin(timeNow());
-            // if (EVEN(i))
-                // tm = m4Trans(tm, v3(time / 5, 0, 0));
-            // else if (i % 3 == 0)
-                // tm = m4Trans(tm, v3(0, time / 5, 0));
-            // else
-                // tm = m4Trans(tm, v3(0, 0, time / 5));
+        for (size_t i = 0; i < backpack.meshes.size(); i++)
+        {
+            auto time = sin(timeNow());
+            if (EVEN(i))
+                tm = m4Trans(tm, v3(time / 5, 0, 0));
+            else if (i % 3 == 0)
+                tm = m4Trans(tm, v3(0, time / 5, 0));
+            else
+                tm = m4Trans(tm, v3(0, 0, time / 5));
 
-            // simpleShader.setM4("model", tm);
-            // backpack.draw(i);
-        // }
+            simpleShader.setM4("model", tm);
+            backpack.draw(i);
+        }
     }
     swapFrames();
 }
