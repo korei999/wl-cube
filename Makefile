@@ -34,8 +34,8 @@ OBJ := $(SRCS:%=$(BD)/%.o)
 
 all: CXX += -flto=full $(SAFE_STACK) 
 all: CC += -flto=full $(SAFE_STACK) 
-all: CXXFLAGS += -g -O3 -march=native $(WARNING) -DNDEBUG
-all: CFLAGS += -g -O3 -march=native $(WARNING) -DNDEBUG
+all: CXXFLAGS += -g -O3 -march=native $(WARNINGS) -DNDEBUG
+all: CFLAGS += -g -O3 -march=native $(WARNINGS) -DNDEBUG
 all: $(EXEC)
 
 debug: CXX += $(ASAN)
@@ -44,11 +44,10 @@ debug: CXXFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
-# rules to build everything
 $(EXEC): $(OBJ) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
+$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
