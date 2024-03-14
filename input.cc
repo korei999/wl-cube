@@ -1,5 +1,5 @@
-#include "wayland/pointer-constraints-unstable-v1-protocol.h"
-#include "wayland/xdg-shell-client-protocol.h"
+#include "wayland/pointer-constraints-unstable-v1.h"
+#include "wayland/xdg-shell.h"
 #include "headers/controls.hh"
 #include "headers/input.hh"
 #include "headers/main.hh"

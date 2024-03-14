@@ -19,7 +19,7 @@ LDFLAGS := $(PKG_LIB) -fuse-ld=lld
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)
 WAYLAND_SCANNER := $(shell pkg-config --variable=wayland_scanner wayland-scanner)
 
-XDG_SHELL_PROTOCOL := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
+XDG_SHELL := $(WAYLAND_PROTOCOLS_DIR)/stable/xdg-shell/xdg-shell.xml
 POINTER_CONSTRAINTS := $(WAYLAND_PROTOCOLS_DIR)/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml
 RELATIVE_POINTER := $(WAYLAND_PROTOCOLS_DIR)/unstable/relative-pointer/relative-pointer-unstable-v1.xml
 
@@ -45,10 +45,10 @@ debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
 # rules to build everything
-$(EXEC): $(OBJ) $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
+$(EXEC): $(OBJ) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell-protocol.c.o $(BD)/pointer-constraints-unstable-v1-protocol.c.o $(BD)/relative-pointer-unstable-v1.c.o
+$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -56,19 +56,19 @@ $(BD)/%.c.o: $(WLD)/%.c
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(WLD)/xdg-shell-client-protocol.h:
+$(WLD)/xdg-shell.h:
 	mkdir -p $(WLD)
-	$(WAYLAND_SCANNER) client-header $(XDG_SHELL_PROTOCOL) $@ 
+	$(WAYLAND_SCANNER) client-header $(XDG_SHELL) $@ 
 
-$(WLD)/xdg-shell-protocol.c: $(WLD)/xdg-shell-client-protocol.h
+$(WLD)/xdg-shell.c: $(WLD)/xdg-shell.h
 	mkdir -p $(WLD)
-	$(WAYLAND_SCANNER) private-code $(XDG_SHELL_PROTOCOL) $@
+	$(WAYLAND_SCANNER) private-code $(XDG_SHELL) $@
 
-$(WLD)/pointer-constraints-unstable-v1-protocol.h:
+$(WLD)/pointer-constraints-unstable-v1.h:
 	mkdir -p $(WLD)
 	$(WAYLAND_SCANNER) client-header $(POINTER_CONSTRAINTS) $@ 
 
-$(WLD)/pointer-constraints-unstable-v1-protocol.c: $(WLD)/pointer-constraints-unstable-v1-protocol.h
+$(WLD)/pointer-constraints-unstable-v1.c: $(WLD)/pointer-constraints-unstable-v1.h
 	mkdir -p $(WLD)
 	$(WAYLAND_SCANNER) private-code $(POINTER_CONSTRAINTS) $@ 
 

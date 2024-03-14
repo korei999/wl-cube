@@ -25,6 +25,7 @@ Model::Model(std::string_view path)
 
 Model::~Model()
 {
+    /* TODO: */
     if (this->meshes.size())
     {
         LOG(OK, "cleaning up vertex buffers...\n");

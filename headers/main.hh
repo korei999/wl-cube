@@ -1,6 +1,6 @@
 #pragma once
-#include "../wayland/xdg-shell-client-protocol.h"
-#include "../wayland/pointer-constraints-unstable-v1-protocol.h"
+#include "../wayland/xdg-shell.h"
+#include "../wayland/pointer-constraints-unstable-v1.h"
 #include "../wayland/relative-pointer-unstable-v1.h"
 #include "ultratypes.h"
 
