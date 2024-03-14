@@ -43,6 +43,7 @@ keyboardKeyHandle(void* data,
                   u32 key,
                   u32 keyState)
 {
+#ifdef DEBUG
     if (key >= pressedKeys.size())
     {
         if (key > 10000)
@@ -52,9 +53,9 @@ keyboardKeyHandle(void* data,
         }
         pressedKeys.resize(key + 1, 0);
     }
+#endif
 
     pressedKeys[key] = keyState;
-    // LOG(OK, "key: {},\tstate: {}\n", key, pressedKeys[key]);
     procKeysOnce(key, keyState);
 }
 
@@ -67,7 +68,7 @@ keyboardModifiersHandle(void* data,
                         u32 modsLocked,
                         u32 group)
 {
-    // LOG(OK, "mods_depressed: {}\tmods_latched: {}\tgroup: {}\n", mods_depressed, mods_latched, group);
+    //
 }
 
 void

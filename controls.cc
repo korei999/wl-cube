@@ -130,7 +130,7 @@ procMovements()
 void
 PlayerControls::updateDeltaTime()
 {
-    f64 currTime = getTimeSec();
+    f64 currTime = getTimeNow();
     player.deltaTime = currTime - player.lastFrameTime;
     player.lastFrameTime = currTime;
 }

@@ -5,6 +5,8 @@
 #include "headers/utils.hh"
 #include "headers/model.hh"
 
+#include <random>
+
 static void swapFrames();
 
 PlayerControls player {
@@ -29,7 +31,7 @@ void
 setupModels()
 {
     backpack = {"assets/models/backpack/backpack.obj"};
-    // backpack = {"assets/models/pitun/pitun.obj"};
+    // backpack = {"assets/models/cube/cube.obj"};
 }
 
 void
@@ -81,14 +83,17 @@ drawFrame(void)
 
         for (size_t i = 0; i < backpack.meshes.size(); i++)
         {
-            tm = m4Trans(tm, v3(sin(incCounter) / 10, -sin(incCounter) / 10, 0));
-            tm = m4Rot(tm, TO_RAD(incCounter), v3Norm({1, 0.5, 0.25}));
+            auto time = sin(getTimeNow());
+            if (EVEN(i))
+                tm = m4Trans(tm, v3(time / 5, 0, 0));
+            else if (i % 3 == 0)
+                tm = m4Trans(tm, v3(0, time / 5, 0));
+            else
+                tm = m4Trans(tm, v3(0, 0, time / 5));
 
             simpleShader.setM4("model", tm);
             backpack.draw(i);
         }
-
-        incCounter += 0.005;
     }
     swapFrames();
 }

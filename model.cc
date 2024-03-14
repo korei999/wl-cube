@@ -15,6 +15,7 @@ constexpr size_t materialHash = hashFNV("Material");
 constexpr size_t sHash = hashFNV("s");
 constexpr size_t offHash = hashFNV("off");
 constexpr size_t newmtlHash = hashFNV("newmtl");
+constexpr size_t commentHash = hashFNV("#");
 
 Model::Model(std::string_view path)
 {
@@ -25,33 +26,7 @@ Model::Model(std::string_view path)
 void
 Model::parseOBJ(std::string_view path)
 {
-    auto file = loadFileToStr(path.data());
-
-    std::string_view seps = " /\n";
-    std::string word;
-    size_t start = 0;
-    size_t end = 0;
-
-    auto isSeparator = [&](char c, std::string_view separotors) -> bool
-    {
-        if (!file[c])
-            return false;
-
-        for (char i : separotors)
-            if (i == c)
-                return true;
-
-        return false;
-    };
-
-    auto nextWord = [&](std::string_view separotors)
-    {
-        while (file[end] && !isSeparator(file[end], separotors))
-            end++;
-
-        word = std::string(file.begin() + start, file.begin() + end);
-        start = end = end + 1;
-    };
+    Parser parse(path, " /\n");
 
     std::vector<v3> vs;
     std::vector<v2> vts;
@@ -68,26 +43,35 @@ Model::parseOBJ(std::string_view path)
         return std::stoi(str);
     };
 
-    v3 tv;
-    std::array<int, 9> tf;
-    while (start < file.size())
+    while (parse.start < parse.size())
     {
-        nextWord(seps);
-        size_t wordHash = hashFNV(word);
+        v3 tv;
+        std::array<int, 9> tf;
+        parse.nextWord();
+        size_t wordHash = hashFNV(parse.word);
+
         switch (wordHash)
         {
+            case commentHash:
+                parse.nextWord("\n");
+#ifdef MODEL
+                LOG(OK, "{}\n", parse.word);
+#endif
+                break;
+
             case oHash:
+                /* give space for new object */
                 objects.push_back({});
                 break;
 
             case vHash:
                 /* get 3 floats */
-                nextWord(seps);
-                tv.x = std::stof(word);
-                nextWord(seps);
-                tv.y = std::stof(word);
-                nextWord(seps);
-                tv.z = std::stof(word);
+                parse.nextWord();
+                tv.x = std::stof(parse.word);
+                parse.nextWord();
+                tv.y = std::stof(parse.word);
+                parse.nextWord();
+                tv.z = std::stof(parse.word);
 #ifdef MODEL
                 LOG(OK, "v {} {} {}\n", tv.x, tv.y, tv.z);
 #endif
@@ -96,10 +80,10 @@ Model::parseOBJ(std::string_view path)
 
             case vtHash:
                 /* get 2 floats */
-                nextWord(seps);
-                tv.x = std::stof(word);
-                nextWord(seps);
-                tv.y = std::stof(word);
+                parse.nextWord();
+                tv.x = std::stof(parse.word);
+                parse.nextWord();
+                tv.y = std::stof(parse.word);
 #ifdef MODEL
                 LOG(OK, "vt {} {}\n", tv.x, tv.y);
 #endif
@@ -108,12 +92,12 @@ Model::parseOBJ(std::string_view path)
 
             case vnHash:
                 /* get 3 floats */
-                nextWord(seps);
-                tv.x = std::stof(word);
-                nextWord(seps);
-                tv.y = std::stof(word);
-                nextWord(seps);
-                tv.z = std::stof(word);
+                parse.nextWord();
+                tv.x = std::stof(parse.word);
+                parse.nextWord();
+                tv.y = std::stof(parse.word);
+                parse.nextWord();
+                tv.z = std::stof(parse.word);
 #ifdef MODEL
                 LOG(OK, "vn {} {} {}\n", tv.x, tv.y, tv.z);
 #endif
@@ -122,24 +106,24 @@ Model::parseOBJ(std::string_view path)
 
             case fHash:
                 /* get 9 ints */
-                nextWord(seps);
-                tf[0] = wordToInt(word) - 1; /* obj faces count from 1 */
-                nextWord(seps);
-                tf[1] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[2] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[3] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[4] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[5] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[6] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[7] = wordToInt(word) - 1;
-                nextWord(seps);
-                tf[8] = wordToInt(word) - 1;
+                parse.nextWord();
+                tf[0] = wordToInt(parse.word) - 1; /* obj faces count from 1 */
+                parse.nextWord();
+                tf[1] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[2] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[3] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[4] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[5] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[6] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[7] = wordToInt(parse.word) - 1;
+                parse.nextWord();
+                tf[8] = wordToInt(parse.word) - 1;
 #ifdef MODEL
                 LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
 #endif

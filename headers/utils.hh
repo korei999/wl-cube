@@ -17,8 +17,29 @@ enum LogSeverity : int
     FATAL
 };
 
-std::vector<char> loadFileToStr(const std::string_view path, size_t addBytes = 1);
-f64 getTimeSec();
+std::vector<char> loadFile(std::string_view path, size_t addBytes = 1);
+f64 getTimeNow();
+
+struct Parser
+{
+    std::string word;
+    size_t start = 0;
+    size_t end = 0;
+
+    Parser(std::string_view path, std::string_view defaultSeparators, size_t addBytes = 1);
+
+    char& operator[](size_t i) { return file[i]; };
+
+    void nextWord(std::string_view separators);
+    void nextWord();
+    size_t size() const { return file.size(); };
+
+private:
+    std::vector<char> file;
+    std::string_view defSeps;
+
+    bool isSeparator(char c, std::string_view separators);
+};
 
 const std::string_view severityStr[FATAL + 1] {
     "",
