@@ -247,37 +247,39 @@ Model::loadOBJ(std::string_view path)
 void
 Model::setBuffers(Mesh& mesh)
 {
-	D( glGenVertexArrays(1, &mesh.vao) );
-	D( glBindVertexArray(mesh.vao) );
+    auto vsData = mesh.vs.data();
+    auto inData = mesh.indices.data();
 
-	D( glGenBuffers(1, &mesh.vbo) );
-	D( glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo) );
-	D( glBufferData(GL_ARRAY_BUFFER, mesh.vs.size() * sizeof(*mesh.vs.data()), mesh.vs.data(), GL_STATIC_DRAW) );
+    D( glGenVertexArrays(1, &mesh.vao) );
+    D( glBindVertexArray(mesh.vao) );
 
-	D( glGenBuffers(1, &mesh.ebo) );
-	D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo) );
-	D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(*mesh.indices.data()), mesh.indices.data(), GL_STATIC_DRAW) );
+    D( glGenBuffers(1, &mesh.vbo) );
+    D( glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo) );
+    D( glBufferData(GL_ARRAY_BUFFER, mesh.vs.size() * sizeof(*vsData), vsData, GL_STATIC_DRAW) );
+
+    D( glGenBuffers(1, &mesh.ebo) );
+    D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo) );
+    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(*inData), inData, GL_STATIC_DRAW) );
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
-    auto data = mesh.vs.data();
-	/* positions */
-	D( glEnableVertexAttribArray(0) );
-	D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, sizeof(*data), (void*)0) );
-	/* texture coords */
-	D (glEnableVertexAttribArray(1) );
-	D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, sizeof(*data), (void*)(sizeof(f32) * v3Size)) );
-	/* normals */
-	D( glEnableVertexAttribArray(2) );
-	D( glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, sizeof(*data), (void*)(sizeof(f32) * (v3Size + v2Size))) );
+    /* positions */
+    D( glEnableVertexAttribArray(0) );
+    D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)0) );
+    /* texture coords */
+    D (glEnableVertexAttribArray(1) );
+    D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * v3Size)) );
+    /* normals */
+    D( glEnableVertexAttribArray(2) );
+    D( glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * (v3Size + v2Size))) );
 
-	D( glBindVertexArray(0) );
+    D( glBindVertexArray(0) );
 }
 
 void
 Model::draw()
 {
-    for (auto& mesh : this->meshes)
+    for (auto& mesh : meshes)
     {
         D( glBindVertexArray(mesh.vao) );
         D( glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0) );

@@ -82,7 +82,7 @@ drawFrame(void)
         for (size_t i = 0; i < backpack.meshes.size(); i++)
         {
             tm = m4Trans(tm, v3(sin(incCounter) / 10, -sin(incCounter) / 10, 0));
-            tm = m4Rot(tm, TO_RAD(incCounter), v3(1, 0.5, 0.25));
+            tm = m4Rot(tm, TO_RAD(incCounter), v3Norm({1, 0.5, 0.25}));
 
             simpleShader.setM4("model", tm);
             backpack.draw(i);
