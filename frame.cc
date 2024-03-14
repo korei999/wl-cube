@@ -28,8 +28,7 @@ setupShaders()
 void
 setupModels()
 {
-    // backpack = {"assets/models/backpack/backpack.obj"};
-    backpack = {"/home/korei/Downloads/6e48z1kc7r40-bugatti_/bugatti/bugatti.obj"};
+    backpack = {"assets/models/backpack/backpack.obj"};
     // backpack = {"assets/models/cube/cube.obj"};
 }
 
