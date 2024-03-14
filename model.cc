@@ -57,12 +57,7 @@ Model::parseOBJ(std::string_view path)
     std::vector<v2> vts;
     std::vector<v3> vns;
 
-    // std::vector<std::vector<v3>> vss;
-    // std::vector<std::vector<v2>> vtss;
-    // std::vector<std::vector<v3>> vnss;
-
     using Face = std::vector<std::array<int, 9>>;
-    // Face faces;
     std::vector<Face> objects;
 
     auto wordToInt = [](const std::string& str)
@@ -73,7 +68,6 @@ Model::parseOBJ(std::string_view path)
         return std::stoi(str);
     };
 
-    // long objIndex = -1;
     v3 tv;
     std::array<int, 9> tf;
     while (start < file.size())
@@ -83,12 +77,6 @@ Model::parseOBJ(std::string_view path)
         switch (wordHash)
         {
             case oHash:
-                // nextWord(".");
-                // LOG(OK, "{}\n", word);
-                // nextWord(seps);
-                // LOG(OK, "{}\n", word);
-
-                // objIndex++;
                 objects.push_back({});
                 break;
 
@@ -101,10 +89,8 @@ Model::parseOBJ(std::string_view path)
                 nextWord(seps);
                 tv.z = std::stof(word);
 #ifdef MODEL
-                // LOG(OK, "v {} {} {}\n", tv.x, tv.y, tv.z);
+                LOG(OK, "v {} {} {}\n", tv.x, tv.y, tv.z);
 #endif
-                // vss[objIndex].push_back(tv);
-
                 vs.push_back(tv);
                 break;
 
@@ -115,10 +101,8 @@ Model::parseOBJ(std::string_view path)
                 nextWord(seps);
                 tv.y = std::stof(word);
 #ifdef MODEL
-                // LOG(OK, "vt {} {}\n", tv.x, tv.y);
+                LOG(OK, "vt {} {}\n", tv.x, tv.y);
 #endif
-                // vtss[objIndex].push_back(tv.xy);
-
                 vts.push_back(tv.xy);
                 break;
 
@@ -131,10 +115,8 @@ Model::parseOBJ(std::string_view path)
                 nextWord(seps);
                 tv.z = std::stof(word);
 #ifdef MODEL
-                // LOG(OK, "vn {} {} {}\n", tv.x, tv.y, tv.z);
+                LOG(OK, "vn {} {} {}\n", tv.x, tv.y, tv.z);
 #endif
-                // vnss[objIndex].push_back(tv);
-
                 vns.push_back(tv);
                 break;
 
@@ -159,12 +141,9 @@ Model::parseOBJ(std::string_view path)
                 nextWord(seps);
                 tf[8] = wordToInt(word) - 1;
 #ifdef MODEL
-                // LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
+                LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
 #endif
-                // objects[objIndex].push_back(tf);
                 objects.back().push_back(tf);
-
-                // faces.push_back(tf);
                 break;
 
             default:
@@ -173,9 +152,7 @@ Model::parseOBJ(std::string_view path)
         }
     }
 
-#ifdef MODEL
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
-#endif
 
     /* TODO: this still might be usefull */
     // buff.vs.reserve(vs.size());
