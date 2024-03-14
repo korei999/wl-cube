@@ -2,9 +2,43 @@
 
 #include <fstream>
 #include <chrono>
+#include <random>
+
+static std::mt19937 rngCreate();
 
 GLenum glLastErrorCode = 0;
 EGLint eglLastErrorCode = EGL_SUCCESS;
+
+static std::mt19937 mt {rngCreate()};
+
+static std::mt19937
+rngCreate()
+{
+    std::random_device rd {};
+    std::seed_seq ss {
+        (std::seed_seq::result_type)(timeNow()), rd(), rd(), rd(), rd(), rd(), rd(), rd()
+    };
+
+    return std::mt19937(ss);
+}
+
+int
+rngGet(int min, int max)
+{
+    return std::uniform_int_distribution {min, max}(mt);
+}
+
+int
+rngGet()
+{
+    return std::uniform_int_distribution {INT_MIN, INT_MAX}(mt);
+}
+
+f32
+rngGet(f32 min, f32 max)
+{
+    return std::uniform_real_distribution {min, max}(mt);
+}
 
 std::vector<char>
 loadFile(std::string_view path, size_t addBytes)
@@ -24,7 +58,7 @@ loadFile(std::string_view path, size_t addBytes)
 }
 
 f64
-getTimeNow()
+timeNow()
 {
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::duration<f64> fsec;

@@ -18,7 +18,10 @@ enum LogSeverity : int
 };
 
 std::vector<char> loadFile(std::string_view path, size_t addBytes = 1);
-f64 getTimeNow();
+f64 timeNow();
+int rngGet(int min, int max);
+int rngGet();
+f32 rngGet(f32 min, f32 max);
 
 struct Parser
 {

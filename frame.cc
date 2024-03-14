@@ -5,8 +5,6 @@
 #include "headers/utils.hh"
 #include "headers/model.hh"
 
-#include <random>
-
 static void swapFrames();
 
 PlayerControls player {
@@ -83,7 +81,7 @@ drawFrame(void)
 
         for (size_t i = 0; i < backpack.meshes.size(); i++)
         {
-            auto time = sin(getTimeNow());
+            auto time = sin(timeNow());
             if (EVEN(i))
                 tm = m4Trans(tm, v3(time / 5, 0, 0));
             else if (i % 3 == 0)
