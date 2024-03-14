@@ -265,7 +265,7 @@ main(int argc, char* argv[])
     appState.xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, appState.surface);
     appState.xdgToplevel = xdg_surface_get_toplevel(appState.xdgSurface);
 
-    std::vector<char> nameStr = loadFile("name", 1);
+    std::vector<char> nameStr = fileLoad("name", 1);
     nameStr[nameStr.size() - 2] = '\0'; /* remove '\n' */
     appState.nameStr = nameStr.data();
 

@@ -43,7 +43,7 @@ Model::parseOBJ(std::string_view path)
         return std::stoi(str);
     };
 
-    while (parse.start < parse.size())
+    while (!parse.finished())
     {
         v3 tv;
         std::array<int, 9> tf;
@@ -138,51 +138,19 @@ Model::parseOBJ(std::string_view path)
 
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
 
-    /* TODO: this still might be usefull */
-    // buff.vs.reserve(vs.size());
-    // buff.indices.reserve(faces.size() * 3);
-
-    // if (!vts.size())
-        // vts.push_back({0, 0});
-    // if (!vns.size())
-        // vns.push_back({0, 0, 0});
-
-    // for (auto& face : faces)
-    // {
-        // /* three vertices for each face */
-        // for (size_t i = 0; i < face.size(); i += 3)
-        // {
-            // VertexPos p {face[i], face[i + 1], face[i + 2]};
-            // if (p[1] == -1)
-                // p[1] = 0;
-
-            // auto insTry = uniqFaces.insert({p, faceIdx});
-            // if (insTry.second) /* false if we tried to insert duplicate */
-            // {
-                // /* first v3 positions, second v2 textures, last v3 normals */
-                // buff.vs.push_back({vs[ p[0] ], vts[ p[1] ], vns[ p[2] ]});
-                // buff.indices.push_back(faceIdx++);
-            // }
-            // else
-            // {
-                // buff.indices.push_back(insTry.first->second);
-            // }
-        // }
-    // }
-
     if (!vts.size())
         vts.push_back({});
     if (!vns.size())
         vns.push_back({});
 
     std::unordered_map<VertexPos, GLuint> uniqFaces;
+    std::vector<Vertex> verts(vs.size());
+    std::vector<GLuint> inds(vs.size());
 
     for (auto& faces : objects)
     {
         Mesh buff;
         GLuint faceIdx = 0;
-        buff.vs.reserve(vs.size());
-        buff.indices.reserve(faces.size() * 3);
 
         for (auto& face : faces)
         {
@@ -197,20 +165,23 @@ Model::parseOBJ(std::string_view path)
                 if (insTry.second) /* false if we tried to insert duplicate */
                 {
                     /* first v3 positions, second v2 textures, last v3 normals */
-                    buff.vs.push_back({vs[ p[0] ], vts[ p[1] ], vns[ p[2] ]});
-                    buff.indices.push_back(faceIdx++);
+                    verts.push_back({vs[ p[0] ], vts[ p[1] ], vns[ p[2] ]});
+                    inds.push_back(faceIdx++);
                 }
                 else
                 {
-                    buff.indices.push_back(insTry.first->second);
+                    inds.push_back(insTry.first->second);
                 }
             }
         }
-        buff.vs.shrink_to_fit();
-        buff.indices.shrink_to_fit();
+        setBuffers(verts, inds, buff);
+        buff.eboSize = inds.size();
 
-        this->meshes.push_back(std::move(buff));
-        setBuffers(meshes.back());
+        this->meshes.push_back(buff);
+
+        /* do not forget to clear buffers */
+        verts.clear();
+        inds.clear();
     }
     this->meshes.shrink_to_fit();
 }
@@ -229,21 +200,21 @@ Model::loadOBJ(std::string_view path)
 }
 
 void
-Model::setBuffers(Mesh& mesh)
+Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m)
 {
-    auto vsData = mesh.vs.data();
-    auto inData = mesh.indices.data();
+    auto vsData = verts.data();
+    auto inData = inds.data();
 
-    D( glGenVertexArrays(1, &mesh.vao) );
-    D( glBindVertexArray(mesh.vao) );
+    D( glGenVertexArrays(1, &m.vao) );
+    D( glBindVertexArray(m.vao) );
 
-    D( glGenBuffers(1, &mesh.vbo) );
-    D( glBindBuffer(GL_ARRAY_BUFFER, mesh.vbo) );
-    D( glBufferData(GL_ARRAY_BUFFER, mesh.vs.size() * sizeof(*vsData), vsData, GL_STATIC_DRAW) );
+    D( glGenBuffers(1, &m.vbo) );
+    D( glBindBuffer(GL_ARRAY_BUFFER, m.vbo) );
+    D( glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(*vsData), vsData, GL_STATIC_DRAW) );
 
-    D( glGenBuffers(1, &mesh.ebo) );
-    D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.ebo) );
-    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(*inData), inData, GL_STATIC_DRAW) );
+    D( glGenBuffers(1, &m.ebo) );
+    D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m.ebo) );
+    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(*inData), inData, GL_STATIC_DRAW) );
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
@@ -260,13 +231,14 @@ Model::setBuffers(Mesh& mesh)
     D( glBindVertexArray(0) );
 }
 
+
 void
 Model::draw()
 {
     for (auto& mesh : meshes)
     {
         D( glBindVertexArray(mesh.vao) );
-        D( glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0) );
+        D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, 0) );
     }
 }
 
@@ -274,12 +246,12 @@ void
 Model::draw(const Mesh& mesh)
 {
     D( glBindVertexArray(mesh.vao) );
-    D( glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0) );
+    D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, 0) );
 }
 
 void
 Model::draw(size_t i)
 {
     D( glBindVertexArray(meshes[i].vao) );
-    D( glDrawElements(GL_TRIANGLES, meshes[i].indices.size(), GL_UNSIGNED_INT, 0) );
+    D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, 0) );
 }

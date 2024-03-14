@@ -19,9 +19,7 @@ struct Mesh
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
-
-    std::vector<Vertex> vs;
-    std::vector<GLuint> indices;
+    GLuint eboSize;
 };
 
 struct Model
@@ -38,7 +36,8 @@ struct Model
 
 private:
     void parseOBJ(std::string_view path);
-    void setBuffers(Mesh& mesh);
+    /* copy our buffers to the gpu, no need to hold in ram */
+    void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh);
 };
 
 inline u64

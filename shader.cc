@@ -69,7 +69,7 @@ Shader::loadShader(GLenum type, std::string_view path)
     if (!shader)
         return 0;
 
-    const auto src = loadFile(path);
+    const auto src = fileLoad(path);
     const char* srcData = src.data();
 
     D( glShaderSource(shader, 1, &srcData, nullptr) );

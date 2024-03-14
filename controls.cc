@@ -7,12 +7,6 @@ std::vector<int> pressedKeys(300, 0);
 
 static void procMovements();
 
-m4 
-PlayerControls::getLookAt()
-{
-    return m4LookAt(this->pos, this->pos + this->front, this->up);
-}
-
 void
 PlayerControls::procMouse()
 {

@@ -17,7 +17,7 @@ enum LogSeverity : int
     FATAL
 };
 
-std::vector<char> loadFile(std::string_view path, size_t addBytes = 1);
+std::vector<char> fileLoad(std::string_view path, size_t addBytes = 1);
 f64 timeNow();
 int rngGet(int min, int max);
 int rngGet();
@@ -26,6 +26,8 @@ f32 rngGet(f32 min, f32 max);
 struct Parser
 {
     std::string word;
+    std::string_view defSeps;
+    std::vector<char> file;
     size_t start = 0;
     size_t end = 0;
 
@@ -36,11 +38,9 @@ struct Parser
     void nextWord(std::string_view separators);
     void nextWord();
     size_t size() const { return file.size(); };
+    bool finished();
 
 private:
-    std::vector<char> file;
-    std::string_view defSeps;
-
     bool isSeparator(char c, std::string_view separators);
 };
 

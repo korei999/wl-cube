@@ -41,7 +41,7 @@ rngGet(f32 min, f32 max)
 }
 
 std::vector<char>
-loadFile(std::string_view path, size_t addBytes)
+fileLoad(std::string_view path, size_t addBytes)
 {
     std::ifstream file(path, std::ios::ate | std::ios::binary);
     if (!file.is_open())
@@ -70,7 +70,7 @@ timeNow()
 Parser::Parser(std::string_view path, std::string_view defaultSeparators, size_t addBytes)
     : defSeps(defaultSeparators)
 {
-    file = loadFile(path, addBytes);
+    file = fileLoad(path, addBytes);
 }
 
 void
@@ -87,6 +87,12 @@ void
 Parser::nextWord()
 {
     nextWord(defSeps);
+}
+
+bool
+Parser::finished()
+{
+    return start >= size();
 }
 
 bool
