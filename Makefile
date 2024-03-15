@@ -47,7 +47,7 @@ debug: $(EXEC)
 $(EXEC): $(OBJ) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk
+$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -56,27 +56,27 @@ $(BD)/%.c.o: $(WLD)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(WLD)/xdg-shell.h:
-	mkdir -p $(WLD)
+	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) client-header $(XDG_SHELL) $@ 
 
 $(WLD)/xdg-shell.c: $(WLD)/xdg-shell.h
-	mkdir -p $(WLD)
+	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(XDG_SHELL) $@
 
 $(WLD)/pointer-constraints-unstable-v1.h:
-	mkdir -p $(WLD)
+	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) client-header $(POINTER_CONSTRAINTS) $@ 
 
 $(WLD)/pointer-constraints-unstable-v1.c: $(WLD)/pointer-constraints-unstable-v1.h
-	mkdir -p $(WLD)
+	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(POINTER_CONSTRAINTS) $@ 
 
 $(WLD)/relative-pointer-unstable-v1.h:
-	mkdir -p $(WLD)
+	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) client-header $(RELATIVE_POINTER) $@ 
 
 $(WLD)/relative-pointer-unstable-v1.c: $(WLD)/relative-pointer-unstable-v1.h
-	mkdir -p $(WLD)
+	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(RELATIVE_POINTER) $@ 
 
 .PHONY: clean
