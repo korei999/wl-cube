@@ -113,7 +113,7 @@ Shader::queryActiveUniforms()
 
     for (int i = 0; i < nUniforms; i++)
     {
-        GLint size, location;
+        GLint size;
         GLenum type;
         std::string_view typeName;
 

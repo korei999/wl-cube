@@ -8,12 +8,12 @@ WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-brac
 
 include debug.mk
 
-PGKS := egl glesv2 wayland-client wayland-egl
-PKG := $(shell pkg-config --cflags $(PGKS))
-PKG_LIB := $(shell pkg-config --libs $(PGKS))
+PKGS := egl glesv2 wayland-client wayland-egl
+PKG := $(shell pkg-config --cflags $(PKGS))
+PKG_LIB := $(shell pkg-config --libs $(PKGS))
 
 CXXFLAGS := -std=c++23 $(PKG)
-CFLAGS := -std=c2x $(PGK)
+CFLAGS := -std=c2x $(PKG)
 LDFLAGS := $(PKG_LIB) -fuse-ld=lld
 
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)
