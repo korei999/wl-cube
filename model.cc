@@ -144,7 +144,6 @@ Model::parseOBJ(std::string_view path)
                 break;
         }
     }
-
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
 
     /* if no textures or normals just add one with zeros */
