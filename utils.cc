@@ -42,7 +42,7 @@ rngGet(f32 min, f32 max)
 }
 
 void
-flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
+flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
 {
     int f = flip ? -(height - 1) : 0;
     int inc = flip ? 2 : 0;
@@ -54,7 +54,6 @@ flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
     {
         for (int c = 0; c < width; c++)
         {
-            /* bmp's are BGRA and we need RGBA */
             u32 t = s[r, c];
             u32 R =   t & 0x00FF0000; /* ARGB */
             u32 B =   t & 0x000000FF;
@@ -66,7 +65,7 @@ flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
 };
 
 void
-flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip)
+flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip)
 {
     int f = flip ? -(height - 1) : 0;
     int inc = flip ? 2 : 0;
@@ -78,7 +77,6 @@ flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip)
     {
         for (int r = 0; r < width; r++)
         {
-            /* bmp's are BGRA and we need RGBA */
             d[c - f, r, 0] = s[c, r, 2];
             d[c - f, r, 1] = s[c, r, 1];
             d[c - f, r, 2] = s[c, r, 0];

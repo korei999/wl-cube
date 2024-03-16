@@ -111,9 +111,9 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
 
     if (format == GL_RGBA)
-        flipcpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
+        flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
     else
-        flipcpyBGRtoRGB((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
+        flipCpyBGRtoRGB((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
 
     setTexture((u8*)pixels.data(), texMode, format, width, height);
 

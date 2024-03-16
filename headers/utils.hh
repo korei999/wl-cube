@@ -22,8 +22,8 @@ f64 timeNow();
 int rngGet(int min, int max);
 int rngGet();
 f32 rngGet(f32 min, f32 max);
-void flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip);
-void flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip);
+void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip);
+void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip);
 
 template <typename type>
 type

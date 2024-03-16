@@ -10,15 +10,11 @@ uniform mat4 model;
 
 uniform vec3 lightPos;
 
-out vec4 outColor;
 out vec2 outTexCoords;
 
 void
 main()
 {
-    float dist = distance(lightPos, vPos);
-    vec3 dv = vec3(dist, dist, dist);
-    outColor = mix(vec4(dv, 1.0), vec4(lightPos, 1.0), 0.8);
     outTexCoords = vTex;
     gl_Position = proj * view * model * vec4(vPos, 1.0);
 }
