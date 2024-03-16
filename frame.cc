@@ -15,10 +15,11 @@ PlayerControls player {
 Shader simpleShader;
 Shader lightShader;
 GLuint posBufferObj;
-Model backpack;
+Model hl;
 Model cube;
 u32 tex;
-Texture backTex;
+Texture body;
+Texture face;
 
 static void
 setupShaders()
@@ -31,10 +32,12 @@ void
 setupModels()
 {
     // backpack.loadOBJ("test_assets/models/backpack/backpack.obj");
-    backpack.loadOBJ("/run/media/korei/860evo/GL/Triangle/resourses/model/backpack/backpack.obj");
+    hl.loadOBJ("/home/korei/Documents/hl1/hl1.obj");
     cube.loadOBJ("test_assets/models/cube/cube.obj");
 
-    backTex.loadBMP("/run/media/korei/860evo/GL/Triangle/resourses/model/backpack/diffuse.bmp");
+    // backTex.loadBMP("/run/media/korei/860evo/GL/Triangle/resourses/model/backpack/diffuse.bmp");
+    body.loadBMP("/home/korei/Documents/hl1/DM_Base.bmp");
+    face.loadBMP("/home/korei/Documents/hl1/DM_Face.bmp");
 }
 
 void
@@ -80,31 +83,23 @@ drawFrame(void)
         v3 lightPos {(f32)sin(incCounter) * 2, 2.0, -3.0};
         m4 lightTm = m4Iden();
 
-        tm = m4Scale(tm, 0.1f);
+        tm = m4Scale(tm, 0.01f);
         tm = m4Trans(tm, {0.5f, 0.5f, 0.5f});
 
         lightShader.use();
         lightShader.setM4("proj", player.proj);
         lightShader.setM4("view", player.view);
         lightShader.setM4("model", tm);
-
         lightShader.setV3("lightPos", lightPos);
-        backTex.use();
-        backpack.draw();
 
-        // for (size_t i = 0; i < backpack.meshes.size(); i++)
-        // {
-            // auto time = sin(incCounter);
-            // if (EVEN(i))
-                // tm = m4Trans(tm, v3(time / 5, 0, 0));
-            // else if (i % 3 == 0)
-                // tm = m4Trans(tm, v3(0, time / 2.5, 0));
-            // else
-                // tm = m4Trans(tm, v3(0, 0, time));
+        body.use();
+        hl.draw(1);
 
-            // lightShader.setM4("model", tm);
-            // backpack.draw(i);
-        // }
+        tm = m4RotY(tm, incCounter);
+        lightShader.setM4("model", tm);
+
+        face.use();
+        hl.draw(0);
 
         lightTm = m4Trans(lightTm, lightPos);
         lightTm = m4Scale(lightTm, 0.05f);

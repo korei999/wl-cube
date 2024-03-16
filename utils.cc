@@ -42,39 +42,47 @@ rngGet(f32 min, f32 max)
 }
 
 void
-flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height)
+flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
 {
+    int f = flip ? -(height - 1) : 0;
+    int inc = flip ? 2 : 0;
+
     auto d = std::mdspan(dest, width, height, 4);
     auto s = std::mdspan(src, width, height, 4);
 
-    for (int i = 0; i < height; i++)
+    for (int c = 0; c < height; c++)
     {
-        for (int j = 0; j < width; j++)
+        for (int r = 0; r < width; r++)
         {
             /* bmp's are BGRA and we need RGBA */
-            d[height - 1 - i, j, 0] = s[i, j, 2];
-            d[height - 1 - i, j, 1] = s[i, j, 1];
-            d[height - 1 - i, j, 2] = s[i, j, 0];
-            d[height - 1 - i, j, 3] = s[i, j, 3];
+            d[c - f, r, 0] = s[c, r, 2];
+            d[c - f, r, 1] = s[c, r, 1];
+            d[c - f, r, 2] = s[c, r, 0];
+            d[c - f, r, 3] = s[c, r, 3];
         }
+        f += inc;
     }
 };
 
 void
-flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height)
+flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip)
 {
+    int f = flip ? -(height - 1) : 0;
+    int inc = flip ? 2 : 0;
+
     auto d = std::mdspan(dest, width, height, 3);
     auto s = std::mdspan(src, width, height, 3);
 
-    for (int i = 0; i < height; i++)
+    for (int c = 0; c < height; c++)
     {
-        for (int j = 0; j < width; j++)
+        for (int r = 0; r < width; r++)
         {
             /* bmp's are BGRA and we need RGBA */
-            d[height - 1 - i, j, 0] = s[i, j, 2];
-            d[height - 1 - i, j, 1] = s[i, j, 1];
-            d[height - 1 - i, j, 2] = s[i, j, 0];
+            d[c - f, r, 0] = s[c, r, 2];
+            d[c - f, r, 1] = s[c, r, 1];
+            d[c - f, r, 2] = s[c, r, 0];
         }
+        f += inc;
     }
 };
 
