@@ -1,5 +1,6 @@
 #include "headers/utils.hh"
 
+#include <mdspan>
 #include <fstream>
 #include <chrono>
 #include <random>
@@ -40,10 +41,47 @@ rngGet(f32 min, f32 max)
     return std::uniform_real_distribution {min, max}(mt);
 }
 
+void
+flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height)
+{
+    auto d = std::mdspan(dest, width, height, 4);
+    auto s = std::mdspan(src, width, height, 4);
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            /* bmp's are BGRA and we need RGBA */
+            d[height - 1 - i, j, 0] = s[i, j, 2];
+            d[height - 1 - i, j, 1] = s[i, j, 1];
+            d[height - 1 - i, j, 2] = s[i, j, 0];
+            d[height - 1 - i, j, 3] = s[i, j, 3];
+        }
+    }
+};
+
+void
+flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height)
+{
+    auto d = std::mdspan(dest, width, height, 3);
+    auto s = std::mdspan(src, width, height, 3);
+
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            /* bmp's are BGRA and we need RGBA */
+            d[height - 1 - i, j, 0] = s[i, j, 2];
+            d[height - 1 - i, j, 1] = s[i, j, 1];
+            d[height - 1 - i, j, 2] = s[i, j, 0];
+        }
+    }
+};
+
 std::vector<char>
 fileLoad(std::string_view path, size_t addBytes)
 {
-    std::ifstream file(path, std::ios::ate | std::ios::binary);
+    std::ifstream file(path, std::ios::in | std::ios::ate | std::ios::binary);
     if (!file.is_open())
         LOG(FATAL, "failed to open file: {}\n", path);
 
@@ -102,6 +140,58 @@ void
 Parser::skipWord()
 {
     skipWord(defSeps);
+}
+
+void 
+Parser::skipBytes(size_t n)
+{
+    start = end = end + n;
+}
+
+std::string
+Parser::readString(size_t size)
+{
+    std::string ret(file.begin() + start, file.begin() + start + size);
+    start = end = end + size;
+    return ret;
+}
+
+u8
+Parser::read8()
+{
+    auto ret = readTypeBytes<u8>(file, start);
+    start = end = end + 1;
+    return ret;
+}
+
+u16
+Parser::read16()
+{
+    auto ret = readTypeBytes<u16>(file, start);
+    start = end = end + 2;
+    return ret;
+}
+
+u32
+Parser::read32()
+{
+    auto ret = readTypeBytes<u32>(file, start);
+    start = end = end + 4;
+    return ret;
+}
+
+u64
+Parser::read64()
+{
+    auto ret = readTypeBytes<u64>(file, start);
+    start = end = end + 8;
+    return ret;
+}
+
+void
+Parser::setPos(size_t p)
+{
+    start = end = p;
 }
 
 bool

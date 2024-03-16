@@ -33,7 +33,7 @@ static wl_compositor* compositor = nullptr;
 static xdg_wm_base* xdgWmBase = nullptr;
 static u32 xdgConfigureSerial = 0;
 
-static const zwp_relative_pointer_v1_listener relativePointerListener = {
+static const zwp_relative_pointer_v1_listener relativePointerListener {
 	.relative_motion = relativePointerHandleMotion
 };
 
@@ -70,7 +70,7 @@ frameHandleDone(void* data, wl_callback* callback, u32 time)
     drawFrame();
 }
 
-const wl_callback_listener frameListener = {
+const wl_callback_listener frameListener {
     .done = frameHandleDone,
 };
 
@@ -80,7 +80,7 @@ xdgSurfaceHandleConfigure(void* data, xdg_surface* xdg_surface, u32 serial)
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
-static const xdg_surface_listener xdg_surface_listener = {
+static const xdg_surface_listener xdgSurfaceListener {
     .configure = xdgSurfaceHandleConfigure,
 };
 
@@ -147,7 +147,7 @@ seatHandleCapabilities(void* data, wl_seat* seat, u32 capabilities)
     }
 }
 
-static const wl_seat_listener seatListener = {
+static const wl_seat_listener seatListener {
     .capabilities = seatHandleCapabilities,
 };
 
@@ -187,13 +187,26 @@ handleGlobalRemove(void* data, wl_registry* registry, u32 name)
     // Who cares
 }
 
-static const wl_registry_listener registryListener = {
+static const wl_registry_listener registryListener {
     .global = handleGlobal,
     .global_remove = handleGlobalRemove,
 };
 
+
+void
+swapFrames()
+{
+    /* Register a frame callback to know when we need to draw the next frame */
+    wl_callback* callback = wl_surface_frame(appState.surface);
+    wl_callback_add_listener(callback, &frameListener, NULL);
+
+    /* This will attach a new buffer and commit the surface */
+    if (!eglSwapBuffers(appState.eglDisplay, appState.eglSurface))
+        LOG(FATAL, "eglSwapBuffers failed\n");
+}
+
 int
-main(int argc, char* argv[])
+main()
 {
     wl_display* display = wl_display_connect(nullptr);
     if (display == nullptr)
@@ -238,6 +251,7 @@ main(int argc, char* argv[])
         EGL_RED_SIZE, 8,
         EGL_GREEN_SIZE, 8,
         EGL_BLUE_SIZE, 8,
+        EGL_ALPHA_SIZE, 8,
         EGL_DEPTH_SIZE, 24,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
         // // EGL_MIN_SWAP_INTERVAL, 0,
@@ -272,7 +286,7 @@ main(int argc, char* argv[])
     xdg_toplevel_set_title(appState.xdgToplevel, appState.nameStr.data());
     xdg_toplevel_set_app_id(appState.xdgToplevel, appState.nameStr.data());
 
-    xdg_surface_add_listener(appState.xdgSurface, &xdg_surface_listener, nullptr);
+    xdg_surface_add_listener(appState.xdgSurface, &xdgSurfaceListener, nullptr);
     xdg_toplevel_add_listener(appState.xdgToplevel, &xdg_toplevel_listener, nullptr);
 
     appState.eglWindow = wl_egl_window_create(appState.surface, appState.wWidth, appState.wHeight);

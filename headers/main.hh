@@ -12,6 +12,7 @@
 
 void drawFrame(void);
 void setupDraw();
+void swapFrames();
 
 struct AppState
 {

@@ -3,35 +3,41 @@
 
 Shader::Shader(std::string_view vertexPath, std::string_view fragmentPath)
 {
+    loadShaders(vertexPath, fragmentPath);
+}
+
+void
+Shader::loadShaders(std::string_view vertexPath, std::string_view fragmentPath)
+{
     GLint linked;
     GLuint vertex = loadShader(GL_VERTEX_SHADER, vertexPath);
     GLuint fragment = loadShader(GL_FRAGMENT_SHADER, fragmentPath);
 
-    programObj = glCreateProgram();
-    if (programObj == 0)
-        LOG(FATAL, "glCreateProgram failed: {}\n", programObj);
+    progObj = glCreateProgram();
+    if (progObj == 0)
+        LOG(FATAL, "glCreateProgram failed: {}\n", progObj);
 
-    D( glAttachShader(programObj, vertex) );
-    D( glAttachShader(programObj, fragment) );
+    D( glAttachShader(progObj, vertex) );
+    D( glAttachShader(progObj, fragment) );
 
-    D( glLinkProgram(programObj) );
-    D( glGetProgramiv(programObj, GL_LINK_STATUS, &linked) );
+    D( glLinkProgram(progObj) );
+    D( glGetProgramiv(progObj, GL_LINK_STATUS, &linked) );
     if (!linked)
     {
         GLint infoLen = 0;
-        D( glGetProgramiv(programObj, GL_INFO_LOG_LENGTH, &infoLen) );
+        D( glGetProgramiv(progObj, GL_INFO_LOG_LENGTH, &infoLen) );
         if (infoLen > 1)
         {
             std::vector<char> infoLog(infoLen + 1, {});
-            D( glGetProgramInfoLog(programObj, infoLen, nullptr, infoLog.data()) );
+            D( glGetProgramInfoLog(progObj, infoLen, nullptr, infoLog.data()) );
             LOG(FATAL, "error linking program: {}\n", infoLog.data());
         }
-        D( glDeleteProgram(programObj) );
+        D( glDeleteProgram(progObj) );
         LOG(FATAL, "error linking program.\n");
     }
 
 #ifdef DEBUG
-    D( glValidateProgram(programObj) );
+    D( glValidateProgram(progObj) );
 #endif
 
     D( glDeleteShader(vertex) );
@@ -46,16 +52,16 @@ Shader::Shader(Shader&& other)
 void
 Shader::operator=(Shader&& other)
 {
-    this->programObj = other.programObj;
-    other.programObj = 0;
+    this->progObj = other.progObj;
+    other.progObj = 0;
 }
 
 Shader::~Shader()
 {
-    if (programObj)
+    if (progObj)
     {
-        D( glDeleteProgram(programObj) );
-        LOG(OK, "Shader '{}' destroyed\n", programObj);
+        D( glDeleteProgram(progObj) );
+        LOG(OK, "Shader '{}' destroyed\n", progObj);
     }
 }
 
@@ -97,7 +103,7 @@ Shader::loadShader(GLenum type, std::string_view path)
 void
 Shader::use()
 {
-    D( glUseProgram(programObj) );
+    D( glUseProgram(progObj) );
 }
 
 void
@@ -106,8 +112,8 @@ Shader::queryActiveUniforms()
     GLint maxUniformLen;
     GLint nUniforms;
 
-    D( glGetProgramiv(programObj, GL_ACTIVE_UNIFORMS, &nUniforms) );
-    D( glGetProgramiv(programObj, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen) );
+    D( glGetProgramiv(progObj, GL_ACTIVE_UNIFORMS, &nUniforms) );
+    D( glGetProgramiv(progObj, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen) );
 
     std::vector<char> uniformName(maxUniformLen, '\0');
 
@@ -117,7 +123,7 @@ Shader::queryActiveUniforms()
         GLenum type;
         std::string_view typeName;
 
-        D( glGetActiveUniform(programObj, i, maxUniformLen, nullptr, &size, &type, uniformName.data()) );
+        D( glGetActiveUniform(progObj, i, maxUniformLen, nullptr, &size, &type, uniformName.data()) );
         switch (type)
         {
             case GL_FLOAT:
@@ -149,9 +155,17 @@ Shader::queryActiveUniforms()
 }
 
 void 
-Shader::setM4(std::string_view name, const m4& matrix)
+Shader::setM4(std::string_view name, const m4& m)
 {
-    auto tU = glGetUniformLocation(programObj, name.data());
+    auto tU = glGetUniformLocation(progObj, name.data());
     D( );
-    D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)matrix.e););
+    D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)m.e););
+}
+
+void
+Shader::setV3(std::string_view name, const v3& v)
+{
+    auto ul = glGetUniformLocation(progObj, name.data());
+    D( );
+    D( glUniform3fv(ul, 1, (GLfloat*)v.e););
 }

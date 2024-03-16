@@ -22,6 +22,15 @@ f64 timeNow();
 int rngGet(int min, int max);
 int rngGet();
 f32 rngGet(f32 min, f32 max);
+void flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height);
+void flipcpyBGRtoRGB(u8* dest, u8* src, int width, int height);
+
+template <typename type>
+type
+readTypeBytes(const std::vector<char>& vec, size_t i)
+{
+    return *(type*)&vec[i];
+}
 
 struct Parser
 {
@@ -39,6 +48,13 @@ struct Parser
     void nextWord();
     void skipWord(std::string_view separators);
     void skipWord();
+    void skipBytes(size_t n);
+    std::string readString(size_t size);
+    u8 read8();
+    u16 read16();
+    u32 read32();
+    u64 read64();
+    void setPos(size_t p);
     size_t size() const { return file.size(); };
     bool finished();
 
@@ -71,7 +87,7 @@ extern EGLint eglLastErrorCode;
                 abort();                                                                                               \
         } while (0)
 #else
-#    define LOG(severity, ...) (void)0;
+#    define LOG(severity, ...) { (void)0; }
 #endif
 
 #ifdef DEBUG
