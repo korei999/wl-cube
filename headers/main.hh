@@ -44,6 +44,7 @@ struct AppState
 
     bool paused = false;
     bool pointerRelativeMode = false;
+    bool outOffocus= false;
 
     void togglePointerRelativeMode();
 };

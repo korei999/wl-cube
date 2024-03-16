@@ -31,13 +31,11 @@ setupShaders()
 void
 setupModels()
 {
-    // backpack.loadOBJ("test_assets/models/backpack/backpack.obj");
-    hl.loadOBJ("/home/korei/Documents/hl1/hl1.obj");
+    hl.loadOBJ("test_assets/models/gordon/hl1.obj");
     cube.loadOBJ("test_assets/models/cube/cube.obj");
 
-    // backTex.loadBMP("/run/media/korei/860evo/GL/Triangle/resourses/model/backpack/diffuse.bmp");
-    body.loadBMP("/home/korei/Documents/hl1/DM_Base.bmp");
-    face.loadBMP("/home/korei/Documents/hl1/DM_Face.bmp");
+    body.loadBMP("test_assets/models/gordon/DM_Base.bmp");
+    face.loadBMP("test_assets/models/gordon/DM_Face.bmp");
 }
 
 void
@@ -83,21 +81,20 @@ drawFrame(void)
         v3 lightPos {(f32)sin(incCounter) * 2, 2.0, -3.0};
         m4 lightTm = m4Iden();
 
-        tm = m4Scale(tm, 0.01f);
+        tm = m4Scale(tm, 0.005f);
         tm = m4Trans(tm, {0.5f, 0.5f, 0.5f});
 
         lightShader.use();
         lightShader.setM4("proj", player.proj);
         lightShader.setM4("view", player.view);
-        lightShader.setM4("model", tm);
         lightShader.setV3("lightPos", lightPos);
 
+        lightShader.setM4("model", tm);
         body.use();
         hl.draw(1);
 
-        tm = m4RotY(tm, incCounter);
+        tm = m4RotY(tm, sin(incCounter) / 3);
         lightShader.setM4("model", tm);
-
         face.use();
         hl.draw(0);
 

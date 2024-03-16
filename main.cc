@@ -48,7 +48,7 @@ AppState::togglePointerRelativeMode()
                                                                 surface,
                                                                 pointer,
                                                                 nullptr,
-                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
+                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
         // zwp_locked_pointer_v1_set_cursor_position_hint(lockedPointer, wl_fixed_from_int(-1), wl_fixed_from_int(-1));
         relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
         zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, nullptr);

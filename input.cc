@@ -23,6 +23,7 @@ keyboardEnterHandle(void* data,
                     wl_surface* surface,
                     wl_array* keys)
 {
+    //
 }
 
 void

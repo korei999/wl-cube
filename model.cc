@@ -195,6 +195,7 @@ Model::parseOBJ(std::string_view path)
         verts.clear();
         inds.clear();
     }
+
     this->meshes.shrink_to_fit();
 }
 

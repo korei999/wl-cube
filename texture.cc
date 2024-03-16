@@ -26,6 +26,11 @@ std::unordered_map<std::string_view, GLuint> Texture::loadedTex;
  *	DATA:	X	Pixels
  */
 
+Texture::Texture(std::string_view path, bool flip, GLint texMode)
+{
+    loadBMP(path, flip, texMode);
+}
+
 void
 Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
 {
@@ -103,7 +108,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     std::vector<u8> pixels((nPixels * byteDepth));
 
     bmp.setPos(imageDataAddress);
-    LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size());
+    LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
 
     if (format == GL_RGBA)
         flipcpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);

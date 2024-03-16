@@ -10,6 +10,9 @@ struct Texture
     GLuint id = 0;
     static std::unordered_map<std::string_view, GLuint> loadedTex;
 
+    Texture() = default;
+    Texture(std::string_view path, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
+
     void loadBMP(std::string_view path, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
     void use();
 
