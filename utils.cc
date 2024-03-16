@@ -47,18 +47,19 @@ flipcpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
     int f = flip ? -(height - 1) : 0;
     int inc = flip ? 2 : 0;
 
-    auto d = std::mdspan(dest, width, height, 4);
-    auto s = std::mdspan(src, width, height, 4);
+    auto d = std::mdspan((u32*)dest, width, height);
+    auto s = std::mdspan((u32*)src, width, height);
 
-    for (int c = 0; c < height; c++)
+    for (int r = 0; r < height; r++)
     {
-        for (int r = 0; r < width; r++)
+        for (int c = 0; c < width; c++)
         {
             /* bmp's are BGRA and we need RGBA */
-            d[c - f, r, 0] = s[c, r, 2];
-            d[c - f, r, 1] = s[c, r, 1];
-            d[c - f, r, 2] = s[c, r, 0];
-            d[c - f, r, 3] = s[c, r, 3];
+            u32 t = s[r, c];
+            u32 R =   t & 0x00FF0000; /* ARGB */
+            u32 B =   t & 0x000000FF;
+            u32 tt = (t & 0xFF00FF00) | (R >> (4 * 4)) | (B << (4 * 4));
+            d[r - f, c] = tt;
         }
         f += inc;
     }
