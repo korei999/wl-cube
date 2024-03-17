@@ -9,6 +9,7 @@ uniform mat4 proj;
 uniform mat4 view;
 uniform mat4 model;
 uniform mat3 normMat; /* is needed for non uniform scaling */
+uniform vec3 viewPos;
 
 uniform vec3 ambLight;
 uniform vec3 lightPos;
@@ -20,13 +21,20 @@ out vec4 vsGouraudColor;
 vec4
 gouraud()
 {
+    float specFactor = 0.5;
     vec3 norm = normalize(normMat * aNorm);
-    vec3 vsFragPos = vec3(model * vec4(aPos, 1.0));
+    vec3 fragPos = vec3(model * vec4(aPos, 1.0));
 
-    vec3 lightDir = normalize(lightPos - vsFragPos);
+    vec3 lightDir = normalize(lightPos - fragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
-    vec3 result = (ambLight + diffuse);
+
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+    vec3 specular = specFactor * spec * lightColor;
+
+    vec3 result = (ambLight + diffuse + specular);
 
     return vec4(result, 1.0);
 }

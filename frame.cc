@@ -17,8 +17,8 @@ Shader gouraud;
 Model hl;
 Model cube;
 u32 tex;
-Texture body;
-Texture face;
+Texture bodyTex;
+Texture faceTex;
 v3 ambLight {0.2, 0.2, 0.2};
 
 static void
@@ -35,8 +35,8 @@ setupModels()
     hl.loadOBJ("test_assets/models/gordon/hl1.obj");
     cube.loadOBJ("test_assets/models/cube/cube.obj");
 
-    body.loadBMP("test_assets/models/gordon/DM_Base.bmp");
-    face.loadBMP("test_assets/models/gordon/DM_Face.bmp");
+    bodyTex.loadBMP("test_assets/models/gordon/DM_Base.bmp");
+    faceTex.loadBMP("test_assets/models/gordon/DM_Face.bmp");
 }
 
 void
@@ -77,15 +77,15 @@ drawFrame(void)
 
         player.updateProj(90.0f, aspect, 0.01f, 100.0f);
         player.updateView();
-        m4 tm = m4Iden();
+        m4 trm = m4Iden();
 
         v3 lightPos {(f32)sin(incCounter) * 2, 4.0, 2.0};
         m4 lightTm = m4Iden();
 
-        tm = m4Scale(tm, 0.05f);
-        tm = m4Trans(tm, {0.5f, 0.5f, 0.5f});
+        trm = m4Scale(trm, 0.05f);
+        trm = m4Trans(trm, {0.5f, 0.5f, 0.5f});
 
-        m3 normMat = m3Transpose(m3Inverse(tm));
+        m3 normMat = m3Transpose(m3Inverse(trm));
 
         v3 lightColor {(sin(lightPos.x) + 1) / 2, 0.4, 0.7};
 
@@ -96,14 +96,15 @@ drawFrame(void)
         gouraud.setV3("ambLight", ambLight);
         gouraud.setV3("lightColor", lightColor);
         gouraud.setM3("normMat", normMat);
+        gouraud.setV3("viewPos", player.pos);
 
-        gouraud.setM4("model", tm);
-        body.use();
+        gouraud.setM4("model", trm);
+        bodyTex.use();
         hl.draw(1);
 
-        tm = m4RotY(tm, sin(incCounter) / 3);
-        gouraud.setM4("model", tm);
-        face.use();
+        trm = m4RotY(trm, sin(incCounter) / 3);
+        gouraud.setM4("model", trm);
+        faceTex.use();
         hl.draw(0);
 
         lightTm = m4Trans(lightTm, lightPos);
