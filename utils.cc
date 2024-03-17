@@ -55,7 +55,8 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
         for (int c = 0; c < width; c++)
         {
             u32 t = s[r, c];
-            u32 R =   t & 0x00FF0000; /* ARGB */
+            /* take 4 bytes and swap red and blue channels */
+            u32 R =   t & 0x00FF0000;
             u32 B =   t & 0x000000FF;
             u32 tt = (t & 0xFF00FF00) | (R >> (4 * 4)) | (B << (4 * 4));
             d[r - f, c] = tt;

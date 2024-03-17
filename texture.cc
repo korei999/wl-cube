@@ -59,14 +59,8 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     Parser bmp(path, "", 0);
     auto BM = bmp.readString(2);
 
-    if (BM == "BM")
-    {
-        LOG(OK, "BM: {}\n", BM);
-    }
-    else
-    {
+    if (BM != "BM")
         LOG(FATAL, "BM: {}, bmp file should have 'BM' as first 2 bytes\n", BM);
-    }
 
     bmp.skipBytes(8);
     imageDataAddress = bmp.read32();

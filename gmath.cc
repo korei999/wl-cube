@@ -1,8 +1,11 @@
 #include "headers/gmath.hh"
+#include "headers/utils.hh"
 
 #include <cmath>
 
 static m4 m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P);
+
+v3::v3(const v4& v) : x(v.x), y(v.y), z(v.z) {}
 
 f32
 v3Length(const v3& v)
@@ -67,7 +70,7 @@ v3::operator-=(const v3& other)
 }
 
 v3
-operator*(const v3& v, f32 s)
+operator*(const v3& v, cf32 s)
 {
     return v3 {
         v.x * s,
@@ -116,6 +119,16 @@ m4Iden()
         {0, 0, 1, 0},
         {0, 0, 0, 1}
     }};
+}
+
+m3
+m3Iden()
+{
+    return {
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    };
 }
 
 m4
@@ -278,4 +291,75 @@ m4LookAt(const v3& eyeV, const v3& centerV, const v3& upV)
     v3 camUp = v3Cross(camDir, camRight);
 
     return m4LookAtInternal(camRight, camUp, camDir, eyeV);
+}
+
+m4
+m4Transpose(const m4& m)
+{
+    auto e = m.e;
+    return {.e {
+        {e[0][0], e[1][0], e[2][0], e[3][0]},
+        {e[0][1], e[1][1], e[2][1], e[3][1]},
+        {e[0][2], e[1][2], e[2][2], e[3][2]},
+        {e[0][3], e[1][3], e[2][3], e[3][3]}
+    }};
+}
+
+m3
+m3Transpose(const m3& m)
+{
+    auto e = m.e;
+    return {
+        e[0][0], e[1][0], e[2][0],
+        e[0][1], e[1][1], e[2][1],
+        e[0][2], e[1][2], e[2][2]
+    };
+}
+
+void
+m4Print(const m4& m, std::string_view prefix)
+{
+    auto e = m.e;
+    LOG(OK, "{}:\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\n",
+        prefix,
+        e[0][0], e[0][1], e[0][2], e[0][3],
+        e[1][0], e[1][1], e[1][2], e[1][3],
+        e[2][0], e[2][1], e[2][2], e[2][3],
+        e[3][0], e[3][1], e[3][2], e[3][3]);
+}
+
+void
+m3Print(const m3& m, std::string_view prefix)
+{
+    auto e = m.e;
+    LOG(OK, "{}:\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\n",
+        prefix,
+        e[0][0], e[0][1], e[0][2],
+        e[1][0], e[1][1], e[1][2],
+        e[2][0], e[2][1], e[2][2],
+        e[3][0], e[3][1], e[3][2]);
+}
+
+m3
+m3Inverse(const m3& m)
+{
+    auto e = m.e;
+    f32 det = e[0][0] * (e[1][1] * e[2][2] - e[2][1] * e[1][2]) -
+              e[0][1] * (e[1][0] * e[2][2] - e[1][2] * e[2][0]) +
+              e[0][2] * (e[1][0] * e[2][1] - e[1][1] * e[2][0]);
+    f32 invdet = 1 / det;
+
+    return {
+        (e[1][1] * e[2][2] - e[2][1] * e[1][2]) * invdet,
+        (e[0][2] * e[2][1] - e[0][1] * e[2][2]) * invdet,
+        (e[0][1] * e[1][2] - e[0][2] * e[1][1]) * invdet,
+
+        (e[1][2] * e[2][0] - e[1][0] * e[2][2]) * invdet,
+        (e[0][0] * e[2][2] - e[0][2] * e[2][0]) * invdet,
+        (e[1][0] * e[0][2] - e[0][0] * e[1][2]) * invdet,
+
+        (e[1][0] * e[2][1] - e[2][0] * e[1][1]) * invdet,
+        (e[2][0] * e[0][1] - e[0][0] * e[2][1]) * invdet,
+        (e[0][0] * e[1][1] - e[1][0] * e[0][1]) * invdet
+    };
 }

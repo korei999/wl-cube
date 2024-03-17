@@ -19,6 +19,7 @@ struct Shader
 
     void loadShaders(std::string_view vertShaderPath, std::string_view fragShaderPath);
     void use();
+    void setM3(std::string_view name, const m3& m);
     void setM4(std::string_view name, const m4& m);
     void setV3(std::string_view name, const v3& v);
     void queryActiveUniforms();

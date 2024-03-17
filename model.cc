@@ -161,7 +161,7 @@ Model::parseOBJ(std::string_view path)
     this->meshes.clear();
     for (auto& faces : objects)
     {
-        Mesh buff;
+        Mesh mesh;
         GLuint faceIdx = 0;
 
         for (auto& face : faces)
@@ -186,10 +186,10 @@ Model::parseOBJ(std::string_view path)
                 }
             }
         }
-        setBuffers(verts, inds, buff);
-        buff.eboSize = inds.size();
+        setBuffers(verts, inds, mesh);
+        mesh.eboSize = inds.size();
 
-        this->meshes.push_back(buff);
+        this->meshes.push_back(mesh);
 
         /* do not forget to clear buffers */
         verts.clear();

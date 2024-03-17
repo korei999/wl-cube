@@ -162,6 +162,15 @@ Shader::setM4(std::string_view name, const m4& m)
     D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)m.e););
 }
 
+void 
+Shader::setM3(std::string_view name, const m3& m)
+{
+    auto tU = glGetUniformLocation(progObj, name.data());
+    D( );
+    D( glUniformMatrix3fv(tU, 1, GL_FALSE, (GLfloat*)m.e););
+}
+
+
 void
 Shader::setV3(std::string_view name, const v3& v)
 {

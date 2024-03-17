@@ -34,8 +34,8 @@ OBJ := $(SRCS:%=$(BD)/%.o)
 
 all: CXX += -flto=full $(SAFE_STACK) 
 all: CC += -flto=full $(SAFE_STACK) 
-all: CXXFLAGS += -g -O3 -march=native $(WARNINGS) -DNDEBUG
-all: CFLAGS += -g -O3 -march=native $(WARNINGS) -DNDEBUG
+all: CXXFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
+all: CFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
 all: $(EXEC)
 
 debug: CXX += $(ASAN)

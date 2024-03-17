@@ -8,24 +8,25 @@
 
 PlayerControls player {
     .mouse.sens = 0.07,
-    .pos {0.0, 0.0, 1.0},
-    .moveSpeed = 1.0,
+    .pos {0.0, 0.0, 2.0},
+    .moveSpeed = 4.0,
 };
 
-Shader simpleShader;
-Shader lightShader;
-GLuint posBufferObj;
+Shader spotLight;
+Shader phong;
 Model hl;
 Model cube;
 u32 tex;
 Texture body;
 Texture face;
+v3 ambLight {0.2, 0.2, 0.2};
+v3 lightColor {1.0, 1.0, 0.7};
 
 static void
 setupShaders()
 {
-    simpleShader.loadShaders("shaders/sm.vert", "shaders/ht.frag");
-    lightShader.loadShaders("shaders/light.vert", "shaders/light.frag");
+    spotLight.loadShaders("shaders/simple.vert", "shaders/simple.frag");
+    phong.loadShaders("shaders/phong.vert", "shaders/phong.frag");
 }
 
 void
@@ -78,33 +79,40 @@ drawFrame(void)
         player.updateView();
         m4 tm = m4Iden();
 
-        v3 lightPos {(f32)sin(incCounter) * 2, 2.0, -3.0};
+        v3 lightPos {(f32)sin(incCounter) * 2, 4.0, 2.0};
         m4 lightTm = m4Iden();
 
-        tm = m4Scale(tm, 0.005f);
+        tm = m4Scale(tm, 0.05f);
+        // tm = m4Scale(tm, v3Norm({3.5, 1.0, 1.0}));
         tm = m4Trans(tm, {0.5f, 0.5f, 0.5f});
 
-        lightShader.use();
-        lightShader.setM4("proj", player.proj);
-        lightShader.setM4("view", player.view);
-        lightShader.setV3("lightPos", lightPos);
+        m3 normMat = m3Transpose(m3Inverse(tm));
 
-        lightShader.setM4("model", tm);
+        phong.use();
+        phong.setM4("proj", player.proj);
+        phong.setM4("view", player.view);
+        phong.setV3("lightPos", lightPos);
+        phong.setV3("ambLight", ambLight);
+        phong.setV3("lightColor", lightColor);
+        phong.setM3("normMat", normMat);
+
+        phong.setM4("model", tm);
         body.use();
         hl.draw(1);
 
         tm = m4RotY(tm, sin(incCounter) / 3);
-        lightShader.setM4("model", tm);
+        phong.setM4("model", tm);
         face.use();
         hl.draw(0);
 
         lightTm = m4Trans(lightTm, lightPos);
         lightTm = m4Scale(lightTm, 0.05f);
 
-        simpleShader.use();
-        simpleShader.setM4("proj", player.proj);
-        simpleShader.setM4("view", player.view);
-        simpleShader.setM4("model", lightTm);
+        spotLight.use();
+        spotLight.setM4("proj", player.proj);
+        spotLight.setM4("view", player.view);
+        spotLight.setM4("model", lightTm);
+        spotLight.setV3("lightColor", lightColor);
         cube.draw();
 
         incCounter += 1 * player.deltaTime;
