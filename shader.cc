@@ -116,6 +116,7 @@ Shader::queryActiveUniforms()
     D( glGetProgramiv(progObj, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen) );
 
     std::vector<char> uniformName(maxUniformLen, '\0');
+    LOG(OK, "queryActiveUniforms for '{}':\n", this->progObj);
 
     for (int i = 0; i < nUniforms; i++)
     {
@@ -146,11 +147,19 @@ Shader::queryActiveUniforms()
                 typeName = "GL_FLOAT_MAT4";
                 break;
 
+            case GL_FLOAT_MAT3:
+                typeName = "GL_FLOAT_MAT3";
+                break;
+
+            case GL_SAMPLER_2D:
+                typeName = "GL_SAMPLER_2D";
+                break;
+
             default:
                 typeName = "unknown";
                 break;
         }
-        LOG(OK, "uniformName: '{}', type: '{}'\n", uniformName.data(), typeName);
+        LOG(OK, "\tuniformName: '{}', type: '{}'\n", uniformName.data(), typeName);
     }
 }
 

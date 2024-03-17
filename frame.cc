@@ -13,20 +13,20 @@ PlayerControls player {
 };
 
 Shader spotLight;
-Shader phong;
+Shader gouraud;
 Model hl;
 Model cube;
 u32 tex;
 Texture body;
 Texture face;
 v3 ambLight {0.2, 0.2, 0.2};
-v3 lightColor {1.0, 1.0, 0.7};
 
 static void
 setupShaders()
 {
     spotLight.loadShaders("shaders/simple.vert", "shaders/simple.frag");
-    phong.loadShaders("shaders/phong.vert", "shaders/phong.frag");
+    gouraud.loadShaders("shaders/gouraud.vert", "shaders/gouraud.frag");
+    gouraud.queryActiveUniforms();
 }
 
 void
@@ -83,25 +83,26 @@ drawFrame(void)
         m4 lightTm = m4Iden();
 
         tm = m4Scale(tm, 0.05f);
-        // tm = m4Scale(tm, v3Norm({3.5, 1.0, 1.0}));
         tm = m4Trans(tm, {0.5f, 0.5f, 0.5f});
 
         m3 normMat = m3Transpose(m3Inverse(tm));
 
-        phong.use();
-        phong.setM4("proj", player.proj);
-        phong.setM4("view", player.view);
-        phong.setV3("lightPos", lightPos);
-        phong.setV3("ambLight", ambLight);
-        phong.setV3("lightColor", lightColor);
-        phong.setM3("normMat", normMat);
+        v3 lightColor {(sin(lightPos.x) + 1) / 2, 0.4, 0.7};
 
-        phong.setM4("model", tm);
+        gouraud.use();
+        gouraud.setM4("proj", player.proj);
+        gouraud.setM4("view", player.view);
+        gouraud.setV3("lightPos", lightPos);
+        gouraud.setV3("ambLight", ambLight);
+        gouraud.setV3("lightColor", lightColor);
+        gouraud.setM3("normMat", normMat);
+
+        gouraud.setM4("model", tm);
         body.use();
         hl.draw(1);
 
         tm = m4RotY(tm, sin(incCounter) / 3);
-        phong.setM4("model", tm);
+        gouraud.setM4("model", tm);
         face.use();
         hl.draw(0);
 
