@@ -19,7 +19,7 @@ Model cube;
 u32 tex;
 Texture bodyTex;
 Texture faceTex;
-v3 ambLight {0.1, 0.1, 0.1};
+v3 ambLight {0.2, 0.2, 0.2};
 
 static void
 setupShaders()
@@ -51,7 +51,7 @@ setupDraw()
     D( glEnable(GL_DEPTH_TEST) );
     D( glDepthFunc(GL_LESS) );
 
-    v4 gray = COLOR(0x111111ff);
+    v4 gray = COLOR(0x222222FF);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
 
     appState.togglePointerRelativeMode();

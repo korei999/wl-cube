@@ -40,6 +40,8 @@ struct AppState
     zwp_relative_pointer_v1* relativePointer {};
     zwp_relative_pointer_manager_v1* relativePointerManager {};
 
+    wl_keyboard* keyboard {};
+
     std::string_view nameStr;
 
     bool paused = false;

@@ -86,14 +86,12 @@ procMovements()
     v3 combinedMove {};
     if (pressedKeys[KEY_W])
     {
-        v3 forward = player.front;
-        forward.y = 0;
+        v3 forward {player.front.x, 0.0f, player.front.z};
         combinedMove += (v3Norm(forward));
     }
     if (pressedKeys[KEY_S])
     {
-        v3 forward = player.front;
-        forward.y = 0;
+        v3 forward {player.front.x, 0.0f, player.front.z};
         combinedMove -= (v3Norm(forward));
     }
     if (pressedKeys[KEY_A])

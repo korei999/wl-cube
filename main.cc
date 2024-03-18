@@ -23,7 +23,7 @@ AppState appState {
     .nameStr {}
 };
 
-enum
+[[maybe_unused]] enum
 {
 	REGION_TYPE_NONE,
 	REGION_TYPE_DISJOINT,
@@ -33,7 +33,7 @@ enum
 
 static wl_compositor* compositor = nullptr;
 static xdg_wm_base* xdgWmBase = nullptr;
-static u32 xdgConfigureSerial = 0;
+[[maybe_unused]] static u32 xdgConfigureSerial = 0;
 
 static const zwp_relative_pointer_v1_listener relativePointerListener {
 	.relative_motion = relativePointerHandleMotion
@@ -66,7 +66,9 @@ AppState::togglePointerRelativeMode()
 }
 
 static void
-frameHandleDone(void* data, wl_callback* callback, u32 time)
+frameHandleDone([[maybe_unused]] void* data,
+                [[maybe_unused]] wl_callback* callback,
+                [[maybe_unused]] u32 time)
 {
     wl_callback_destroy(callback);
     drawFrame();
@@ -77,7 +79,9 @@ const wl_callback_listener frameListener {
 };
 
 static void
-xdgSurfaceHandleConfigure(void* data, xdg_surface* xdg_surface, u32 serial)
+xdgSurfaceHandleConfigure([[maybe_unused]] void* data,
+                          [[maybe_unused]] xdg_surface* xdg_surface,
+                          [[maybe_unused]] u32 serial)
 {
     xdg_surface_ack_configure(xdg_surface, serial);
 }
@@ -87,7 +91,11 @@ static const xdg_surface_listener xdgSurfaceListener {
 };
 
 static void
-configureHandle(void* data, xdg_toplevel* xdgToplevel, s32 width, s32 height, wl_array* states)
+configureHandle([[maybe_unused]] void* data,
+                [[maybe_unused]] xdg_toplevel* xdgToplevel,
+                [[maybe_unused]] s32 width,
+                [[maybe_unused]] s32 height,
+                [[maybe_unused]] wl_array* states)
 {
     if (width != appState.wWidth || height != appState.wHeight)
     {
@@ -100,7 +108,8 @@ configureHandle(void* data, xdg_toplevel* xdgToplevel, s32 width, s32 height, wl
 }
 
 static void
-xdgToplevelHandleClose(void* data, xdg_toplevel* xdgToplevel)
+xdgToplevelHandleClose([[maybe_unused]] void* data,
+                       [[maybe_unused]] xdg_toplevel* xdgToplevel)
 {
     appState.programIsRunning = false;
 }
@@ -128,7 +137,9 @@ static const wl_keyboard_listener keyboardListener {
 };
 
 static void
-seatHandleCapabilities(void* data, wl_seat* seat, u32 capabilities)
+seatHandleCapabilities([[maybe_unused]] void* data,
+                       [[maybe_unused]] wl_seat* seat,
+                       [[maybe_unused]] u32 capabilities)
 {
     if (capabilities & WL_SEAT_CAPABILITY_POINTER)
     {
@@ -138,8 +149,8 @@ seatHandleCapabilities(void* data, wl_seat* seat, u32 capabilities)
     }
     if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
     {
-        wl_keyboard* keyboard = wl_seat_get_keyboard(seat);
-        wl_keyboard_add_listener(keyboard, &keyboardListener, seat);
+        appState.keyboard = wl_seat_get_keyboard(seat);
+        wl_keyboard_add_listener(appState.keyboard, &keyboardListener, seat);
         LOG(GOOD, "keyboard works.\n");
     }
     if (capabilities & WL_SEAT_CAPABILITY_TOUCH)
@@ -154,7 +165,11 @@ static const wl_seat_listener seatListener {
 };
 
 static void
-handleGlobal(void* data, wl_registry* registry, u32 name, const char* interface, u32 version)
+handleGlobal([[maybe_unused]] void* data,
+             [[maybe_unused]] wl_registry* registry,
+             [[maybe_unused]] u32 name,
+             [[maybe_unused]] const char* interface,
+             [[maybe_unused]] u32 version)
 {
     if (strcmp(interface, wl_seat_interface.name) == 0)
     {
@@ -177,14 +192,12 @@ handleGlobal(void* data, wl_registry* registry, u32 name, const char* interface,
     {
         appState.relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
     }
-    // else if (strcmp(interface, zwp_relative_pointer_v1_interface.name) == 0)
-    // {
-        // appState.relativePointer = (zwp_relative_pointer_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_v1_interface, version);
-    // }
 }
 
 static void
-handleGlobalRemove(void* data, wl_registry* registry, u32 name)
+handleGlobalRemove([[maybe_unused]] void* data,
+                   [[maybe_unused]] wl_registry* registry,
+                   [[maybe_unused]] u32 name)
 {
     // Who cares
 }
