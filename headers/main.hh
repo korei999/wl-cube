@@ -6,9 +6,10 @@
 
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
-#include <wayland-client-protocol.h>
-#include <wayland-egl-core.h>
 #include <string_view>
+#include <wayland-client-protocol.h>
+#include <wayland-cursor.h>
+#include <wayland-egl-core.h>
 
 void drawFrame(void);
 void setupDraw();
@@ -16,23 +17,31 @@ void swapFrames();
 
 struct AppState
 {
-    int wWidth;
-    int wHeight;
+    int wWidth {};
+    int wHeight {};
 
-    bool programIsRunning;
+    bool programIsRunning = false;
 
-    wl_surface* surface;
-    xdg_surface* xdgSurface;
-    xdg_toplevel* xdgToplevel;
+    wl_surface* surface {};
+    xdg_surface* xdgSurface {};
+    xdg_toplevel* xdgToplevel {};
 
-    wl_egl_window *eglWindow;
-    EGLDisplay eglDisplay;
-    EGLContext eglContext;
-    EGLSurface eglSurface;
+    wl_egl_window *eglWindow {};
+    EGLDisplay eglDisplay {};
+    EGLContext eglContext {};
+    EGLSurface eglSurface {};
 
     wl_seat* seat {};
+    wl_shm* shm {};
+    wl_compositor* compositor {};
+    xdg_wm_base* xdgWmBase {};
+    [[maybe_unused]] u32 xdgConfigureSerial = 0;
 
     wl_pointer* pointer {};
+    wl_surface* cursorSurface {};
+    wl_cursor_image* cursorImage {};
+    wl_cursor_theme* cursorTheme {};
+
     u32 pointerSerial = 0;
     zwp_pointer_constraints_v1* pointerConstraints {};
     zwp_locked_pointer_v1* lockedPointer {};
@@ -42,7 +51,7 @@ struct AppState
 
     wl_keyboard* keyboard {};
 
-    std::string_view nameStr;
+    std::string_view nameStr {};
 
     bool paused = false;
     bool pointerRelativeMode = false;

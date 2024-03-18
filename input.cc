@@ -124,10 +124,6 @@ pointerButtonHandle([[maybe_unused]] void* data,
                     [[maybe_unused]] u32 button,
                     [[maybe_unused]] u32 buttonState)
 {
-    // wl_seat* seat = (wl_seat*)data;
-    // if (button == BTN_LEFT && buttonState == WL_POINTER_BUTTON_STATE_PRESSED)
-        // xdg_toplevel_move(appState.xdgToplevel, seat, serial);
-
     player.mouse.button = button;
     player.mouse.state = buttonState;
 }

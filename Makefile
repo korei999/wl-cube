@@ -1,14 +1,14 @@
 MAKEFLAGS := --jobs=$(shell nproc) --output-sync=target 
 
 CXX := clang++ -stdlib=libc++ -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
-# we have to compile wayland glue code with c compiler due to linkage issues
+# compile wayland glue code with c compiler due to linkage issues
 CC := clang -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
 
 WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-braces -Wno-c99-designator
 
 include debug.mk
 
-PKGS := egl glesv2 wayland-client wayland-egl
+PKGS := egl glesv2 wayland-client wayland-egl wayland-cursor
 PKG := $(shell pkg-config --cflags $(PKGS))
 PKG_LIB := $(shell pkg-config --libs $(PKGS))
 

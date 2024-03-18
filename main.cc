@@ -8,19 +8,6 @@
 AppState appState {
     .wWidth = 640,
     .wHeight = 480,
-
-    .programIsRunning = true,
-
-    .surface = nullptr,
-    .xdgSurface = nullptr,
-    .xdgToplevel = nullptr,
-
-    .eglWindow = nullptr,
-    .eglDisplay = nullptr,
-    .eglContext = nullptr,
-    .eglSurface = nullptr,
-
-    .nameStr {}
 };
 
 [[maybe_unused]] enum
@@ -31,34 +18,38 @@ AppState appState {
 	REGION_TYPE_MAX
 } region_type = REGION_TYPE_NONE;
 
-static wl_compositor* compositor = nullptr;
-static xdg_wm_base* xdgWmBase = nullptr;
-[[maybe_unused]] static u32 xdgConfigureSerial = 0;
-
 static const zwp_relative_pointer_v1_listener relativePointerListener {
 	.relative_motion = relativePointerHandleMotion
 };
 
+/* TODO: add proper listener instead of creating and destroying all the time */
 void
 AppState::togglePointerRelativeMode()
 {
     if (!pointerRelativeMode)
     {
-        wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
+                                                   /* nullptr surface hides the cursor */
+        wl_pointer_set_cursor(pointer, pointerSerial, nullptr, 0, 0);
         pointerRelativeMode = true;
         lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
                                                                 surface,
                                                                 pointer,
                                                                 nullptr,
-                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_PERSISTENT);
-        // zwp_locked_pointer_v1_set_cursor_position_hint(lockedPointer, wl_fixed_from_int(-1), wl_fixed_from_int(-1));
+                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
         relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
         zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, nullptr);
-
     }
     else
     {
-        // wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
+        wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, "left_ptr");
+        cursorImage = cursor->images[0];
+        wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
+
+        cursorSurface = wl_compositor_create_surface(compositor);
+        wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
+        wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
+        wl_surface_commit(cursorSurface);
+
         pointerRelativeMode = false;
         zwp_locked_pointer_v1_destroy(lockedPointer);
         zwp_relative_pointer_v1_destroy(relativePointer);
@@ -144,6 +135,7 @@ seatHandleCapabilities([[maybe_unused]] void* data,
     if (capabilities & WL_SEAT_CAPABILITY_POINTER)
     {
         appState.pointer = wl_seat_get_pointer(seat);
+        appState.cursorTheme = wl_cursor_theme_load(nullptr, 24, appState.shm);
         wl_pointer_add_listener(appState.pointer, &pointerListener, seat);
         LOG(GOOD, "pointer works.\n");
     }
@@ -178,11 +170,11 @@ handleGlobal([[maybe_unused]] void* data,
     }
     else if (strcmp(interface, wl_compositor_interface.name) == 0)
     {
-        compositor = (wl_compositor*)wl_registry_bind(registry, name, &wl_compositor_interface, 1);
+        appState.compositor = (wl_compositor*)wl_registry_bind(registry, name, &wl_compositor_interface, 1);
     }
     else if (strcmp(interface, xdg_wm_base_interface.name) == 0)
     {
-        xdgWmBase = (xdg_wm_base*)wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+        appState.xdgWmBase = (xdg_wm_base*)wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
     }
     else if (strcmp(interface, zwp_pointer_constraints_v1_interface.name) == 0)
     {
@@ -191,6 +183,10 @@ handleGlobal([[maybe_unused]] void* data,
     else if (strcmp(interface, zwp_relative_pointer_manager_v1_interface.name) == 0)
     {
         appState.relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
+    }
+    else if (strcmp(interface, "wl_shm") == 0)
+    {
+        appState.shm = (wl_shm*)wl_registry_bind(registry, name, &wl_shm_interface, 1);
     }
 }
 
@@ -235,7 +231,7 @@ main()
     wl_display_dispatch(display);
     wl_display_roundtrip(display);
 
-    if (compositor == nullptr || xdgWmBase == nullptr)
+    if (appState.compositor == nullptr || appState.xdgWmBase == nullptr)
     {
         fprintf(stderr, "no wl_shm, wl_compositor or xdg_wm_base support\n");
         return EXIT_FAILURE;
@@ -290,8 +286,8 @@ main()
     appState.eglContext = eglCreateContext(appState.eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
     EGLD();
 
-    appState.surface = wl_compositor_create_surface(compositor);
-    appState.xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, appState.surface);
+    appState.surface = wl_compositor_create_surface(appState.compositor);
+    appState.xdgSurface = xdg_wm_base_get_xdg_surface(appState.xdgWmBase, appState.surface);
     appState.xdgToplevel = xdg_surface_get_toplevel(appState.xdgSurface);
 
     std::vector<char> nameStr = fileLoad("name", 1);
@@ -316,6 +312,8 @@ main()
     setupDraw();
     drawFrame();
 
+    appState.programIsRunning = true;
+
     while (wl_display_dispatch(display) != -1 && appState.programIsRunning)
     {
         // This space intentionally left blank
@@ -325,6 +323,7 @@ main()
     xdg_toplevel_destroy(appState.xdgToplevel);
     xdg_surface_destroy(appState.xdgSurface);
     wl_surface_destroy(appState.surface);
+    wl_cursor_theme_destroy(appState.cursorTheme);
 
     wl_egl_window_destroy(appState.eglWindow);
     EGLD(eglDestroySurface(appState.eglDisplay, appState.eglSurface));
