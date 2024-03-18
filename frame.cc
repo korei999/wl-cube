@@ -12,19 +12,19 @@ PlayerControls player {
     .moveSpeed = 4.0,
 };
 
-Shader spotLight;
+Shader lightSrc;
 Shader gouraud;
 Model hl;
 Model cube;
 u32 tex;
 Texture bodyTex;
 Texture faceTex;
-v3 ambLight {0.2, 0.2, 0.2};
+v3 ambLight {0.1, 0.1, 0.1};
 
 static void
 setupShaders()
 {
-    spotLight.loadShaders("shaders/simple.vert", "shaders/simple.frag");
+    lightSrc.loadShaders("shaders/simple.vert", "shaders/simple.frag");
     gouraud.loadShaders("shaders/gouraud.vert", "shaders/gouraud.frag");
     gouraud.queryActiveUniforms();
 }
@@ -51,7 +51,7 @@ setupDraw()
     D( glEnable(GL_DEPTH_TEST) );
     D( glDepthFunc(GL_LESS) );
 
-    v4 gray = COLOR(0x333333ff);
+    v4 gray = COLOR(0x111111ff);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
 
     appState.togglePointerRelativeMode();
@@ -79,7 +79,7 @@ drawFrame(void)
         player.updateView();
         m4 trm = m4Iden();
 
-        v3 lightPos {(f32)sin(incCounter) * 2, 4.0, 2.0};
+        v3 lightPos {2.0, 4.0, (f32)sin(incCounter) * 7};
         m4 lightTm = m4Iden();
 
         trm = m4Scale(trm, 0.05f);
@@ -88,15 +88,20 @@ drawFrame(void)
         m3 normMat = m3Transpose(m3Inverse(trm));
 
         v3 lightColor {(sin(lightPos.x) + 1) / 2, 0.4, 0.7};
+        v3 diffuseColor = lightColor * 0.8f;
 
         gouraud.use();
         gouraud.setM4("proj", player.proj);
         gouraud.setM4("view", player.view);
-        gouraud.setV3("lightPos", lightPos);
-        gouraud.setV3("ambLight", ambLight);
-        gouraud.setV3("lightColor", lightColor);
         gouraud.setM3("normMat", normMat);
         gouraud.setV3("viewPos", player.pos);
+
+        gouraud.setV3("light.pos", lightPos);
+        gouraud.setV3("light.ambient", ambLight);
+        gouraud.setV3("light.diffuse", diffuseColor);
+        gouraud.setF("light.constant", 1.0f);
+        gouraud.setF("light.linear", 0.09f);
+        gouraud.setF("light.quadratic", 0.032f);
 
         gouraud.setM4("model", trm);
         bodyTex.use();
@@ -110,11 +115,11 @@ drawFrame(void)
         lightTm = m4Trans(lightTm, lightPos);
         lightTm = m4Scale(lightTm, 0.05f);
 
-        spotLight.use();
-        spotLight.setM4("proj", player.proj);
-        spotLight.setM4("view", player.view);
-        spotLight.setM4("model", lightTm);
-        spotLight.setV3("lightColor", lightColor);
+        lightSrc.use();
+        lightSrc.setM4("proj", player.proj);
+        lightSrc.setM4("view", player.view);
+        lightSrc.setM4("model", lightTm);
+        lightSrc.setV3("lightColor", lightColor);
         cube.draw();
 
         incCounter += 1 * player.deltaTime;

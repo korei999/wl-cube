@@ -22,6 +22,7 @@ struct Shader
     void setM3(std::string_view name, const m3& m);
     void setM4(std::string_view name, const m4& m);
     void setV3(std::string_view name, const v3& v);
+    void setF(std::string_view name, cf32 f);
     void queryActiveUniforms();
 
 private:

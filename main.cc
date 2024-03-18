@@ -3,6 +3,8 @@
 #include "headers/utils.hh"
 #include "headers/input.hh"
 
+#include <cstring>
+
 AppState appState {
     .wWidth = 640,
     .wHeight = 480,

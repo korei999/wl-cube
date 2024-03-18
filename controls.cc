@@ -115,8 +115,9 @@ procMovements()
         combinedMove -= player.up;
     }
 
-    if (v3Length(combinedMove) > 0)
-        combinedMove = v3Norm(combinedMove);
+    f32 len = v3Length(combinedMove);
+    if (len > 0)
+        combinedMove = v3Norm(combinedMove, len);
 
     player.pos += combinedMove * moveSpeed;
 }

@@ -98,6 +98,7 @@ void m3Print(const m3& m, std::string_view = "");
 
 f32 v3Length(const v3& a);
 v3 v3Norm(const v3& a);
+v3 v3Norm(const v3& v, cf32 length);
 v3 v3Cross(const v3& l, const v3& r);
 v3 operator-(const v3& l, const v3& r);
 v3 operator+(const v3& l, const v3& r);

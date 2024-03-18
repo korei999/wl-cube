@@ -27,6 +27,12 @@ v3Norm(const v3& v)
 }
 
 v3
+v3Norm(const v3& v, cf32 length)
+{
+    return v3 {v.x / length, v.y / length, v.z / length};
+}
+
+v3
 v3Cross(const v3& l, const v3& r)
 {
     return v3 {
