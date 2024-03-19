@@ -26,7 +26,6 @@ setupShaders()
 {
     lightSrc.loadShaders("shaders/simple.vert", "shaders/simple.frag");
     gouraud.loadShaders("shaders/gouraud.vert", "shaders/gouraud.frag");
-    gouraud.queryActiveUniforms();
 }
 
 void
@@ -53,8 +52,6 @@ setupDraw()
 
     v4 gray = COLOR(0x222222FF);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
-
-    appState.togglePointerRelativeMode();
 
     setupShaders();
     setupModels();

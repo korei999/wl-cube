@@ -6,8 +6,8 @@
 #include <cstring>
 
 AppState appState {
-    .wWidth = 640,
-    .wHeight = 480,
+    .wWidth = 1920,
+    .wHeight = 1080,
 };
 
 [[maybe_unused]] enum
@@ -21,40 +21,6 @@ AppState appState {
 static const zwp_relative_pointer_v1_listener relativePointerListener {
 	.relative_motion = relativePointerHandleMotion
 };
-
-/* TODO: add proper listener instead of creating and destroying all the time */
-void
-AppState::togglePointerRelativeMode()
-{
-    if (!pointerRelativeMode)
-    {
-                                                   /* nullptr surface hides the cursor */
-        wl_pointer_set_cursor(pointer, pointerSerial, nullptr, 0, 0);
-        pointerRelativeMode = true;
-        lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
-                                                                surface,
-                                                                pointer,
-                                                                nullptr,
-                                                                ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
-        relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
-        zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, nullptr);
-    }
-    else
-    {
-        wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, "left_ptr");
-        cursorImage = cursor->images[0];
-        wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
-
-        cursorSurface = wl_compositor_create_surface(compositor);
-        wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
-        wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
-        wl_surface_commit(cursorSurface);
-
-        pointerRelativeMode = false;
-        zwp_locked_pointer_v1_destroy(lockedPointer);
-        zwp_relative_pointer_v1_destroy(relativePointer);
-    }
-}
 
 static void
 frameHandleDone([[maybe_unused]] void* data,
@@ -105,7 +71,7 @@ xdgToplevelHandleClose([[maybe_unused]] void* data,
     appState.programIsRunning = false;
 }
 
-static const xdg_toplevel_listener xdg_toplevel_listener = {
+static const xdg_toplevel_listener xdgToplevelListener = {
     .configure = configureHandle,
     .close = xdgToplevelHandleClose,
 };
@@ -127,6 +93,41 @@ static const wl_keyboard_listener keyboardListener {
     .repeat_info = keyboardRepeatInfo
 };
 
+void
+AppState::setCursor(std::string_view pointerType)
+{
+    wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, pointerType.data());
+    cursorImage = cursor->images[0];
+    wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
+
+    cursorSurface = wl_compositor_create_surface(compositor);
+    wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
+    wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
+    wl_surface_commit(cursorSurface);
+}
+
+void
+AppState::enableRelativeMode()
+{
+    wl_pointer_set_cursor(pointer, pointerSerial, nullptr, 0, 0);
+    lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
+                                                            surface,
+                                                            pointer,
+                                                            nullptr,
+                                                            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
+    relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
+    zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, nullptr);
+}
+
+void
+AppState::disableRelativeMode()
+{
+    zwp_locked_pointer_v1_destroy(lockedPointer);
+    zwp_relative_pointer_v1_destroy(relativePointer);
+
+    setCursor();
+}
+
 static void
 seatHandleCapabilities([[maybe_unused]] void* data,
                        [[maybe_unused]] wl_seat* seat,
@@ -137,6 +138,7 @@ seatHandleCapabilities([[maybe_unused]] void* data,
         appState.pointer = wl_seat_get_pointer(seat);
         appState.cursorTheme = wl_cursor_theme_load(nullptr, 24, appState.shm);
         wl_pointer_add_listener(appState.pointer, &pointerListener, seat);
+        appState.setCursor();
         LOG(GOOD, "pointer works.\n");
     }
     if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
@@ -184,6 +186,11 @@ handleGlobal([[maybe_unused]] void* data,
     {
         appState.relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
     }
+    // else if (strcmp(interface, zwp_relative_pointer_v1_interface.name) == 0)
+    // {
+        // appState.relativePointer = (zwp_relative_pointer_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_v1_interface, version);
+        // zwp_relative_pointer_v1_add_listener(appState.relativePointer, &relativePointerListener, nullptr);
+    // }
     else if (strcmp(interface, "wl_shm") == 0)
     {
         appState.shm = (wl_shm*)wl_registry_bind(registry, name, &wl_shm_interface, 1);
@@ -209,7 +216,7 @@ swapFrames()
 {
     /* Register a frame callback to know when we need to draw the next frame */
     wl_callback* callback = wl_surface_frame(appState.surface);
-    wl_callback_add_listener(callback, &frameListener, NULL);
+    wl_callback_add_listener(callback, &frameListener, nullptr);
 
     /* This will attach a new buffer and commit the surface */
     if (!eglSwapBuffers(appState.eglDisplay, appState.eglSurface))
@@ -270,8 +277,11 @@ main()
         EGL_NONE,
     };
     EGLint n = 0;
-    EGLConfig* configs = new EGLConfig[count] {};
-    EGLD(eglChooseConfig(appState.eglDisplay, configAttribs, configs, count, &n));
+    // EGLConfig* configs = new EGLConfig[count] {};
+    std::vector<EGLConfig> configs;// = new EGLConfig[count] {};
+    configs.resize(count);
+
+    EGLD(eglChooseConfig(appState.eglDisplay, configAttribs, configs.data(), count, &n));
     if (n == 0)
     {
         LOG(FATAL, "Failed to choose an EGL config\n");
@@ -298,15 +308,15 @@ main()
     xdg_toplevel_set_app_id(appState.xdgToplevel, appState.nameStr.data());
 
     xdg_surface_add_listener(appState.xdgSurface, &xdgSurfaceListener, nullptr);
-    xdg_toplevel_add_listener(appState.xdgToplevel, &xdg_toplevel_listener, nullptr);
+    xdg_toplevel_add_listener(appState.xdgToplevel, &xdgToplevelListener, nullptr);
 
     appState.eglWindow = wl_egl_window_create(appState.surface, appState.wWidth, appState.wHeight);
     EGLD(appState.eglSurface = eglCreateWindowSurface(appState.eglDisplay, eglConfig, (EGLNativeWindowType)appState.eglWindow, nullptr));
 
+    appState.pointerRelativeMode = true;
+
     wl_surface_commit(appState.surface);
     wl_display_roundtrip(display);
-
-    // wl_event_queue* q = wl_display_create_queue(display);
 
     // Draw the first frame
     setupDraw();
@@ -318,18 +328,6 @@ main()
     {
         // This space intentionally left blank
     }
-
-    fprintf(stderr, "cleanup ...\n");
-    xdg_toplevel_destroy(appState.xdgToplevel);
-    xdg_surface_destroy(appState.xdgSurface);
-    wl_surface_destroy(appState.surface);
-    wl_cursor_theme_destroy(appState.cursorTheme);
-
-    wl_egl_window_destroy(appState.eglWindow);
-    EGLD(eglDestroySurface(appState.eglDisplay, appState.eglSurface));
-    EGLD(eglDestroyContext(appState.eglDisplay, appState.eglContext));
-
-    delete[] configs;
 
     return EXIT_SUCCESS;
 }

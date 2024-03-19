@@ -3,6 +3,7 @@
 #include "../wayland/pointer-constraints-unstable-v1.h"
 #include "../wayland/relative-pointer-unstable-v1.h"
 #include "ultratypes.h"
+#include "utils.hh"
 
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
@@ -57,7 +58,34 @@ struct AppState
     bool pointerRelativeMode = false;
     bool outOffocus= false;
 
-    void togglePointerRelativeMode();
+    ~AppState()
+    {
+        LOG(OK, "cleanup ...\n");
+        xdg_toplevel_destroy(xdgToplevel);
+        xdg_surface_destroy(xdgSurface);
+        wl_surface_destroy(surface);
+        wl_cursor_theme_destroy(cursorTheme);
+
+        wl_egl_window_destroy(eglWindow);
+        EGLD(eglDestroySurface(eglDisplay, eglSurface));
+        EGLD(eglDestroyContext(eglDisplay, eglContext));
+    }
+
+    void
+    togglePointerRelativeMode()
+    {
+        pointerRelativeMode = !pointerRelativeMode;
+        LOG(OK, "relative mode: {}\n", pointerRelativeMode);
+
+        if (pointerRelativeMode)
+            enableRelativeMode();
+        else
+            disableRelativeMode();
+    }
+
+    void setCursor(std::string_view pointerType = "left_ptr");
+    void enableRelativeMode();
+    void disableRelativeMode();
 };
 
 extern const wl_callback_listener frameListener;

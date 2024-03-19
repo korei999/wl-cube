@@ -34,6 +34,10 @@ PlayerControls::procMouse()
 
         right = v3Norm(v3Cross(front, up));
     }
+    // else
+    // {
+        // LOG(OK, "absX: {:.3f},\tabsY: {:.3f}\n", mouse.absX, mouse.absY);
+    // }
 }
 
 void

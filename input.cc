@@ -23,7 +23,10 @@ keyboardEnterHandle([[maybe_unused]] void* data,
                     [[maybe_unused]] wl_surface* surface,
                     [[maybe_unused]] wl_array* keys)
 {
-    //
+    LOG(OK, "keyboardEnterHandle\n");
+
+    if (appState.pointerRelativeMode)
+        appState.enableRelativeMode();
 }
 
 void
@@ -32,8 +35,12 @@ keyboardLeaveHandle([[maybe_unused]] void* data,
                     [[maybe_unused]] u32 serial,
                     [[maybe_unused]] wl_surface* surface)
 {
+    LOG(OK, "keyboardLeaveHandle\n");
     for (auto& key : pressedKeys)
         key = 0;
+
+    if (appState.pointerRelativeMode)
+        appState.disableRelativeMode();
 }
 
 void
@@ -90,10 +97,17 @@ pointerEnterHandle([[maybe_unused]] void* data,
                    [[maybe_unused]] wl_fixed_t surfaceX,
                    [[maybe_unused]] wl_fixed_t surfaceY)
 {
+    LOG(OK, "pointerEnterHandle\n");
     appState.pointerSerial = serial;
 
     if (appState.pointerRelativeMode)
-        wl_pointer_set_cursor(appState.pointer, appState.pointerSerial, NULL, 0, 0);
+    {
+        wl_pointer_set_cursor(pointer, serial, nullptr, 0, 0);
+    }
+    else
+    {
+        wl_pointer_set_cursor(pointer, serial, appState.cursorSurface, appState.cursorImage->hotspot_x, appState.cursorImage->hotspot_y);
+    }
 }
 
 void
@@ -102,7 +116,7 @@ pointerLeaveHandle([[maybe_unused]] void* data,
                    [[maybe_unused]] u32 serial,
                    [[maybe_unused]] wl_surface* surface)
 {
-    //
+    LOG(OK, "pointerLeaveHandle\n");
 }
 
 void
@@ -148,6 +162,8 @@ relativePointerHandleMotion([[maybe_unused]] void *data,
 				            [[maybe_unused]] wl_fixed_t dxUnaccel,
 				            [[maybe_unused]] wl_fixed_t dyUnaccel)
 {
+    // LOG(OK, "relative: {}, {}\n", dxUnaccel, dyUnaccel);
+
     player.mouse.relX += wl_fixed_to_int(dxUnaccel);
     player.mouse.relY += wl_fixed_to_int(dyUnaccel);
 }
