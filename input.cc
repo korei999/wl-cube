@@ -25,7 +25,7 @@ keyboardEnterHandle([[maybe_unused]] void* data,
 {
     LOG(OK, "keyboardEnterHandle\n");
 
-    if (appState.pointerRelativeMode)
+    if (appState.isRelativeMode)
         appState.enableRelativeMode();
 }
 
@@ -39,7 +39,7 @@ keyboardLeaveHandle([[maybe_unused]] void* data,
     for (auto& key : pressedKeys)
         key = 0;
 
-    if (appState.pointerRelativeMode)
+    if (appState.isRelativeMode)
         appState.disableRelativeMode();
 }
 
@@ -100,7 +100,7 @@ pointerEnterHandle([[maybe_unused]] void* data,
     LOG(OK, "pointerEnterHandle\n");
     appState.pointerSerial = serial;
 
-    if (appState.pointerRelativeMode)
+    if (appState.isRelativeMode)
     {
         wl_pointer_set_cursor(pointer, serial, nullptr, 0, 0);
     }

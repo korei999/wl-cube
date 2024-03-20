@@ -26,6 +26,7 @@ struct AppState
     wl_surface* surface {};
     xdg_surface* xdgSurface {};
     xdg_toplevel* xdgToplevel {};
+    wl_output* output {};
 
     wl_egl_window *eglWindow {};
     EGLDisplay eglDisplay {};
@@ -54,9 +55,9 @@ struct AppState
 
     std::string_view nameStr {};
 
-    bool paused = false;
-    bool pointerRelativeMode = false;
-    bool outOffocus= false;
+    bool isPaused = false;
+    bool isRelativeMode = false;
+    bool isFullscreen = false;
 
     ~AppState()
     {
@@ -74,18 +75,32 @@ struct AppState
     void
     togglePointerRelativeMode()
     {
-        pointerRelativeMode = !pointerRelativeMode;
-        LOG(OK, "relative mode: {}\n", pointerRelativeMode);
+        isRelativeMode = !isRelativeMode;
+        LOG(OK, "relative mode: {}\n", isRelativeMode);
 
-        if (pointerRelativeMode)
+        if (isRelativeMode)
             enableRelativeMode();
         else
             disableRelativeMode();
     }
 
+    void
+    toggleFullscreen()
+    {
+        isFullscreen = !isFullscreen;
+        if (isFullscreen)
+            setFullscreen();
+        else
+            unsetFullscreen();
+    }
+
     void setCursor(std::string_view pointerType = "left_ptr");
     void enableRelativeMode();
     void disableRelativeMode();
+
+private:
+    void setFullscreen();
+    void unsetFullscreen();
 };
 
 extern const wl_callback_listener frameListener;

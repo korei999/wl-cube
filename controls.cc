@@ -10,7 +10,7 @@ static void procMovements();
 void
 PlayerControls::procMouse()
 {
-    if (appState.pointerRelativeMode)
+    if (appState.isRelativeMode)
     {
         auto offsetX = (mouse.relX - mouse.prevRelX) * mouse.sens;
         auto offsetY = (mouse.prevRelY - mouse.relY) * mouse.sens;
@@ -49,9 +49,9 @@ procKeysOnce(u32 key, u32 keyState)
         case KEY_GRAVE:
             if (keyState)
             {
-                appState.paused = !appState.paused;
-                if (appState.paused)
-                    LOG(WARNING, "paused: {}\n", appState.paused);
+                appState.isPaused = !appState.isPaused;
+                if (appState.isPaused)
+                    LOG(WARNING, "paused: {}\n", appState.isPaused);
             }
             break;
 
@@ -69,6 +69,11 @@ procKeysOnce(u32 key, u32 keyState)
         case KEY_R:
             if (keyState)
                 incCounter = 0;
+            break;
+
+        case KEY_F:
+            if (keyState)
+                appState.toggleFullscreen();
             break;
 
         default:

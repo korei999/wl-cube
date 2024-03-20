@@ -68,7 +68,7 @@ drawFrame(void)
 
     f32 aspect = (f32)appState.wWidth / (f32)appState.wHeight;
 
-    if (!appState.paused)
+    if (!appState.isPaused)
     {
         D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
 

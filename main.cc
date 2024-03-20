@@ -60,7 +60,7 @@ configureHandle([[maybe_unused]] void* data,
         appState.wWidth = width;
         appState.wHeight = height;
 
-        D(glViewport(0, 0, width, height));
+        D( glViewport(0, 0, width, height) );
     }
 }
 
@@ -128,6 +128,18 @@ AppState::disableRelativeMode()
     setCursor();
 }
 
+void 
+AppState::setFullscreen()
+{
+    xdg_toplevel_set_fullscreen(xdgToplevel, output);
+}
+
+void
+AppState::unsetFullscreen()
+{
+    xdg_toplevel_unset_fullscreen(xdgToplevel);
+}
+
 static void
 seatHandleCapabilities([[maybe_unused]] void* data,
                        [[maybe_unused]] wl_seat* seat,
@@ -191,9 +203,13 @@ handleGlobal([[maybe_unused]] void* data,
         // appState.relativePointer = (zwp_relative_pointer_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_v1_interface, version);
         // zwp_relative_pointer_v1_add_listener(appState.relativePointer, &relativePointerListener, nullptr);
     // }
-    else if (strcmp(interface, "wl_shm") == 0)
+    else if (strcmp(interface, wl_shm_interface.name) == 0)
     {
         appState.shm = (wl_shm*)wl_registry_bind(registry, name, &wl_shm_interface, 1);
+    }
+    else if (strcmp(interface, wl_output_interface.name) == 0)
+    {
+        appState.output = (wl_output*)wl_registry_bind(registry, name, &wl_output_interface, version);
     }
 }
 
@@ -313,7 +329,7 @@ main()
     appState.eglWindow = wl_egl_window_create(appState.surface, appState.wWidth, appState.wHeight);
     EGLD(appState.eglSurface = eglCreateWindowSurface(appState.eglDisplay, eglConfig, (EGLNativeWindowType)appState.eglWindow, nullptr));
 
-    appState.pointerRelativeMode = true;
+    appState.isRelativeMode = true;
 
     wl_surface_commit(appState.surface);
     wl_display_roundtrip(display);
