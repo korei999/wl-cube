@@ -76,12 +76,13 @@ struct AppState
     togglePointerRelativeMode()
     {
         isRelativeMode = !isRelativeMode;
-        LOG(OK, "relative mode: {}\n", isRelativeMode);
 
         if (isRelativeMode)
             enableRelativeMode();
         else
             disableRelativeMode();
+
+        LOG(OK, "relative mode: {}\n", isRelativeMode);
     }
 
     void
@@ -94,7 +95,7 @@ struct AppState
             unsetFullscreen();
     }
 
-    void setCursor(std::string_view pointerType = "left_ptr");
+    void setCursor(std::string_view cursorType = "right_ptr");
     void enableRelativeMode();
     void disableRelativeMode();
 

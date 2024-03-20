@@ -6,8 +6,8 @@
 #include <cstring>
 
 AppState appState {
-    .wWidth = 1920,
-    .wHeight = 1080,
+    .wWidth = 1280,
+    .wHeight = 720,
 };
 
 [[maybe_unused]] enum
@@ -19,11 +19,11 @@ AppState appState {
 } region_type = REGION_TYPE_NONE;
 
 static const zwp_relative_pointer_v1_listener relativePointerListener {
-	.relative_motion = relativePointerHandleMotion
+	.relative_motion = relativePointerMotionHandler
 };
 
 static void
-frameHandleDone([[maybe_unused]] void* data,
+frameDoneHandler([[maybe_unused]] void* data,
                 [[maybe_unused]] wl_callback* callback,
                 [[maybe_unused]] u32 time)
 {
@@ -32,11 +32,11 @@ frameHandleDone([[maybe_unused]] void* data,
 }
 
 const wl_callback_listener frameListener {
-    .done = frameHandleDone,
+    .done = frameDoneHandler,
 };
 
 static void
-xdgSurfaceHandleConfigure([[maybe_unused]] void* data,
+xdgSurfaceConfigureHandler([[maybe_unused]] void* data,
                           [[maybe_unused]] xdg_surface* xdg_surface,
                           [[maybe_unused]] u32 serial)
 {
@@ -44,11 +44,11 @@ xdgSurfaceHandleConfigure([[maybe_unused]] void* data,
 }
 
 static const xdg_surface_listener xdgSurfaceListener {
-    .configure = xdgSurfaceHandleConfigure,
+    .configure = xdgSurfaceConfigureHandler,
 };
 
 static void
-configureHandle([[maybe_unused]] void* data,
+configureHandler([[maybe_unused]] void* data,
                 [[maybe_unused]] xdg_toplevel* xdgToplevel,
                 [[maybe_unused]] s32 width,
                 [[maybe_unused]] s32 height,
@@ -65,38 +65,38 @@ configureHandle([[maybe_unused]] void* data,
 }
 
 static void
-xdgToplevelHandleClose([[maybe_unused]] void* data,
+xdgToplevelCloseHandler([[maybe_unused]] void* data,
                        [[maybe_unused]] xdg_toplevel* xdgToplevel)
 {
     appState.programIsRunning = false;
 }
 
 static const xdg_toplevel_listener xdgToplevelListener = {
-    .configure = configureHandle,
-    .close = xdgToplevelHandleClose,
+    .configure = configureHandler,
+    .close = xdgToplevelCloseHandler,
 };
 
 static const wl_pointer_listener pointerListener {
-    .enter = pointerEnterHandle,
-    .leave = pointerLeaveHandle,
-    .motion = pointerMotionHandle,
-    .button = pointerButtonHandle,
-    .axis = pointerAxisHandle,
+    .enter = pointerEnterHandler,
+    .leave = pointerLeaveHandler,
+    .motion = pointerMotionHandler,
+    .button = pointerButtonHandler,
+    .axis = pointerAxisHandler,
 };
 
 static const wl_keyboard_listener keyboardListener {
-    .keymap = keyboardKeymapHandle,
-    .enter = keyboardEnterHandle,
-    .leave = keyboardLeaveHandle,
-    .key = keyboardKeyHandle,
-    .modifiers = keyboardModifiersHandle,
-    .repeat_info = keyboardRepeatInfo
+    .keymap = keyboardKeymapHandler,
+    .enter = keyboardEnterHandler,
+    .leave = keyboardLeaveHandler,
+    .key = keyboardKeyHandler,
+    .modifiers = keyboardModifiersHandler,
+    .repeat_info = keyboardRepeatInfoHandler
 };
 
 void
-AppState::setCursor(std::string_view pointerType)
+AppState::setCursor(std::string_view cursorType)
 {
-    wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, pointerType.data());
+    wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, cursorType.data());
     cursorImage = cursor->images[0];
     wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
 
@@ -104,6 +104,8 @@ AppState::setCursor(std::string_view pointerType)
     wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
     wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
     wl_surface_commit(cursorSurface);
+
+    wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, cursorImage->hotspot_x, cursorImage->hotspot_y);
 }
 
 void
@@ -141,7 +143,7 @@ AppState::unsetFullscreen()
 }
 
 static void
-seatHandleCapabilities([[maybe_unused]] void* data,
+seatCapabilitiesHandler([[maybe_unused]] void* data,
                        [[maybe_unused]] wl_seat* seat,
                        [[maybe_unused]] u32 capabilities)
 {
@@ -150,7 +152,6 @@ seatHandleCapabilities([[maybe_unused]] void* data,
         appState.pointer = wl_seat_get_pointer(seat);
         appState.cursorTheme = wl_cursor_theme_load(nullptr, 24, appState.shm);
         wl_pointer_add_listener(appState.pointer, &pointerListener, seat);
-        appState.setCursor();
         LOG(GOOD, "pointer works.\n");
     }
     if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
@@ -167,7 +168,20 @@ seatHandleCapabilities([[maybe_unused]] void* data,
 }
 
 static const wl_seat_listener seatListener {
-    .capabilities = seatHandleCapabilities,
+    .capabilities = seatCapabilitiesHandler,
+};
+
+static void
+xdgWmBasePingHandler(void *data,
+		     struct xdg_wm_base *xdg_wm_base,
+		     uint32_t serial)
+{
+    xdg_wm_base_pong(appState.xdgWmBase, serial);
+}
+
+
+static xdg_wm_base_listener xdgWmBaseListener {
+    .ping = xdgWmBasePingHandler
 };
 
 static void
@@ -177,6 +191,8 @@ handleGlobal([[maybe_unused]] void* data,
              [[maybe_unused]] const char* interface,
              [[maybe_unused]] u32 version)
 {
+    LOG(GOOD, "interface: '{}', version: {}, name: {}\n", interface, version, name);
+
     if (strcmp(interface, wl_seat_interface.name) == 0)
     {
         appState.seat = (wl_seat*)wl_registry_bind(registry, name, &wl_seat_interface, 1);
@@ -189,6 +205,7 @@ handleGlobal([[maybe_unused]] void* data,
     else if (strcmp(interface, xdg_wm_base_interface.name) == 0)
     {
         appState.xdgWmBase = (xdg_wm_base*)wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+        xdg_wm_base_add_listener(appState.xdgWmBase, &xdgWmBaseListener, nullptr);
     }
     else if (strcmp(interface, zwp_pointer_constraints_v1_interface.name) == 0)
     {
@@ -198,11 +215,6 @@ handleGlobal([[maybe_unused]] void* data,
     {
         appState.relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
     }
-    // else if (strcmp(interface, zwp_relative_pointer_v1_interface.name) == 0)
-    // {
-        // appState.relativePointer = (zwp_relative_pointer_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_v1_interface, version);
-        // zwp_relative_pointer_v1_add_listener(appState.relativePointer, &relativePointerListener, nullptr);
-    // }
     else if (strcmp(interface, wl_shm_interface.name) == 0)
     {
         appState.shm = (wl_shm*)wl_registry_bind(registry, name, &wl_shm_interface, 1);
@@ -339,6 +351,7 @@ main()
     drawFrame();
 
     appState.programIsRunning = true;
+    appState.isRelativeMode = true;
 
     while (wl_display_dispatch(display) != -1 && appState.programIsRunning)
     {

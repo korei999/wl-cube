@@ -7,21 +7,21 @@
 #include "headers/frame.hh"
 
 void
-keyboardKeymapHandle([[maybe_unused]] void* data,
-                     [[maybe_unused]] wl_keyboard* keyboard,
-                     [[maybe_unused]] u32 format,
-                     [[maybe_unused]] s32 fd,
-                     [[maybe_unused]] u32 size)
+keyboardKeymapHandler([[maybe_unused]] void* data,
+                      [[maybe_unused]] wl_keyboard* keyboard,
+                      [[maybe_unused]] u32 format,
+                      [[maybe_unused]] s32 fd,
+                      [[maybe_unused]] u32 size)
 {
     //
 }
 
 void
-keyboardEnterHandle([[maybe_unused]] void* data,
-                    [[maybe_unused]] wl_keyboard* keyboard,
-                    [[maybe_unused]] u32 serial,
-                    [[maybe_unused]] wl_surface* surface,
-                    [[maybe_unused]] wl_array* keys)
+keyboardEnterHandler([[maybe_unused]] void* data,
+                     [[maybe_unused]] wl_keyboard* keyboard,
+                     [[maybe_unused]] u32 serial,
+                     [[maybe_unused]] wl_surface* surface,
+                     [[maybe_unused]] wl_array* keys)
 {
     LOG(OK, "keyboardEnterHandle\n");
 
@@ -30,10 +30,10 @@ keyboardEnterHandle([[maybe_unused]] void* data,
 }
 
 void
-keyboardLeaveHandle([[maybe_unused]] void* data,
-                    [[maybe_unused]] wl_keyboard* keyboard,
-                    [[maybe_unused]] u32 serial,
-                    [[maybe_unused]] wl_surface* surface)
+keyboardLeaveHandler([[maybe_unused]] void* data,
+                     [[maybe_unused]] wl_keyboard* keyboard,
+                     [[maybe_unused]] u32 serial,
+                     [[maybe_unused]] wl_surface* surface)
 {
     LOG(OK, "keyboardLeaveHandle\n");
     for (auto& key : pressedKeys)
@@ -44,12 +44,12 @@ keyboardLeaveHandle([[maybe_unused]] void* data,
 }
 
 void
-keyboardKeyHandle([[maybe_unused]] void* data,
-                  [[maybe_unused]] wl_keyboard* keyboard,
-                  [[maybe_unused]] u32 serial,
-                  [[maybe_unused]] u32 time,
-                  [[maybe_unused]] u32 key,
-                  [[maybe_unused]] u32 keyState)
+keyboardKeyHandler([[maybe_unused]] void* data,
+                   [[maybe_unused]] wl_keyboard* keyboard,
+                   [[maybe_unused]] u32 serial,
+                   [[maybe_unused]] u32 time,
+                   [[maybe_unused]] u32 key,
+                   [[maybe_unused]] u32 keyState)
 {
 #ifdef DEBUG
     if (key >= pressedKeys.size())
@@ -68,34 +68,34 @@ keyboardKeyHandle([[maybe_unused]] void* data,
 }
 
 void
-keyboardModifiersHandle([[maybe_unused]] void* data,
-                        [[maybe_unused]] wl_keyboard* keyboard,
-                        [[maybe_unused]] u32 serial,
-                        [[maybe_unused]] u32 modsDepressed,
-                        [[maybe_unused]] u32 modsLatched,
-                        [[maybe_unused]] u32 modsLocked,
-                        [[maybe_unused]] u32 group)
+keyboardModifiersHandler([[maybe_unused]] void* data,
+                         [[maybe_unused]] wl_keyboard* keyboard,
+                         [[maybe_unused]] u32 serial,
+                         [[maybe_unused]] u32 modsDepressed,
+                         [[maybe_unused]] u32 modsLatched,
+                         [[maybe_unused]] u32 modsLocked,
+                         [[maybe_unused]] u32 group)
 {
     //
 }
 
 void
-keyboardRepeatInfo([[maybe_unused]] void* data,
-                   [[maybe_unused]] wl_keyboard* wl_keyboard,
-                   [[maybe_unused]] s32 rate,
-                   [[maybe_unused]] s32 delay)
+keyboardRepeatInfoHandler([[maybe_unused]] void* data,
+                          [[maybe_unused]] wl_keyboard* wl_keyboard,
+                          [[maybe_unused]] s32 rate,
+                          [[maybe_unused]] s32 delay)
 {
     LOG(OK, "rate: {}\tdelay: {}\n", rate, delay);
 }
 
 
 void
-pointerEnterHandle([[maybe_unused]] void* data,
-                   [[maybe_unused]] wl_pointer* pointer,
-                   [[maybe_unused]] u32 serial,
-                   [[maybe_unused]] wl_surface* surface,
-                   [[maybe_unused]] wl_fixed_t surfaceX,
-                   [[maybe_unused]] wl_fixed_t surfaceY)
+pointerEnterHandler([[maybe_unused]] void* data,
+                    [[maybe_unused]] wl_pointer* pointer,
+                    [[maybe_unused]] u32 serial,
+                    [[maybe_unused]] wl_surface* surface,
+                    [[maybe_unused]] wl_fixed_t surfaceX,
+                    [[maybe_unused]] wl_fixed_t surfaceY)
 {
     LOG(OK, "pointerEnterHandle\n");
     appState.pointerSerial = serial;
@@ -111,56 +111,56 @@ pointerEnterHandle([[maybe_unused]] void* data,
 }
 
 void
-pointerLeaveHandle([[maybe_unused]] void* data,
-                   [[maybe_unused]] wl_pointer* pointer,
-                   [[maybe_unused]] u32 serial,
-                   [[maybe_unused]] wl_surface* surface)
+pointerLeaveHandler([[maybe_unused]] void* data,
+                    [[maybe_unused]] wl_pointer* pointer,
+                    [[maybe_unused]] u32 serial,
+                    [[maybe_unused]] wl_surface* surface)
 {
     LOG(OK, "pointerLeaveHandle\n");
 }
 
 void
-pointerMotionHandle([[maybe_unused]] void* data,
-                    [[maybe_unused]] wl_pointer* pointer,
-                    [[maybe_unused]] u32 time,
-                    [[maybe_unused]] wl_fixed_t surfaceX,
-                    [[maybe_unused]] wl_fixed_t surfaceY)
+pointerMotionHandler([[maybe_unused]] void* data,
+                     [[maybe_unused]] wl_pointer* pointer,
+                     [[maybe_unused]] u32 time,
+                     [[maybe_unused]] wl_fixed_t surfaceX,
+                     [[maybe_unused]] wl_fixed_t surfaceY)
 {
     player.mouse.absX = wl_fixed_to_double(surfaceX);
     player.mouse.absY = wl_fixed_to_double(surfaceY);
 }
 
 void
-pointerButtonHandle([[maybe_unused]] void* data,
-                    [[maybe_unused]] wl_pointer* pointer,
-                    [[maybe_unused]] u32 serial,
-                    [[maybe_unused]] u32 time,
-                    [[maybe_unused]] u32 button,
-                    [[maybe_unused]] u32 buttonState)
+pointerButtonHandler([[maybe_unused]] void* data,
+                     [[maybe_unused]] wl_pointer* pointer,
+                     [[maybe_unused]] u32 serial,
+                     [[maybe_unused]] u32 time,
+                     [[maybe_unused]] u32 button,
+                     [[maybe_unused]] u32 buttonState)
 {
     player.mouse.button = button;
     player.mouse.state = buttonState;
 }
 
 void
-pointerAxisHandle([[maybe_unused]] void* data,
-                  [[maybe_unused]] wl_pointer* pointer,
-                  [[maybe_unused]] u32 time,
-                  [[maybe_unused]] u32 axis,
-                  [[maybe_unused]] wl_fixed_t value)
+pointerAxisHandler([[maybe_unused]] void* data,
+                   [[maybe_unused]] wl_pointer* pointer,
+                   [[maybe_unused]] u32 time,
+                   [[maybe_unused]] u32 axis,
+                   [[maybe_unused]] wl_fixed_t value)
 {
     //
 }
 
 void
-relativePointerHandleMotion([[maybe_unused]] void *data,
-				            [[maybe_unused]] zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
-				            [[maybe_unused]] u32 utime_hi,
-				            [[maybe_unused]] u32 utime_lo,
-				            [[maybe_unused]] wl_fixed_t dx,
-				            [[maybe_unused]] wl_fixed_t dy,
-				            [[maybe_unused]] wl_fixed_t dxUnaccel,
-				            [[maybe_unused]] wl_fixed_t dyUnaccel)
+relativePointerMotionHandler([[maybe_unused]] void *data,
+				             [[maybe_unused]] zwp_relative_pointer_v1 *zwp_relative_pointer_v1,
+				             [[maybe_unused]] u32 utime_hi,
+				             [[maybe_unused]] u32 utime_lo,
+				             [[maybe_unused]] wl_fixed_t dx,
+				             [[maybe_unused]] wl_fixed_t dy,
+				             [[maybe_unused]] wl_fixed_t dxUnaccel,
+				             [[maybe_unused]] wl_fixed_t dyUnaccel)
 {
     // LOG(OK, "relative: {}, {}\n", dxUnaccel, dyUnaccel);
 
