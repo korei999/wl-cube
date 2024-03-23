@@ -31,6 +31,12 @@ Texture::Texture(std::string_view path, bool flip, GLint texMode)
     loadBMP(path, flip, texMode);
 }
 
+Texture::~Texture()
+{
+    // TODO: we reuse same texture for multiple objects, so we can't simply delete
+    // D( glDeleteTextures(1, &id) );
+}
+
 void
 Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
 {
@@ -99,7 +105,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     nPixels = width * height;
     byteDepth = bitDepth / 8;
     LOG(OK, "nPixels: {}, byteDepth: {}\n", nPixels, byteDepth);
-    std::vector<u8> pixels((nPixels * byteDepth));
+    std::vector<u8> pixels(nPixels * byteDepth);
 
     bmp.setPos(imageDataAddress);
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);

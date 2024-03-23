@@ -142,8 +142,10 @@ extern EGLint eglLastErrorCode;
 
 #define COLOR(hex)                                                                                                     \
     {                                                                                                                  \
-        ((hex >> 24) & 0xFF) / 255.0f, ((hex >> 16) & 0xFF) / 255.0f, ((hex >> 8) & 0xFF) / 255.0f,                    \
-            (hex & 0xFF) / 255.0f                                                                                      \
+        ((hex >> 24) & 0xFF) / 255.0f,                                                                                 \
+        ((hex >> 16) & 0xFF) / 255.0f,                                                                                 \
+        ((hex >> 8)  & 0xFF) / 255.0f,                                                                                 \
+        ((hex >> 0)  & 0xFF) / 255.0f                                                                                  \
     }
 
 inline constexpr size_t

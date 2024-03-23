@@ -53,6 +53,8 @@ setupDraw()
     v4 gray = COLOR(0x222222FF);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
 
+    appState.toggleFullscreen();
+
     setupShaders();
     setupModels();
 }
@@ -60,7 +62,7 @@ setupDraw()
 f64 incCounter = 0;
 
 void
-drawFrame(void)
+drawFrame()
 {
     player.updateDeltaTime();
     player.procMouse();

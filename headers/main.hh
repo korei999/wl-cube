@@ -12,7 +12,7 @@
 #include <wayland-cursor.h>
 #include <wayland-egl-core.h>
 
-void drawFrame(void);
+void drawFrame();
 void setupDraw();
 void swapFrames();
 
@@ -22,6 +22,8 @@ struct AppState
     int wHeight {};
 
     bool programIsRunning = false;
+
+    wl_display* display {};
 
     wl_surface* surface {};
     xdg_surface* xdgSurface {};
@@ -95,7 +97,7 @@ struct AppState
             unsetFullscreen();
     }
 
-    void setCursor(std::string_view cursorType = "right_ptr");
+    void setCursor(std::string_view cursorType = "left_ptr");
     void enableRelativeMode();
     void disableRelativeMode();
 

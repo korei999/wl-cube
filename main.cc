@@ -24,8 +24,8 @@ static const zwp_relative_pointer_v1_listener relativePointerListener {
 
 static void
 frameDoneHandler([[maybe_unused]] void* data,
-                [[maybe_unused]] wl_callback* callback,
-                [[maybe_unused]] u32 time)
+                 [[maybe_unused]] wl_callback* callback,
+                 [[maybe_unused]] u32 time)
 {
     wl_callback_destroy(callback);
     drawFrame();
@@ -37,9 +37,9 @@ const wl_callback_listener frameListener {
 
 static void
 xdgSurfaceConfigureHandler([[maybe_unused]] void* data,
-                          [[maybe_unused]] xdg_surface* xdg_surface,
-                          [[maybe_unused]] u32 serial)
-{
+                           [[maybe_unused]] xdg_surface* xdg_surface,
+                           [[maybe_unused]] u32 serial)
+{ 
     xdg_surface_ack_configure(xdg_surface, serial);
 }
 
@@ -48,11 +48,11 @@ static const xdg_surface_listener xdgSurfaceListener {
 };
 
 static void
-configureHandler([[maybe_unused]] void* data,
-                [[maybe_unused]] xdg_toplevel* xdgToplevel,
-                [[maybe_unused]] s32 width,
-                [[maybe_unused]] s32 height,
-                [[maybe_unused]] wl_array* states)
+xdgToplevelConfigureHandler([[maybe_unused]] void* data,
+                            [[maybe_unused]] xdg_toplevel* xdgToplevel,
+                            [[maybe_unused]] s32 width,
+                            [[maybe_unused]] s32 height,
+                            [[maybe_unused]] wl_array* states)
 {
     if (width != appState.wWidth || height != appState.wHeight)
     {
@@ -66,13 +66,13 @@ configureHandler([[maybe_unused]] void* data,
 
 static void
 xdgToplevelCloseHandler([[maybe_unused]] void* data,
-                       [[maybe_unused]] xdg_toplevel* xdgToplevel)
+                        [[maybe_unused]] xdg_toplevel* xdgToplevel)
 {
     appState.programIsRunning = false;
 }
 
 static const xdg_toplevel_listener xdgToplevelListener = {
-    .configure = configureHandler,
+    .configure = xdgToplevelConfigureHandler,
     .close = xdgToplevelCloseHandler,
 };
 
@@ -144,8 +144,8 @@ AppState::unsetFullscreen()
 
 static void
 seatCapabilitiesHandler([[maybe_unused]] void* data,
-                       [[maybe_unused]] wl_seat* seat,
-                       [[maybe_unused]] u32 capabilities)
+                        [[maybe_unused]] wl_seat* seat,
+                        [[maybe_unused]] u32 capabilities)
 {
     if (capabilities & WL_SEAT_CAPABILITY_POINTER)
     {
@@ -245,6 +245,7 @@ swapFrames()
     /* Register a frame callback to know when we need to draw the next frame */
     wl_callback* callback = wl_surface_frame(appState.surface);
     wl_callback_add_listener(callback, &frameListener, nullptr);
+    // wl_surface_damage(appState.surface, appState.wWidth, appState.wHeight, 0, 0);
 
     /* This will attach a new buffer and commit the surface */
     if (!eglSwapBuffers(appState.eglDisplay, appState.eglSurface))
@@ -254,17 +255,17 @@ swapFrames()
 int
 main()
 {
-    wl_display* display = wl_display_connect(nullptr);
-    if (display == nullptr)
+    appState.display = wl_display_connect(nullptr);
+    if (appState.display == nullptr)
     {
         fprintf(stderr, "failed to create display\n");
         return EXIT_FAILURE;
     }
 
-    wl_registry* registry = wl_display_get_registry(display);
+    wl_registry* registry = wl_display_get_registry(appState.display);
     wl_registry_add_listener(registry, &registryListener, nullptr);
-    wl_display_dispatch(display);
-    wl_display_roundtrip(display);
+    wl_display_dispatch(appState.display);
+    wl_display_roundtrip(appState.display);
 
     if (appState.compositor == nullptr || appState.xdgWmBase == nullptr)
     {
@@ -272,7 +273,7 @@ main()
         return EXIT_FAILURE;
     }
 
-    appState.eglDisplay = eglGetDisplay((EGLNativeDisplayType)display);
+    appState.eglDisplay = eglGetDisplay((EGLNativeDisplayType)appState.display);
     EGLD();
     if (appState.eglDisplay == EGL_NO_DISPLAY)
     {
@@ -317,8 +318,7 @@ main()
     EGLConfig eglConfig = configs[0];
 
     EGLint contextAttribs[] {
-        EGL_CONTEXT_CLIENT_VERSION,
-        3,
+        EGL_CONTEXT_CLIENT_VERSION, 3,
         EGL_NONE,
     };
     appState.eglContext = eglCreateContext(appState.eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs);
@@ -344,16 +344,16 @@ main()
     appState.isRelativeMode = true;
 
     wl_surface_commit(appState.surface);
-    wl_display_roundtrip(display);
+    wl_display_roundtrip(appState.display);
+
+    appState.programIsRunning = true;
+    appState.isRelativeMode = true;
 
     // Draw the first frame
     setupDraw();
     drawFrame();
 
-    appState.programIsRunning = true;
-    appState.isRelativeMode = true;
-
-    while (wl_display_dispatch(display) != -1 && appState.programIsRunning)
+    while (wl_display_dispatch(appState.display) != -1 && appState.programIsRunning)
     {
         // This space intentionally left blank
     }

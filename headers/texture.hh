@@ -12,6 +12,7 @@ struct Texture
 
     Texture() = default;
     Texture(std::string_view path, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
+    ~Texture();
 
     void loadBMP(std::string_view path, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
     void use();
