@@ -54,13 +54,16 @@ xdgToplevelConfigureHandler([[maybe_unused]] void* data,
                             [[maybe_unused]] s32 height,
                             [[maybe_unused]] wl_array* states)
 {
-    if (width != appState.wWidth || height != appState.wHeight)
+    if (width > 0 && height > 0)
     {
-        wl_egl_window_resize(appState.eglWindow, width, height, 0, 0);
-        appState.wWidth = width;
-        appState.wHeight = height;
+        if (width != appState.wWidth || height != appState.wHeight)
+        {
+            wl_egl_window_resize(appState.eglWindow, width, height, 0, 0);
+            appState.wWidth = width;
+            appState.wHeight = height;
 
-        D( glViewport(0, 0, width, height) );
+            D( glViewport(0, 0, width, height) );
+        }
     }
 }
 
@@ -71,9 +74,19 @@ xdgToplevelCloseHandler([[maybe_unused]] void* data,
     appState.programIsRunning = false;
 }
 
+static void
+xdgToplevelConfigureBounds([[maybe_unused]] void* data,
+				           [[maybe_unused]] xdg_toplevel* toplevel,
+				           [[maybe_unused]] s32 width,
+                           [[maybe_unused]] s32 height)
+{
+    LOG(OK, "configure_bounds: width: {}, height: {}\n", width, height);
+}
+
 static const xdg_toplevel_listener xdgToplevelListener = {
     .configure = xdgToplevelConfigureHandler,
     .close = xdgToplevelCloseHandler,
+    .configure_bounds = xdgToplevelConfigureBounds
 };
 
 static const wl_pointer_listener pointerListener {
