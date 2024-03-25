@@ -85,6 +85,17 @@ void
 PlayerControls::procKeys()
 {
     procMovements();
+
+    if (pressedKeys[KEY_I])
+    {
+        fov += 100.0f * deltaTime;
+        LOG(OK, "fov: {:.3f}\n", fov);
+    }
+    if (pressedKeys[KEY_O])
+    {
+        fov -= 100.0f * deltaTime;
+        LOG(OK, "fov: {:.3f}\n", fov);
+    }
 }
 
 static void

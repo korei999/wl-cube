@@ -60,6 +60,7 @@ setupDraw()
 }
 
 f64 incCounter = 0;
+f64 fov = 90.0f;
 
 void
 drawFrame()
@@ -74,7 +75,7 @@ drawFrame()
     {
         D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
 
-        player.updateProj(90.0f, aspect, 0.01f, 100.0f);
+        player.updateProj(TO_RAD(fov), aspect, 0.01f, 100.0f);
         player.updateView();
         m4 trm = m4Iden();
 
