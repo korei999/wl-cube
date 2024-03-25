@@ -10,34 +10,27 @@ static void procMovements();
 void
 PlayerControls::procMouse()
 {
-    if (appState.isRelativeMode)
-    {
-        auto offsetX = (mouse.relX - mouse.prevRelX) * mouse.sens;
-        auto offsetY = (mouse.prevRelY - mouse.relY) * mouse.sens;
+    auto offsetX = (mouse.relX - mouse.prevRelX) * mouse.sens;
+    auto offsetY = (mouse.prevRelY - mouse.relY) * mouse.sens;
 
-        mouse.prevRelX = mouse.relX;
-        mouse.prevRelY = mouse.relY;
+    mouse.prevRelX = mouse.relX;
+    mouse.prevRelY = mouse.relY;
 
-        mouse.yaw += offsetX;
-        mouse.pitch += offsetY;
+    mouse.yaw += offsetX;
+    mouse.pitch += offsetY;
 
-        if (mouse.pitch > 89.9)
-            mouse.pitch = 89.9;
-        if (mouse.pitch < -89.9)
-            mouse.pitch = -89.9;
+    if (mouse.pitch > 89.9)
+        mouse.pitch = 89.9;
+    if (mouse.pitch < -89.9)
+        mouse.pitch = -89.9;
 
-        front = v3Norm({
+    front = v3Norm({
             (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
             (f32)sin(TO_RAD(mouse.pitch)),
             (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
-        });
+    });
 
-        right = v3Norm(v3Cross(front, up));
-    }
-    // else
-    // {
-        // LOG(OK, "absX: {:.3f},\tabsY: {:.3f}\n", mouse.absX, mouse.absY);
-    // }
+    right = v3Norm(v3Cross(front, up));
 }
 
 void
