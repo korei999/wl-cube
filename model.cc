@@ -4,18 +4,18 @@
 #include <unordered_map>
 #include <exception>
 
-constexpr size_t vHash = hashFNV("v");
-constexpr size_t vtHash = hashFNV("vt");
-constexpr size_t vnHash = hashFNV("vn");
-constexpr size_t fHash = hashFNV("f");
-constexpr size_t mtllibHash = hashFNV("mtllib");
-constexpr size_t oHash = hashFNV("o");
-constexpr size_t usemtlHash = hashFNV("usemtl");
-constexpr size_t materialHash = hashFNV("Material");
-constexpr size_t sHash = hashFNV("s");
-constexpr size_t offHash = hashFNV("off");
-constexpr size_t newmtlHash = hashFNV("newmtl");
-constexpr size_t commentHash = hashFNV("#");
+[[maybe_unused]] constexpr size_t vHash = hashFNV("v");
+[[maybe_unused]] constexpr size_t vtHash = hashFNV("vt");
+[[maybe_unused]] constexpr size_t vnHash = hashFNV("vn");
+[[maybe_unused]] constexpr size_t fHash = hashFNV("f");
+[[maybe_unused]] constexpr size_t mtllibHash = hashFNV("mtllib");
+[[maybe_unused]] constexpr size_t oHash = hashFNV("o");
+[[maybe_unused]] constexpr size_t usemtlHash = hashFNV("usemtl");
+[[maybe_unused]] constexpr size_t materialHash = hashFNV("Material");
+[[maybe_unused]] constexpr size_t sHash = hashFNV("s");
+[[maybe_unused]] constexpr size_t offHash = hashFNV("off");
+[[maybe_unused]] constexpr size_t newmtlHash = hashFNV("newmtl");
+[[maybe_unused]] constexpr size_t commentHash = hashFNV("#");
 
 Model::Model(std::string_view path)
 {

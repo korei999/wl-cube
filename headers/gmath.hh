@@ -93,8 +93,11 @@ union m3
     m3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8) : p(_0, _1, _2, _3, _4, _5, _6, _7, _8) {}
 };
 
+
+#ifdef LOGS
 void m4Print(const m4& m, std::string_view prefix = "");
 void m3Print(const m3& m, std::string_view prefix = "");
+#endif
 
 f32 v3Length(const v3& a);
 v3 v3Norm(const v3& a);

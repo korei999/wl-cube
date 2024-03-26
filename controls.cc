@@ -2,7 +2,7 @@
 #include "headers/frame.hh"
 #include "headers/utils.hh"
 
-std::vector<int> pressedKeys(300, 0);
+int pressedKeys[300] {};
 
 static void procMovements();
 

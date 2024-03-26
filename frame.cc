@@ -4,9 +4,7 @@
 #include "headers/utils.hh"
 #include "headers/model.hh"
 #include "headers/texture.hh"
-
 #include "headers/wayland.hh"
-
 
 PlayerControls player {
     .mouse.sens = 0.07,

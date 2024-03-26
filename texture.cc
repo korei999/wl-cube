@@ -77,7 +77,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     height = bmp.read32();
     LOG(OK, "width: {}, height: {}\n", width, height);
 
-    auto colorPlane = bmp.read16();
+    [[maybe_unused]] auto colorPlane = bmp.read16();
     LOG(OK, "colorPlane: {}\n", colorPlane);
 
     GLint format = GL_RGB;
@@ -99,7 +99,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
             break;
     }
 
-    auto bitsPerPixel = bmp.read16();
+    [[maybe_unused]] auto bitsPerPixel = bmp.read16();
     LOG(OK, "bitsPerPixel: {}\n", bitsPerPixel);
 
     nPixels = width * height;

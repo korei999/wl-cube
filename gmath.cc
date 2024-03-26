@@ -323,6 +323,7 @@ m3Transpose(const m3& m)
     };
 }
 
+#ifdef LOGS
 void
 m4Print(const m4& m, std::string_view prefix)
 {
@@ -346,6 +347,7 @@ m3Print(const m3& m, std::string_view prefix)
         e[2][0], e[2][1], e[2][2],
         e[3][0], e[3][1], e[3][2]);
 }
+#endif
 
 m3
 m3Inverse(const m3& m)

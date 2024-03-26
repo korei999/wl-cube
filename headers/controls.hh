@@ -3,8 +3,6 @@
 #include "input.hh"
 #include "wayland.hh"
 
-#include <vector>
-
 enum KeyState : int
 {
     RELEASED,
@@ -35,4 +33,4 @@ struct PlayerControls
 
 void procKeysOnce(WlClient* self, u32 key, u32 keyState);
 
-extern std::vector<int> pressedKeys;
+extern int pressedKeys[300];

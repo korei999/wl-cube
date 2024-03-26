@@ -56,14 +56,10 @@ keyboardKeyHandler([[maybe_unused]] void* data,
     auto self = (WlClient*)data;
 
 #ifdef DEBUG
-    if (key >= pressedKeys.size())
+    if (key >= LEN(pressedKeys))
     {
-        if (key > 10000)
-        {
-            LOG(WARNING, "key '{}' is too big?\n", key);
-            return;
-        }
-        pressedKeys.resize(key + 1, 0);
+        LOG(WARNING, "key '{}' is too big?\n", key);
+        return;
     }
 #endif
 
