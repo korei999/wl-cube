@@ -2,7 +2,7 @@
 #include "headers/frame.hh"
 #include "headers/utils.hh"
 
-int pressedKeys[300] {};
+bool pressedKeys[300] {};
 
 static void procMovements(WlClient* self);
 
@@ -33,13 +33,13 @@ PlayerControls::procMouse()
 }
 
 void
-procKeysOnce(WlClient* self, u32 key, u32 keyState)
+procKeysOnce(WlClient* self, u32 key, u32 pressed)
 {
     switch (key)
     {
         case KEY_P:
         case KEY_GRAVE:
-            if (keyState)
+            if (pressed)
             {
                 self->isPaused = !self->isPaused;
                 if (self->isPaused)
@@ -48,28 +48,31 @@ procKeysOnce(WlClient* self, u32 key, u32 keyState)
             break;
 
         case KEY_Q:
-            if (keyState)
+            if (pressed)
                 self->togglePointerRelativeMode();
             break;
 
         case KEY_ESC:
         case KEY_CAPSLOCK:
-            self->isRunning = false;
-            LOG(OK, "quit...\n");
+            if (pressed)
+            {
+                self->isRunning = false;
+                LOG(OK, "quit...\n");
+            }
             break;
 
         case KEY_R:
-            if (keyState)
+            if (pressed)
                 incCounter = 0;
             break;
 
         case KEY_F:
-            if (keyState)
+            if (pressed)
                 self->toggleFullscreen();
             break;
 
         case KEY_V:
-            if (keyState)
+            if (pressed)
             {
                 self->swapInterval = !self->swapInterval;
                 EGLD( eglSwapInterval(self->eglDisplay, self->swapInterval) );

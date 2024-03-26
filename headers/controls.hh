@@ -3,12 +3,6 @@
 #include "input.hh"
 #include "wayland.hh"
 
-enum KeyState : int
-{
-    RELEASED,
-    PRESSED
-};
-
 struct PlayerControls
 {
     Mouse mouse;
@@ -31,6 +25,6 @@ struct PlayerControls
     void updateProj(f32 fov, f32 aspect, f32 near, f32 far);
 };
 
-void procKeysOnce(WlClient* self, u32 key, u32 keyState);
+void procKeysOnce(WlClient* self, u32 key, u32 pressed);
 
-extern int pressedKeys[300];
+extern bool pressedKeys[300];
