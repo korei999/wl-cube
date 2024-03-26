@@ -28,12 +28,13 @@ Model::~Model()
     /* TODO: */
     if (this->meshes.size())
     {
-        LOG(OK, "cleaning up buffers...\n");
+        LOG(OK, "deleting model buffers...\n");
         for (auto& mesh : this->meshes)
         {
+            LOG(OK, "\t\tvao: {}, vbo: {}, ebo: {}\n", mesh.vao, mesh.vbo, mesh.ebo);
             D( glDeleteVertexArrays(1, &mesh.vao) );
-            D( glDeleteBuffers(1, &mesh.ebo) );
             D( glDeleteBuffers(1, &mesh.vbo) );
+            D( glDeleteBuffers(1, &mesh.ebo) );
         }
     }
 }

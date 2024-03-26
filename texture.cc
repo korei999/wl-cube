@@ -2,7 +2,7 @@
 #include "headers/utils.hh"
 
 /* static placeholder */
-std::unordered_map<std::string_view, GLuint> Texture::loadedTex;
+std::unordered_map<std::string_view, Texture*> Texture::loadedTex;
 
 /* Bitmap file format
  *
@@ -33,8 +33,15 @@ Texture::Texture(std::string_view path, bool flip, GLint texMode)
 
 Texture::~Texture()
 {
-    // TODO: we reuse same texture for multiple objects, so we can't simply delete
-    // D( glDeleteTextures(1, &id) );
+    if (this->id != 0)
+    {
+        LOG(OK, "id: {}, use_count: {}\n", this->id, this->idOwnersCounter.use_count());
+        if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
+        {
+            LOG(OK, "texure '{}' deleted\n", this->id);
+            D( glDeleteTextures(1, &id) );
+        }
+    }
 }
 
 void
@@ -46,10 +53,13 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
         return;
     }
 
-    auto inserted = loadedTex.insert({path, 0});
+    auto inserted = loadedTex.insert({path, {}});
+
     if (!inserted.second)
     {
-        LOG(WARNING, "texture '{}' is already loaded with id '{}', setting new id value to this->id\n", path, inserted.first->second);
+        LOG(WARNING, "texture '{}' is already loaded with id '{}', setting '{}' to this->id\n", path, inserted.first->second->id, inserted.first->second->id);
+        this->idOwnersCounter = inserted.first->second->idOwnersCounter;
+        this->id = *this->idOwnersCounter.get();
         return;
     }
 
@@ -118,7 +128,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     setTexture((u8*)pixels.data(), texMode, format, width, height);
 
     LOG(OK, "id: {}\n", this->id);
-    inserted.first->second = this->id;
+    inserted.first->second = this;
 }
 
 void
@@ -142,4 +152,6 @@ Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsize
     /* load image, create texture and generate mipmaps */
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
+    /* set the reference counter for each new texture */
+    idOwnersCounter = std::make_shared<GLuint>(this->id);
 }
