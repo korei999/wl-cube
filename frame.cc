@@ -20,7 +20,10 @@ u32 tex;
 Texture bodyTex;
 Texture faceTex;
 v3 ambLight {0.2, 0.2, 0.2};
+
+#ifdef FPS_COUNTER
 f32 prevTime;
+#endif
 
 static void
 setupShaders()
@@ -62,13 +65,9 @@ f64 fov = 90.0f;
 void
 WlClient::drawFrame()
 {
-    player.updateDeltaTime();
-    player.procMouse();
-    player.procKeys(this);
-
 #ifdef FPS_COUNTER
     static int fpsCount = 0;
-    auto currTime = timeNow();
+    f64 currTime = timeNow();
     if (currTime >= prevTime + 1.0)
     {
         std::print(stderr, "fps: {}\n", fpsCount);
@@ -76,6 +75,10 @@ WlClient::drawFrame()
         prevTime = currTime;
     }
 #endif
+
+    player.updateDeltaTime();
+    player.procMouse();
+    player.procKeys(this);
 
     f32 aspect = (f32)wWidth / (f32)wHeight;
 
@@ -132,10 +135,10 @@ WlClient::drawFrame()
 
         incCounter += 1 * player.deltaTime;
 
+    }
 #ifdef FPS_COUNTER
         fpsCount++;
 #endif
-    }
 }
 
 void 
@@ -151,7 +154,10 @@ WlClient::mainLoop()
     setupShaders();
     setupModels();
 
+#ifdef FPS_COUNTER
     prevTime = timeNow();
+#endif
+
     while (isRunning)
     {
         drawFrame();
