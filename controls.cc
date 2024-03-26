@@ -1,5 +1,4 @@
 #include "headers/controls.hh"
-#include "headers/main.hh"
 #include "headers/frame.hh"
 #include "headers/utils.hh"
 
@@ -34,7 +33,7 @@ PlayerControls::procMouse()
 }
 
 void
-procKeysOnce(u32 key, u32 keyState)
+procKeysOnce(WlClient* self, u32 key, u32 keyState)
 {
     switch (key)
     {
@@ -42,20 +41,20 @@ procKeysOnce(u32 key, u32 keyState)
         case KEY_GRAVE:
             if (keyState)
             {
-                appState.isPaused = !appState.isPaused;
-                if (appState.isPaused)
-                    LOG(WARNING, "paused: {}\n", appState.isPaused);
+                self->isPaused = !self->isPaused;
+                if (self->isPaused)
+                    LOG(WARNING, "paused: {}\n", self->isPaused);
             }
             break;
 
         case KEY_Q:
             if (keyState)
-                appState.togglePointerRelativeMode();
+                self->togglePointerRelativeMode();
             break;
 
         case KEY_ESC:
         case KEY_CAPSLOCK:
-            appState.programIsRunning = false;
+            self->isRunning = false;
             LOG(OK, "quit...\n");
             break;
 
@@ -66,7 +65,7 @@ procKeysOnce(u32 key, u32 keyState)
 
         case KEY_F:
             if (keyState)
-                appState.toggleFullscreen();
+                self->toggleFullscreen();
             break;
 
         default:

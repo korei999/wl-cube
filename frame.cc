@@ -1,10 +1,12 @@
 #include "headers/frame.hh"
-#include "headers/main.hh"
 #include "headers/gmath.hh"
 #include "headers/shader.hh"
 #include "headers/utils.hh"
 #include "headers/model.hh"
 #include "headers/texture.hh"
+
+#include "headers/wayland.hh"
+
 
 PlayerControls player {
     .mouse.sens = 0.07,
@@ -28,7 +30,7 @@ setupShaders()
     gouraud.loadShaders("shaders/gouraud.vert", "shaders/gouraud.frag");
 }
 
-void
+static void
 setupModels()
 {
     hl.loadOBJ("test_assets/models/gordon/hl1.obj");
@@ -39,12 +41,13 @@ setupModels()
 }
 
 void
-setupDraw()
+WlClient::setupDraw()
 {
-    if (!eglMakeCurrent(appState.eglDisplay, appState.eglSurface, appState.eglSurface, appState.eglContext))
+    if (!eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext))
         LOG(FATAL, "eglMakeCurrent failed\n");
 
-    EGLD( eglSwapInterval(appState.eglDisplay, 1) );
+    EGLD( eglSwapInterval(eglDisplay, 1) );
+    toggleFullscreen();
 
     D( glEnable(GL_CULL_FACE) );
     D( glEnable(GL_DEPTH_TEST) );
@@ -52,26 +55,21 @@ setupDraw()
 
     v4 gray = COLOR(0x222222FF);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
-
-    appState.toggleFullscreen();
-
-    setupShaders();
-    setupModels();
 }
 
 f64 incCounter = 0;
 f64 fov = 90.0f;
 
 void
-drawFrame()
+WlClient::drawFrame()
 {
     player.updateDeltaTime();
     player.procMouse();
     player.procKeys();
 
-    f32 aspect = (f32)appState.wWidth / (f32)appState.wHeight;
+    f32 aspect = (f32)wWidth / (f32)wHeight;
 
-    if (!appState.isPaused)
+    if (!isPaused)
     {
         D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
 
@@ -123,5 +121,29 @@ drawFrame()
         cube.draw();
 
         incCounter += 1 * player.deltaTime;
+    }
+}
+
+void 
+WlClient::mainLoop()
+{
+    isRunning = true;
+    isRelativeMode = true;
+    isPaused = false;
+
+    setupDraw();
+
+    setupShaders();
+    setupModels();
+
+    while (isRunning)
+    {
+        drawFrame();
+
+        if (!eglSwapBuffers(eglDisplay, eglSurface))
+            LOG(FATAL, "eglSwapBuffers failed\n");
+
+        if (wl_display_dispatch(display) == -1)
+            LOG(FATAL, "wl_display_dispatch error\n");
     }
 }

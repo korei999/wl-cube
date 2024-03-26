@@ -44,4 +44,4 @@ void pointerMotionHandler(void* data, wl_pointer* pointer, u32 time, wl_fixed_t 
 void pointerButtonHandler(void* data, wl_pointer* pointer, u32 serial, u32 time, u32 button, u32 state);
 void pointerAxisHandler(void* data, wl_pointer* pointer, u32 time, u32 axis, wl_fixed_t value);
 
-void relativePointerMotionHandler(void *data, zwp_relative_pointer_v1 *zwp_relative_pointer_v1, u32 utime_hi, u32 utime_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel);
+void relativePointerMotionHandler(void* data, zwp_relative_pointer_v1* zwp_relative_pointer_v1, u32 utime_hi, u32 utime_lo, wl_fixed_t dx, wl_fixed_t dy, wl_fixed_t dx_unaccel, wl_fixed_t dy_unaccel);

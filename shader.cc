@@ -69,9 +69,7 @@ GLuint
 Shader::loadShader(GLenum type, std::string_view path)
 {
     GLuint shader;
-
-    shader = glCreateShader(type);
-    D( );
+    D( shader = glCreateShader(type) );
     if (!shader)
         return 0;
 
@@ -166,16 +164,16 @@ Shader::queryActiveUniforms()
 void 
 Shader::setM4(std::string_view name, const m4& m)
 {
-    auto tU = glGetUniformLocation(progObj, name.data());
-    D( );
+    GLint tU;
+    D( tU = glGetUniformLocation(progObj, name.data()) );
     D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)m.e) );
 }
 
 void 
 Shader::setM3(std::string_view name, const m3& m)
 {
-    auto tU = glGetUniformLocation(progObj, name.data());
-    D( );
+    GLint tU;
+    D( tU = glGetUniformLocation(progObj, name.data()) );
     D( glUniformMatrix3fv(tU, 1, GL_FALSE, (GLfloat*)m.e) );
 }
 
@@ -183,15 +181,15 @@ Shader::setM3(std::string_view name, const m3& m)
 void
 Shader::setV3(std::string_view name, const v3& v)
 {
-    auto ul = glGetUniformLocation(progObj, name.data());
-    D( );
+    GLint ul;
+    D( ul = glGetUniformLocation(progObj, name.data()) );
     D( glUniform3fv(ul, 1, (GLfloat*)v.e) );
 }
 
 void
 Shader::setF(std::string_view name, cf32 f)
 {
-    auto ul = glGetUniformLocation(progObj, name.data());
-    D( );
+    GLint ul;
+    D( ul = glGetUniformLocation(progObj, name.data()) );
     D( glUniform1f(ul, f) );
 }

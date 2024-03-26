@@ -1,10 +1,7 @@
-#include "wayland/pointer-constraints-unstable-v1.h"
-#include "wayland/xdg-shell.h"
 #include "headers/controls.hh"
-#include "headers/input.hh"
-#include "headers/main.hh"
-#include "headers/utils.hh"
 #include "headers/frame.hh"
+#include "headers/wayland.hh"
+#include "headers/utils.hh"
 
 void
 keyboardKeymapHandler([[maybe_unused]] void* data,
@@ -25,8 +22,10 @@ keyboardEnterHandler([[maybe_unused]] void* data,
 {
     LOG(OK, "keyboardEnterHandle\n");
 
-    if (appState.isRelativeMode)
-        appState.enableRelativeMode();
+    auto self = (WlClient*)data;
+
+    if (self->isRelativeMode)
+        self->enableRelativeMode();
 }
 
 void
@@ -36,11 +35,14 @@ keyboardLeaveHandler([[maybe_unused]] void* data,
                      [[maybe_unused]] wl_surface* surface)
 {
     LOG(OK, "keyboardLeaveHandle\n");
+
+    auto self = (WlClient*)data;
+
     for (auto& key : pressedKeys)
         key = 0;
 
-    if (appState.isRelativeMode)
-        appState.disableRelativeMode();
+    if (self->isRelativeMode)
+        self->disableRelativeMode();
 }
 
 void
@@ -51,6 +53,8 @@ keyboardKeyHandler([[maybe_unused]] void* data,
                    [[maybe_unused]] u32 key,
                    [[maybe_unused]] u32 keyState)
 {
+    auto self = (WlClient*)data;
+
 #ifdef DEBUG
     if (key >= pressedKeys.size())
     {
@@ -64,7 +68,7 @@ keyboardKeyHandler([[maybe_unused]] void* data,
 #endif
 
     pressedKeys[key] = keyState;
-    procKeysOnce(key, keyState);
+    procKeysOnce(self, key, keyState);
 }
 
 void
@@ -98,15 +102,17 @@ pointerEnterHandler([[maybe_unused]] void* data,
                     [[maybe_unused]] wl_fixed_t surfaceY)
 {
     LOG(OK, "pointerEnterHandle\n");
-    appState.pointerSerial = serial;
 
-    if (appState.isRelativeMode)
+    auto self = (WlClient*)data;
+    self->pointerSerial = serial;
+
+    if (self->isRelativeMode)
     {
         wl_pointer_set_cursor(pointer, serial, nullptr, 0, 0);
     }
     else
     {
-        wl_pointer_set_cursor(pointer, serial, appState.cursorSurface, appState.cursorImage->hotspot_x, appState.cursorImage->hotspot_y);
+        wl_pointer_set_cursor(pointer, serial, self->cursorSurface, self->cursorImage->hotspot_x, self->cursorImage->hotspot_y);
     }
 }
 

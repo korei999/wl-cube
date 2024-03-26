@@ -1,6 +1,7 @@
 #pragma once
 #include "gmath.hh"
 #include "input.hh"
+#include "wayland.hh"
 
 #include <vector>
 
@@ -32,6 +33,6 @@ struct PlayerControls
     void updateProj(f32 fov, f32 aspect, f32 near, f32 far);
 };
 
-void procKeysOnce(u32 key, u32 keyState);
+void procKeysOnce(WlClient* self, u32 key, u32 keyState);
 
 extern std::vector<int> pressedKeys;
