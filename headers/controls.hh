@@ -1,7 +1,30 @@
 #pragma once
 #include "gmath.hh"
-#include "input.hh"
 #include "wayland.hh"
+
+#include <linux/input-event-codes.h>
+
+struct Mouse
+{
+    f64 prevAbsX = 0;
+    f64 prevAbsY = 0;
+
+    f64 prevRelX = 0;
+    f64 prevRelY = 0;
+
+    f64 absX = 0;
+    f64 absY = 0;
+
+    f64 relX = 0;
+    f64 relY = 0;
+
+    f64 sens = 0.05;
+    f64 yaw = -90.0;
+    f64 pitch = 0;
+
+    u32 button = BTN_MOUSE;
+    u32 state = 0;
+};
 
 struct PlayerControls
 {

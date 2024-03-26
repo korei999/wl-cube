@@ -2,34 +2,7 @@
 #include "ultratypes.h"
 #include "../wayland/relative-pointer-unstable-v1.h"
 
-#include <wayland-client-protocol.h>
-#ifdef __linux__
-#    include <linux/input-event-codes.h>
-#elif __FreeBSD__
-#    include <dev/evdev/input-event-codes.h>
-#endif
-
-struct Mouse
-{
-    f64 prevAbsX = 0;
-    f64 prevAbsY = 0;
-
-    f64 prevRelX = 0;
-    f64 prevRelY = 0;
-
-    f64 absX = 0;
-    f64 absY = 0;
-
-    f64 relX = 0;
-    f64 relY = 0;
-
-    f64 sens = 0.05;
-    f64 yaw = -90.0;
-    f64 pitch = 0;
-
-    u32 button = BTN_MOUSE;
-    u32 state = 0;
-};
+#include <linux/input-event-codes.h>
 
 void keyboardKeymapHandler(void* data, wl_keyboard* keyboard, u32 format, s32 fd, u32 size);
 void keyboardEnterHandler(void* data, wl_keyboard* keyboard, u32 serial, wl_surface* surface, wl_array* keys);
