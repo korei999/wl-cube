@@ -22,7 +22,7 @@ Texture faceTex;
 v3 ambLight {0.2, 0.2, 0.2};
 
 #ifdef FPS_COUNTER
-f32 prevTime;
+f64 prevTime;
 #endif
 
 static void
