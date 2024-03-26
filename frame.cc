@@ -44,7 +44,7 @@ setupDraw()
     if (!eglMakeCurrent(appState.eglDisplay, appState.eglSurface, appState.eglSurface, appState.eglContext))
         LOG(FATAL, "eglMakeCurrent failed\n");
 
-    EGLD( eglSwapInterval(appState.eglDisplay, 0) );
+    EGLD( eglSwapInterval(appState.eglDisplay, 1) );
 
     D( glEnable(GL_CULL_FACE) );
     D( glEnable(GL_DEPTH_TEST) );
@@ -124,6 +124,4 @@ drawFrame()
 
         incCounter += 1 * player.deltaTime;
     }
-
-    swapFrames();
 }

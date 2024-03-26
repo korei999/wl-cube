@@ -256,8 +256,8 @@ void
 swapFrames()
 {
     /* Register a frame callback to know when we need to draw the next frame */
-    wl_callback* callback = wl_surface_frame(appState.surface);
-    wl_callback_add_listener(callback, &frameListener, nullptr);
+    // wl_callback* callback = wl_surface_frame(appState.surface);
+    // wl_callback_add_listener(callback, &frameListener, nullptr);
     // wl_surface_damage(appState.surface, appState.wWidth, appState.wHeight, 0, 0);
 
     /* This will attach a new buffer and commit the surface */
@@ -362,13 +362,16 @@ main()
     appState.programIsRunning = true;
     appState.isRelativeMode = true;
 
-    // Draw the first frame
     setupDraw();
-    drawFrame();
-
-    while (wl_display_dispatch(appState.display) != -1 && appState.programIsRunning)
+    while (appState.programIsRunning)
     {
-        // This space intentionally left blank
+        drawFrame();
+
+        if (!eglSwapBuffers(appState.eglDisplay, appState.eglSurface))
+            LOG(FATAL, "eglSwapBuffers failed\n");
+
+        if (wl_display_dispatch(appState.display) == -1)
+            LOG(FATAL, "wl_display_dispatch error\n");
     }
 
     return EXIT_SUCCESS;
