@@ -4,7 +4,7 @@
 
 int pressedKeys[300] {};
 
-static void procMovements();
+static void procMovements(WlClient* self);
 
 void
 PlayerControls::procMouse()
@@ -24,9 +24,9 @@ PlayerControls::procMouse()
         mouse.pitch = -89.9;
 
     front = v3Norm({
-            (f32)cos(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch)),
-            (f32)sin(TO_RAD(mouse.pitch)),
-            (f32)sin(TO_RAD(mouse.yaw)) * (f32)cos(TO_RAD(mouse.pitch))
+            f32(cos(TO_RAD(mouse.yaw)) * cos(TO_RAD(mouse.pitch))),
+            f32(sin(TO_RAD(mouse.pitch))),
+            f32(sin(TO_RAD(mouse.yaw)) * cos(TO_RAD(mouse.pitch)))
     });
 
     right = v3Norm(v3Cross(front, up));
@@ -68,15 +68,24 @@ procKeysOnce(WlClient* self, u32 key, u32 keyState)
                 self->toggleFullscreen();
             break;
 
+        case KEY_V:
+            if (keyState)
+            {
+                self->swapInterval = !self->swapInterval;
+                EGLD( eglSwapInterval(self->eglDisplay, self->swapInterval) );
+                LOG(OK, "swapInterval: {}\n", self->swapInterval);
+            }
+            break;
+
         default:
             break;
     }
 }
 
 void
-PlayerControls::procKeys()
+PlayerControls::procKeys(WlClient* self)
 {
-    procMovements();
+    procMovements(self);
 
     if (pressedKeys[KEY_I])
     {
@@ -91,7 +100,7 @@ PlayerControls::procKeys()
 }
 
 static void
-procMovements()
+procMovements(WlClient* self)
 {
     f64 moveSpeed = player.moveSpeed * player.deltaTime;
 

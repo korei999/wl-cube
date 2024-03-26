@@ -25,7 +25,7 @@ struct PlayerControls
     f64 moveSpeed = 5.0;
 
     void procMouse();
-    void procKeys();
+    void procKeys(WlClient* self);
     void updateDeltaTime();
     void updateView();
     void updateProj(f32 fov, f32 aspect, f32 near, f32 far);

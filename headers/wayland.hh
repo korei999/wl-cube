@@ -17,6 +17,7 @@ struct WlClient
 
     bool isRunning = false;
     bool isConfigured = false;
+    int swapInterval = 1;
 
     wl_display* display {};
     wl_registry* registry {};

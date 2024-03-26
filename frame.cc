@@ -20,6 +20,7 @@ u32 tex;
 Texture bodyTex;
 Texture faceTex;
 v3 ambLight {0.2, 0.2, 0.2};
+f32 prevTime;
 
 static void
 setupShaders()
@@ -44,7 +45,7 @@ WlClient::setupDraw()
     if (!eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext))
         LOG(FATAL, "eglMakeCurrent failed\n");
 
-    EGLD( eglSwapInterval(eglDisplay, 1) );
+    EGLD( eglSwapInterval(eglDisplay, swapInterval) );
     toggleFullscreen();
 
     D( glEnable(GL_CULL_FACE) );
@@ -63,7 +64,18 @@ WlClient::drawFrame()
 {
     player.updateDeltaTime();
     player.procMouse();
-    player.procKeys();
+    player.procKeys(this);
+
+#ifdef FPS_COUNTER
+    static int fpsCount = 0;
+    auto currTime = timeNow();
+    if (currTime >= prevTime + 1.0)
+    {
+        std::print(stderr, "fps: {}\n", fpsCount);
+        fpsCount = 0;
+        prevTime = currTime;
+    }
+#endif
 
     f32 aspect = (f32)wWidth / (f32)wHeight;
 
@@ -119,6 +131,10 @@ WlClient::drawFrame()
         cube.draw();
 
         incCounter += 1 * player.deltaTime;
+
+#ifdef FPS_COUNTER
+        fpsCount++;
+#endif
     }
 }
 
@@ -128,12 +144,14 @@ WlClient::mainLoop()
     isRunning = true;
     isRelativeMode = true;
     isPaused = false;
+    swapInterval = 1;
 
     setupDraw();
 
     setupShaders();
     setupModels();
 
+    prevTime = timeNow();
     while (isRunning)
     {
         drawFrame();

@@ -26,8 +26,8 @@ static const wl_keyboard_listener keyboardListener {
 
 /* mutter compositor will complain if we do not pong */
 static void
-xdgWmBasePing([[maybe_unused]] void *data,
-		      [[maybe_unused]] xdg_wm_base *xdgWmBase,
+xdgWmBasePing([[maybe_unused]] void* data,
+		      [[maybe_unused]] xdg_wm_base* xdgWmBase,
 		      [[maybe_unused]] u32 serial)
 {
     auto self = (WlClient*)data;
