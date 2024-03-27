@@ -4,7 +4,7 @@ CXX := clang++ -stdlib=libc++ -fcolor-diagnostics -fansi-escape-codes -fdiagnost
 # compile wayland glue code with c compiler due to linkage issues
 CC := clang -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
 
-WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-braces -Wno-c99-designator
+WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-braces -Wno-c99-designator -Wno-vla-extension
 
 include debug.mk
 
@@ -12,8 +12,8 @@ PKGS := egl glesv2 wayland-client wayland-egl wayland-cursor
 PKG := $(shell pkg-config --cflags $(PKGS))
 PKG_LIB := $(shell pkg-config --libs $(PKGS))
 
-CXXFLAGS := -std=c++23 $(PKG)
-CFLAGS := -std=c2x $(PKG)
+CXXFLAGS := -std=gnu++2c $(PKG)
+CFLAGS := -std=gnu2x $(PKG)
 LDFLAGS := $(PKG_LIB) -fuse-ld=lld
 
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)

@@ -1,6 +1,5 @@
 #include "headers/utils.hh"
 
-#include <mdspan>
 #include <fstream>
 #include <chrono>
 #include <random>
@@ -47,19 +46,20 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
     int f = flip ? -(height - 1) : 0;
     int inc = flip ? 2 : 0;
 
-    auto d = std::mdspan((u32*)dest, width, height);
-    auto s = std::mdspan((u32*)src, width, height);
+    /* C99 vla, clang doesn't allow to declare this non-standard type, but using auto just works */
+    auto d = (u32 (*)[width])dest;
+    auto s = (u32 (*)[width])src;
 
     for (int r = 0; r < height; r++)
     {
         for (int c = 0; c < width; c++)
         {
-            u32 t = s[r, c];
+            u32 t = s[r][c];
             /* take 4 bytes and swap red and blue channels */
             u32 R =   t & 0x00FF0000;
             u32 B =   t & 0x000000FF;
             u32 tt = (t & 0xFF00FF00) | (R >> (4 * 4)) | (B << (4 * 4));
-            d[r - f, c] = tt;
+            d[r -f][c] = tt;
         }
         f += inc;
     }
@@ -71,16 +71,16 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip)
     int f = flip ? -(height - 1) : 0;
     int inc = flip ? 2 : 0;
 
-    auto d = std::mdspan(dest, width, height, 3);
-    auto s = std::mdspan(src, width, height, 3);
+    auto d = (u8 (*)[width][3])dest;
+    auto s = (u8 (*)[width][3])src;
 
-    for (int c = 0; c < height; c++)
+    for (int r = 0; r < height; r++)
     {
-        for (int r = 0; r < width; r++)
+        for (int c = 0; c < width; c++)
         {
-            d[c - f, r, 0] = s[c, r, 2];
-            d[c - f, r, 1] = s[c, r, 1];
-            d[c - f, r, 2] = s[c, r, 0];
+            d[r - f][c][0] = s[r][c][2];
+            d[r - f][c][1] = s[r][c][1];
+            d[r - f][c][2] = s[r][c][0];
         }
         f += inc;
     }

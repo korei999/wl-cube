@@ -130,7 +130,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
 
     setTexture((u8*)pixels.data(), texMode, format, width, height);
 
-    LOG(OK, "id: {}\n", this->id);
+    LOG(OK, "id: {}, texMode: {}\n", this->id, format);
     this->texPath = path;
 }
 
