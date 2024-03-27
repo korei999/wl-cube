@@ -1,8 +1,28 @@
 #include "headers/texture.hh"
 #include "headers/utils.hh"
 
-/* static placeholder */
-std::unordered_map<std::string_view, Texture*> Texture::loadedTex;
+/* create with new, because it's must not be automatically destroyed prior to texture destruction */
+/* sanitizer doesn't complain about not deleting global objects, so let it leak */
+auto* Texture::loadedTex = new std::unordered_map<std::string_view, Texture*>;
+
+Texture::Texture(std::string_view path, bool flip, GLint texMode)
+{
+    loadBMP(path, flip, texMode);
+}
+
+Texture::~Texture()
+{
+    if (this->id != 0)
+    {
+        LOG(OK, "id: {}, use_count: {}\n", this->id, this->idOwnersCounter.use_count());
+        if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
+        {
+            loadedTex->erase(this->texPath);
+            LOG(OK, "\ttexure '{}' deleted\n", this->id);
+            D( glDeleteTextures(1, &id) );
+        }
+    }
+}
 
 /* Bitmap file format
  *
@@ -26,24 +46,6 @@ std::unordered_map<std::string_view, Texture*> Texture::loadedTex;
  *	DATA:	X	Pixels
  */
 
-Texture::Texture(std::string_view path, bool flip, GLint texMode)
-{
-    loadBMP(path, flip, texMode);
-}
-
-Texture::~Texture()
-{
-    if (this->id != 0)
-    {
-        LOG(OK, "id: {}, use_count: {}\n", this->id, this->idOwnersCounter.use_count());
-        if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
-        {
-            LOG(OK, "texure '{}' deleted\n", this->id);
-            D( glDeleteTextures(1, &id) );
-        }
-    }
-}
-
 void
 Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
 {
@@ -53,13 +55,14 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
         return;
     }
 
-    auto inserted = loadedTex.insert({path, {}});
+    auto inserted = loadedTex->insert({path, this});
 
     if (!inserted.second)
     {
         LOG(WARNING, "texture '{}' is already loaded with id '{}', setting '{}' to this->id\n", path, inserted.first->second->id, inserted.first->second->id);
         this->idOwnersCounter = inserted.first->second->idOwnersCounter;
         this->id = *this->idOwnersCounter.get();
+        this->texPath = path;
         return;
     }
 
@@ -128,7 +131,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
     setTexture((u8*)pixels.data(), texMode, format, width, height);
 
     LOG(OK, "id: {}\n", this->id);
-    inserted.first->second = this;
+    this->texPath = path;
 }
 
 void

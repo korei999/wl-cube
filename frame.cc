@@ -162,10 +162,16 @@ WlClient::mainLoop()
     {
         drawFrame();
 
-        if (!eglSwapBuffers(eglDisplay, eglSurface))
-            LOG(FATAL, "eglSwapBuffers failed\n");
-
-        if (wl_display_dispatch(display) == -1)
-            LOG(FATAL, "wl_display_dispatch error\n");
+        swapBuffersAndDispatch();
     }
+}
+
+void
+WlClient::swapBuffersAndDispatch()
+{
+    if (!eglSwapBuffers(eglDisplay, eglSurface))
+        LOG(FATAL, "eglSwapBuffers failed\n");
+
+    if (wl_display_dispatch(display) == -1)
+        LOG(FATAL, "wl_display_dispatch error\n");
 }

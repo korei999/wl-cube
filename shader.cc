@@ -61,7 +61,7 @@ Shader::~Shader()
     if (progObj)
     {
         D( glDeleteProgram(progObj) );
-        LOG(OK, "Shader '{}' destroyed\n", progObj);
+        LOG(OK, "Shader '{}' deleted\n", progObj);
     }
 }
 

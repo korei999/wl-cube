@@ -71,4 +71,5 @@ struct WlClient
     void unsetFullscreen();
     void drawFrame();
     void setupDraw();
+    void swapBuffersAndDispatch();
 };
