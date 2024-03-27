@@ -19,6 +19,12 @@ struct WlClient
     bool isConfigured = false;
     int swapInterval = 1;
 
+    bool isPaused = false;
+    bool isRelativeMode = false;
+    bool isFullscreen = false;
+
+    std::string_view appName = "wl-cube";
+
     wl_display* display {};
     wl_registry* registry {};
 
@@ -51,12 +57,6 @@ struct WlClient
     zwp_relative_pointer_manager_v1* relativePointerManager {};
 
     wl_keyboard* keyboard {};
-
-    std::string_view nameStr {};
-
-    bool isPaused = false;
-    bool isRelativeMode = false;
-    bool isFullscreen = false;
 
     ~WlClient();
 

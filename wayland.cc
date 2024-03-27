@@ -299,8 +299,8 @@ WlClient::init()
     xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, surface);
     xdgToplevel = xdg_surface_get_toplevel(xdgSurface);
 
-    xdg_toplevel_set_title(xdgToplevel, "wl-cube");
-    xdg_toplevel_set_app_id(xdgToplevel, "wl-cube");
+    xdg_toplevel_set_title(xdgToplevel, appName.data());
+    xdg_toplevel_set_app_id(xdgToplevel, appName.data());
 
     xdg_surface_add_listener(xdgSurface, &xdgSurfaceListener, this);
     xdg_toplevel_add_listener(xdgToplevel, &xdgToplevelListener, this);
