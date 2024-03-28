@@ -41,12 +41,12 @@ rngGet(f32 min, f32 max)
 }
 
 void
-flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
+flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
 {
-    int f = flip ? -(height - 1) : 0;
-    int inc = flip ? 2 : 0;
+    int f = vertFlip ? -(height - 1) : 0;
+    int inc = vertFlip ? 2 : 0;
 
-    /* C99 vla, clang doesn't allow to declare this non-standard type, but using auto just works */
+    /* C99 vla, clang doesn't allow to implicitly assing to this non-standard type, but using auto just works */
     auto d = (u32 (*)[width])dest;
     auto s = (u32 (*)[width])src;
 
@@ -66,10 +66,10 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool flip)
 };
 
 void
-flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool flip)
+flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
 {
-    int f = flip ? -(height - 1) : 0;
-    int inc = flip ? 2 : 0;
+    int f = vertFlip ? -(height - 1) : 0;
+    int inc = vertFlip ? 2 : 0;
 
     auto d = (u8 (*)[width][3])dest;
     auto s = (u8 (*)[width][3])src;
