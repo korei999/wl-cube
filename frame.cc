@@ -20,27 +20,11 @@ u32 tex;
 Texture bodyTex;
 Texture faceTex;
 v3 ambLight {0.2, 0.2, 0.2};
+Ubo projView;
 
 #ifdef FPS_COUNTER
 f64 prevTime;
 #endif
-
-static void
-setupShaders()
-{
-    lightSrc.loadShaders("shaders/simple.vert", "shaders/simple.frag");
-    gouraud.loadShaders("shaders/gouraud.vert", "shaders/gouraud.frag");
-}
-
-static void
-setupModels()
-{
-    hl.loadOBJ("test_assets/models/gordon/hl1.obj");
-    cube.loadOBJ("test_assets/models/cube/cube.obj");
-
-    bodyTex.loadBMP("test_assets/models/gordon/DM_Base.bmp");
-    faceTex.loadBMP("test_assets/models/gordon/DM_Face.bmp");
-}
 
 void
 WlClient::setupDraw()
@@ -57,6 +41,19 @@ WlClient::setupDraw()
 
     v4 gray = COLOR(0x222222FF);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
+
+    lightSrc.loadShaders("shaders/simpleUB.vert", "shaders/simple.frag");
+    gouraud.loadShaders("shaders/gouraudUB.vert", "shaders/gouraud.frag");
+
+    hl.loadOBJ("test_assets/models/gordon/hl1.obj");
+    cube.loadOBJ("test_assets/models/cube/cube.obj");
+
+    bodyTex.loadBMP("test_assets/models/gordon/DM_Base.bmp");
+    faceTex.loadBMP("test_assets/models/gordon/DM_Face.bmp");
+
+    projView.createBuffer(sizeof(m4) * 2);
+    projView.bindBlock(&gouraud, "ProjView", 0);
+    projView.bindBlock(&lightSrc, "ProjView", 0);
 }
 
 f64 incCounter = 0;
@@ -101,9 +98,11 @@ WlClient::drawFrame()
         v3 lightColor {(sin(lightPos.x) + 1) / 2, 0.4, 0.7};
         v3 diffuseColor = lightColor * 0.8f;
 
+        /* these two matrices are used across all two shaders */
+        projView.bufferData(player.proj.p, 0, sizeof(m4));
+        projView.bufferData(player.view.p, sizeof(m4), sizeof(m4));
+
         gouraud.use();
-        gouraud.setM4("proj", player.proj);
-        gouraud.setM4("view", player.view);
         gouraud.setM3("normMat", normMat);
         gouraud.setV3("viewPos", player.pos);
 
@@ -127,8 +126,6 @@ WlClient::drawFrame()
         lightTm = m4Scale(lightTm, 0.05f);
 
         lightSrc.use();
-        lightSrc.setM4("proj", player.proj);
-        lightSrc.setM4("view", player.view);
         lightSrc.setM4("model", lightTm);
         lightSrc.setV3("lightColor", lightColor);
         cube.draw();
@@ -150,9 +147,6 @@ WlClient::mainLoop()
     swapInterval = 1;
 
     setupDraw();
-
-    setupShaders();
-    setupModels();
 
 #ifdef FPS_COUNTER
     prevTime = timeNow();

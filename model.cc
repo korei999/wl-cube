@@ -275,3 +275,45 @@ Model::draw(size_t i)
     D( glBindVertexArray(meshes[i].vao) );
     D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, 0) );
 }
+
+Ubo::Ubo(size_t _size)
+{
+    createBuffer(_size);
+}
+
+Ubo::~Ubo()
+{
+    D( glDeleteBuffers(1, &id) );
+    LOG(OK, "ubo '{}' deleted\n", id);
+}
+
+void
+Ubo::createBuffer(size_t size)
+{
+    D( glGenBuffers(1, &id) );
+    D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
+    D( glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW) );
+    D( glBindBuffer(GL_UNIFORM_BUFFER, 0) );
+}
+
+void
+Ubo::bindBlock(Shader* sh, std::string_view block, GLuint _point)
+{
+    point = _point;
+    GLuint index;
+    D( index = glGetUniformBlockIndex(sh->progObj, block.data()) );
+    D( glUniformBlockBinding(sh->progObj, index, _point) );
+    LOG(OK, "uniform block: '{}' at '{}', in shader '{}'\n", block, index, sh->progObj);
+
+    D( glBindBufferBase(GL_UNIFORM_BUFFER, _point, id) );
+    /* or */
+    // D( glBindBufferRange(GL_UNIFORM_BUFFER, point, id, 0, size) );
+}
+
+void
+Ubo::bufferData(void* data, size_t offset, size_t _size)
+{
+    D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
+    D( glBufferSubData(GL_UNIFORM_BUFFER, offset, _size, data) );
+    D( glBindBuffer(GL_UNIFORM_BUFFER, 0) );
+}

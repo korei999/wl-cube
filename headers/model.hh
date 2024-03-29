@@ -1,11 +1,27 @@
 #pragma once
 #include "gmath.hh"
+#include "shader.hh"
 
 #include <GLES3/gl3.h>
 #include <string_view>
 #include <vector>
 
 using VertexPos = std::array<int, 3>;
+
+struct Ubo
+{
+    GLuint id;
+    size_t size;
+    GLuint point;
+
+    Ubo() = default;
+    Ubo(size_t _size);
+    ~Ubo();
+
+    void createBuffer(size_t size);
+    void bindBlock(Shader* sh, std::string_view block, GLuint _point);
+    void bufferData(void* data, size_t offset, size_t _size);
+};
 
 struct Vertex
 {
