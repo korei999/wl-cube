@@ -79,6 +79,9 @@ $(WLD)/relative-pointer-unstable-v1.c: $(WLD)/relative-pointer-unstable-v1.h
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(RELATIVE_POINTER) $@ 
 
-.PHONY: clean
+.PHONY: clean tags
 clean:
 	rm -rf $(BD) $(WLD)
+
+tags:
+	ctags -R --language-force=C++ --extras=+q+r --c++-kinds=+p+l+x+L+A+N+U+Z
