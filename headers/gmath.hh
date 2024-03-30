@@ -114,6 +114,7 @@ f32 v3Dot(const v3& l, const v3& r);
 f32 v4Dot(const v4& l, const v4& r);
 m4 m4Iden();
 m3 m3Iden();
+m4 operator*(const m4& l, const m4& r);
 m4 m4Rot(const m4& m, cf32 th, const v3& ax);
 m4 m4RotX(const m4& m, cf32 angle);
 m4 m4RotY(const m4& m, cf32 angle);
