@@ -301,9 +301,9 @@ Ubo::bindBlock(Shader* sh, std::string_view block, GLuint _point)
 {
     point = _point;
     GLuint index;
-    D( index = glGetUniformBlockIndex(sh->progObj, block.data()) );
-    D( glUniformBlockBinding(sh->progObj, index, _point) );
-    LOG(OK, "uniform block: '{}' at '{}', in shader '{}'\n", block, index, sh->progObj);
+    D( index = glGetUniformBlockIndex(sh->id, block.data()) );
+    D( glUniformBlockBinding(sh->id, index, _point) );
+    LOG(OK, "uniform block: '{}' at '{}', in shader '{}'\n", block, index, sh->id);
 
     D( glBindBufferBase(GL_UNIFORM_BUFFER, _point, id) );
     /* or */

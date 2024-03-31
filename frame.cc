@@ -39,7 +39,7 @@ WlClient::setupDraw()
     D( glEnable(GL_DEPTH_TEST) );
     D( glDepthFunc(GL_LESS) );
 
-    v4 gray = COLOR(0x222222FF);
+    v4 gray = COLOR4(0x222222FF);
     D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
 
     lightSrc.loadShaders("shaders/simpleUB.vert", "shaders/simple.frag");

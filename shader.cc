@@ -13,31 +13,31 @@ Shader::loadShaders(std::string_view vertexPath, std::string_view fragmentPath)
     GLuint vertex = loadShader(GL_VERTEX_SHADER, vertexPath);
     GLuint fragment = loadShader(GL_FRAGMENT_SHADER, fragmentPath);
 
-    progObj = glCreateProgram();
-    if (progObj == 0)
-        LOG(FATAL, "glCreateProgram failed: {}\n", progObj);
+    id = glCreateProgram();
+    if (id == 0)
+        LOG(FATAL, "glCreateProgram failed: {}\n", id);
 
-    D( glAttachShader(progObj, vertex) );
-    D( glAttachShader(progObj, fragment) );
+    D( glAttachShader(id, vertex) );
+    D( glAttachShader(id, fragment) );
 
-    D( glLinkProgram(progObj) );
-    D( glGetProgramiv(progObj, GL_LINK_STATUS, &linked) );
+    D( glLinkProgram(id) );
+    D( glGetProgramiv(id, GL_LINK_STATUS, &linked) );
     if (!linked)
     {
         GLint infoLen = 0;
-        D( glGetProgramiv(progObj, GL_INFO_LOG_LENGTH, &infoLen) );
+        D( glGetProgramiv(id, GL_INFO_LOG_LENGTH, &infoLen) );
         if (infoLen > 1)
         {
             std::vector<char> infoLog(infoLen + 1, {});
-            D( glGetProgramInfoLog(progObj, infoLen, nullptr, infoLog.data()) );
+            D( glGetProgramInfoLog(id, infoLen, nullptr, infoLog.data()) );
             LOG(FATAL, "error linking program: {}\n", infoLog.data());
         }
-        D( glDeleteProgram(progObj) );
+        D( glDeleteProgram(id) );
         LOG(FATAL, "error linking program.\n");
     }
 
 #ifdef DEBUG
-    D( glValidateProgram(progObj) );
+    D( glValidateProgram(id) );
 #endif
 
     D( glDeleteShader(vertex) );
@@ -52,16 +52,16 @@ Shader::Shader(Shader&& other)
 void
 Shader::operator=(Shader&& other)
 {
-    this->progObj = other.progObj;
-    other.progObj = 0;
+    this->id = other.id;
+    other.id = 0;
 }
 
 Shader::~Shader()
 {
-    if (progObj)
+    if (id)
     {
-        D( glDeleteProgram(progObj) );
-        LOG(OK, "Shader '{}' deleted\n", progObj);
+        D( glDeleteProgram(id) );
+        LOG(OK, "Shader '{}' deleted\n", id);
     }
 }
 
@@ -101,7 +101,7 @@ Shader::loadShader(GLenum type, std::string_view path)
 void
 Shader::use()
 {
-    D( glUseProgram(progObj) );
+    D( glUseProgram(id) );
 }
 
 void
@@ -110,11 +110,11 @@ Shader::queryActiveUniforms()
     GLint maxUniformLen;
     GLint nUniforms;
 
-    D( glGetProgramiv(progObj, GL_ACTIVE_UNIFORMS, &nUniforms) );
-    D( glGetProgramiv(progObj, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen) );
+    D( glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &nUniforms) );
+    D( glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen) );
 
     std::vector<char> uniformName(maxUniformLen, '\0');
-    LOG(OK, "queryActiveUniforms for '{}':\n", this->progObj);
+    LOG(OK, "queryActiveUniforms for '{}':\n", this->id);
 
     for (int i = 0; i < nUniforms; i++)
     {
@@ -122,7 +122,7 @@ Shader::queryActiveUniforms()
         GLenum type;
         std::string_view typeName;
 
-        D( glGetActiveUniform(progObj, i, maxUniformLen, nullptr, &size, &type, uniformName.data()) );
+        D( glGetActiveUniform(id, i, maxUniformLen, nullptr, &size, &type, uniformName.data()) );
         switch (type)
         {
             case GL_FLOAT:
@@ -165,7 +165,7 @@ void
 Shader::setM4(std::string_view name, const m4& m)
 {
     GLint tU;
-    D( tU = glGetUniformLocation(progObj, name.data()) );
+    D( tU = glGetUniformLocation(id, name.data()) );
     D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)m.e) );
 }
 
@@ -173,7 +173,7 @@ void
 Shader::setM3(std::string_view name, const m3& m)
 {
     GLint tU;
-    D( tU = glGetUniformLocation(progObj, name.data()) );
+    D( tU = glGetUniformLocation(id, name.data()) );
     D( glUniformMatrix3fv(tU, 1, GL_FALSE, (GLfloat*)m.e) );
 }
 
@@ -182,7 +182,7 @@ void
 Shader::setV3(std::string_view name, const v3& v)
 {
     GLint ul;
-    D( ul = glGetUniformLocation(progObj, name.data()) );
+    D( ul = glGetUniformLocation(id, name.data()) );
     D( glUniform3fv(ul, 1, (GLfloat*)v.e) );
 }
 
@@ -190,6 +190,6 @@ void
 Shader::setF(std::string_view name, cf32 f)
 {
     GLint ul;
-    D( ul = glGetUniformLocation(progObj, name.data()) );
+    D( ul = glGetUniformLocation(id, name.data()) );
     D( glUniform1f(ul, f) );
 }

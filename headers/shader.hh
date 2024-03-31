@@ -6,7 +6,7 @@
 
 struct Shader
 {
-    GLuint progObj = 0;
+    GLuint id = 0;
 
     Shader() = default;
     Shader(std::string_view vertShaderPath, std::string_view fragShaderPath);
