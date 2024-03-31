@@ -28,18 +28,20 @@ struct Mouse
 
 struct PlayerControls
 {
-    Mouse mouse;
+    /* place proj and view adjecent for nice ubo buffering */
+    m4 proj {};
+    m4 view {};
+
     v3 pos {0, 0, 3};
     v3 front {0, 0, -1};
     v3 right {1, 0, 0};
     const v3 up {0, 1, 0};
 
-    m4 proj {};
-    m4 view {};
-
     f64 deltaTime = 0;
     f64 lastFrameTime = 0;
     f64 moveSpeed = 5.0;
+
+    Mouse mouse;
 
     void procMouse();
     void procKeys(WlClient* self);

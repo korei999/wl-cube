@@ -7,9 +7,9 @@
 #include "headers/wayland.hh"
 
 PlayerControls player {
-    .mouse.sens = 0.07,
     .pos {0.0, 0.0, 2.0},
     .moveSpeed = 4.0,
+    .mouse.sens = 0.07,
 };
 
 Shader lightSrc;
@@ -98,9 +98,8 @@ WlClient::drawFrame()
         v3 lightColor {(sin(lightPos.x) + 1) / 2, 0.4, 0.7};
         v3 diffuseColor = lightColor * 0.8f;
 
-        /* these two matrices are used across all two shaders */
-        projView.bufferData(player.proj.p, 0, sizeof(m4));
-        projView.bufferData(player.view.p, sizeof(m4), sizeof(m4));
+        /* copy proj and view at once */
+        projView.bufferData(player.proj.p, 0, sizeof(m4) * 2);
 
         gouraud.use();
         gouraud.setM3("normMat", normMat);
