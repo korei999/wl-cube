@@ -1,6 +1,6 @@
 .cache/
 .vscode/
-wayland/
+wayland-protocols/
 build/
 compile_commands.json
 tags

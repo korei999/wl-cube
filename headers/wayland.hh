@@ -1,7 +1,7 @@
 #pragma once
-#include "../wayland/xdg-shell.h"
-#include "../wayland/pointer-constraints-unstable-v1.h"
-#include "../wayland/relative-pointer-unstable-v1.h"
+#include "../wayland-protocols/xdg-shell.h"
+#include "../wayland-protocols/pointer-constraints-unstable-v1.h"
+#include "../wayland-protocols/relative-pointer-unstable-v1.h"
 #include "ultratypes.h"
 
 #include <EGL/egl.h>

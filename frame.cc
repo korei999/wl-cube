@@ -45,11 +45,11 @@ WlClient::setupDraw()
     lightSrc.loadShaders("shaders/simpleUB.vert", "shaders/simple.frag");
     gouraud.loadShaders("shaders/gouraudUB.vert", "shaders/gouraud.frag");
 
-    hl.loadOBJ("test_assets/models/gordon/hl1.obj");
-    cube.loadOBJ("test_assets/models/cube/cube.obj");
+    hl.loadOBJ("test-assets/models/gordon/hl1.obj");
+    cube.loadOBJ("test-assets/models/cube/cube.obj");
 
-    bodyTex.loadBMP("test_assets/models/gordon/DM_Base.bmp");
-    faceTex.loadBMP("test_assets/models/gordon/DM_Face.bmp");
+    bodyTex.loadBMP("test-assets/models/gordon/DM_Base.bmp");
+    faceTex.loadBMP("test-assets/models/gordon/DM_Face.bmp");
 
     projView.createBuffer(sizeof(m4) * 2);
     projView.bindBlock(&gouraud, "ProjView", 0);

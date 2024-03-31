@@ -25,7 +25,7 @@ RELATIVE_POINTER := $(WAYLAND_PROTOCOLS_DIR)/unstable/relative-pointer/relative-
 
 SRCD := .
 BD := ./build
-WLD := ./wayland
+WLD := ./wayland-protocols
 BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
