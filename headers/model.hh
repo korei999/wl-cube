@@ -18,7 +18,7 @@ struct Ubo
     Ubo(size_t _size);
     ~Ubo();
 
-    void createBuffer(size_t size);
+    void createBuffer(size_t _size);
     void bindBlock(Shader* sh, std::string_view block, GLuint _point);
     void bufferData(void* data, size_t offset, size_t _size);
 };
@@ -48,8 +48,9 @@ struct Model
 
     void loadOBJ(std::string_view path);
     void draw();
+    void draw(GLsizei count);
     void draw(const Mesh& mesh);
-    void draw(size_t i);
+    void draw(const Mesh& mesh, GLsizei count);
 
 private:
     void parseOBJ(std::string_view path);

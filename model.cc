@@ -251,7 +251,6 @@ Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m
     D( glBindVertexArray(0) );
 }
 
-
 void
 Model::draw()
 {
@@ -263,6 +262,16 @@ Model::draw()
 }
 
 void
+Model::draw(GLsizei count)
+{
+    for (auto& mesh : meshes)
+    {
+        D( glBindVertexArray(mesh.vao) );
+        D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
+    }
+}
+
+void
 Model::draw(const Mesh& mesh)
 {
     D( glBindVertexArray(mesh.vao) );
@@ -270,10 +279,10 @@ Model::draw(const Mesh& mesh)
 }
 
 void
-Model::draw(size_t i)
+Model::draw(const Mesh& mesh, GLsizei count)
 {
-    D( glBindVertexArray(meshes[i].vao) );
-    D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, 0) );
+    D( glBindVertexArray(mesh.vao) );
+    D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
 }
 
 Ubo::Ubo(size_t _size)
@@ -288,8 +297,9 @@ Ubo::~Ubo()
 }
 
 void
-Ubo::createBuffer(size_t size)
+Ubo::createBuffer(size_t _size)
 {
+    size = _size;
     D( glGenBuffers(1, &id) );
     D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
     D( glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW) );

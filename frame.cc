@@ -114,12 +114,12 @@ WlClient::drawFrame()
 
         gouraud.setM4("model", trm);
         bodyTex.use();
-        hl.draw(1);
+        hl.draw(hl.meshes[1]);
 
         trm = m4RotY(trm, sin(incCounter) / 3);
         gouraud.setM4("model", trm);
         faceTex.use();
-        hl.draw(0);
+        hl.draw(hl.meshes[0]);
 
         lightTm = m4Trans(lightTm, lightPos);
         lightTm = m4Scale(lightTm, 0.05f);
