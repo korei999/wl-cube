@@ -48,9 +48,11 @@ struct Model
 
     void loadOBJ(std::string_view path);
     void draw();
-    void draw(GLsizei count);
+    void draw(size_t i);
     void draw(const Mesh& mesh);
-    void draw(const Mesh& mesh, GLsizei count);
+    void drawInstanced(GLsizei count);
+    void drawInstanced(size_t i, GLsizei count);
+    void drawInstanced(const Mesh& mesh, GLsizei count);
 
 private:
     void parseOBJ(std::string_view path);

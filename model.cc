@@ -262,13 +262,10 @@ Model::draw()
 }
 
 void
-Model::draw(GLsizei count)
+Model::draw(size_t i)
 {
-    for (auto& mesh : meshes)
-    {
-        D( glBindVertexArray(mesh.vao) );
-        D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
-    }
+    D( glBindVertexArray(meshes[i].vao) );
+    D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, 0) );
 }
 
 void
@@ -278,8 +275,26 @@ Model::draw(const Mesh& mesh)
     D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, 0) );
 }
 
+
 void
-Model::draw(const Mesh& mesh, GLsizei count)
+Model::drawInstanced(GLsizei count)
+{
+    for (auto& mesh : meshes)
+    {
+        D( glBindVertexArray(mesh.vao) );
+        D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
+    }
+}
+
+void
+Model::drawInstanced(size_t i, GLsizei count)
+{
+    D( glBindVertexArray(meshes[i].vao) );
+    D( glDrawElementsInstanced(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr, count) );
+}
+
+void
+Model::drawInstanced(const Mesh& mesh, GLsizei count)
 {
     D( glBindVertexArray(mesh.vao) );
     D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
