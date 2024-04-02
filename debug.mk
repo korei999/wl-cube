@@ -2,7 +2,7 @@ SAFE_STACK :=
 SAFE_STACK += -mshstk -fstack-protector-all 
 
 ASAN :=
-ASAN += -fsanitize=address
+ASAN += -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address
 
 
 DEBUG :=

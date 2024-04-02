@@ -41,7 +41,7 @@ struct PlayerControls
     f64 lastFrameTime = 0;
     f64 moveSpeed = 5.0;
 
-    Mouse mouse;
+    Mouse mouse {};
 
     void procMouse();
     void procKeys(WlClient* self);

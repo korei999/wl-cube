@@ -63,7 +63,7 @@ private:
 inline u64
 hashFaceVertex(const VertexPos& p)
 {
-    auto cantorPair = [](int a, int b) -> u64
+    auto cantorPair = [](u64 a, u64 b) -> u64
     {
         return ((a + b + 1) * ((a + b) / 2) + b);
     };
