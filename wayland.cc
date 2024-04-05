@@ -91,8 +91,6 @@ xdgToplevelConfigureHandler([[maybe_unused]] void* data,
             wl_egl_window_resize(self->eglWindow, width, height, 0, 0);
             self->wWidth = width;
             self->wHeight = height;
-
-            D( glViewport(0, 0, width, height) );
         }
     }
 }
@@ -277,7 +275,9 @@ WlClient::init()
         EGL_ALPHA_SIZE, 8,
         EGL_DEPTH_SIZE, 24,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
-        EGL_NONE,
+        EGL_SAMPLE_BUFFERS, 1,
+        EGL_SAMPLES, 4,
+        EGL_NONE
     };
 
     EGLint n = 0;
@@ -290,6 +290,9 @@ WlClient::init()
 
     EGLint contextAttribs[] {
         EGL_CONTEXT_CLIENT_VERSION, 3,
+#ifdef DEBUG
+        EGL_CONTEXT_OPENGL_DEBUG, EGL_TRUE,
+#endif
         EGL_NONE,
     };
 

@@ -17,18 +17,22 @@
 [[maybe_unused]] constexpr size_t newmtlHash = hashFNV("newmtl");
 [[maybe_unused]] constexpr size_t commentHash = hashFNV("#");
 
+Model::Model(Model&& other)
+{
+    this->meshes = std::move(other.meshes);
+}
+
 Model::Model(std::string_view path)
 {
-    LOG(OK, "loading model: '{}'...\n", path);
     loadOBJ(path);
 }
 
 Model::~Model()
 {
     /* TODO: */
+    LOG(OK, "trying to delete model of size: {}\n", this->meshes.size());
     if (this->meshes.size())
     {
-        LOG(OK, "deleting model buffers...\n");
         for (auto& mesh : this->meshes)
         {
             LOG(OK, "\t\tvao: {}, vbo: {}, ebo: {}\n", mesh.vao, mesh.vbo, mesh.ebo);
@@ -39,8 +43,15 @@ Model::~Model()
     }
 }
 
+Model&
+Model::operator=(Model&& other)
+{
+    this->meshes = std::move(other.meshes);
+    return *this;
+}
+
 void
-Model::parseOBJ(std::string_view path)
+Model::parseOBJ(std::string_view path, GLint drawMode)
 {
     Parser parse(path, " /\n");
 
@@ -193,7 +204,7 @@ Model::parseOBJ(std::string_view path)
                 }
             }
         }
-        setBuffers(verts, inds, mesh);
+        setBuffers(verts, inds, mesh, drawMode);
         mesh.eboSize = inds.size();
 
         this->meshes.push_back(mesh);
@@ -207,11 +218,12 @@ Model::parseOBJ(std::string_view path)
 }
 
 void
-Model::loadOBJ(std::string_view path)
+Model::loadOBJ(std::string_view path, GLint drawMode)
 {
     try
     {
-        parseOBJ(path);
+        LOG(OK, "loading model: '{}'...\n", path);
+        parseOBJ(path, drawMode);
     }
     catch (const std::exception& e)
     {
@@ -220,7 +232,7 @@ Model::loadOBJ(std::string_view path)
 }
 
 void
-Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m)
+Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m, GLint drawMode)
 {
     auto vsData = verts.data();
     auto inData = inds.data();
@@ -230,11 +242,11 @@ Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m
 
     D( glGenBuffers(1, &m.vbo) );
     D( glBindBuffer(GL_ARRAY_BUFFER, m.vbo) );
-    D( glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(*vsData), vsData, GL_STATIC_DRAW) );
+    D( glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(*vsData), vsData, drawMode) );
 
     D( glGenBuffers(1, &m.ebo) );
     D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m.ebo) );
-    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(*inData), inData, GL_STATIC_DRAW) );
+    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(*inData), inData, drawMode) );
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
@@ -257,7 +269,7 @@ Model::draw()
     for (auto& mesh : meshes)
     {
         D( glBindVertexArray(mesh.vao) );
-        D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, 0) );
+        D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr) );
     }
 }
 
@@ -265,14 +277,14 @@ void
 Model::draw(size_t i)
 {
     D( glBindVertexArray(meshes[i].vao) );
-    D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, 0) );
+    D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr) );
 }
 
 void
 Model::draw(const Mesh& mesh)
 {
     D( glBindVertexArray(mesh.vao) );
-    D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, 0) );
+    D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr) );
 }
 
 
@@ -300,9 +312,9 @@ Model::drawInstanced(const Mesh& mesh, GLsizei count)
     D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
 }
 
-Ubo::Ubo(size_t _size)
+Ubo::Ubo(size_t _size, GLint drawMode)
 {
-    createBuffer(_size);
+    createBuffer(_size, drawMode);
 }
 
 Ubo::~Ubo()
@@ -312,12 +324,12 @@ Ubo::~Ubo()
 }
 
 void
-Ubo::createBuffer(size_t _size)
+Ubo::createBuffer(size_t _size, GLint drawMode)
 {
     size = _size;
     D( glGenBuffers(1, &id) );
     D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
-    D( glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW) );
+    D( glBufferData(GL_UNIFORM_BUFFER, size, nullptr, drawMode) );
     D( glBindBuffer(GL_UNIFORM_BUFFER, 0) );
 }
 
@@ -341,4 +353,106 @@ Ubo::bufferData(void* data, size_t offset, size_t _size)
     D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
     D( glBufferSubData(GL_UNIFORM_BUFFER, offset, _size, data) );
     D( glBindBuffer(GL_UNIFORM_BUFFER, 0) );
+}
+
+Model
+getQuad(GLint drawMode)
+{
+    f32 quadVertices[] {
+        -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+        -1.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+         1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+         1.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+    };
+
+    GLuint quadIndices[] {
+        0, 1, 2, 0, 2, 3
+    };
+
+    Model q;
+    q.meshes.resize(1, {});
+
+    D( glGenVertexArrays(1, &q.meshes[0].vao) );
+    D( glBindVertexArray(q.meshes[0].vao) );
+
+    D( glGenBuffers(1, &q.meshes[0].vbo) );
+    D( glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo) );
+    D( glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, drawMode) );
+
+    D( glGenBuffers(1, &q.meshes[0].ebo) );
+    D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.meshes[0].ebo) );
+    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, drawMode) );
+    q.meshes[0].eboSize = LEN(quadIndices);
+
+    constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
+    constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+    constexpr size_t stride = 5 * sizeof(f32);
+    /* positions */
+    D( glEnableVertexAttribArray(0) );
+    D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0) );
+    /* texture coords */
+    D (glEnableVertexAttribArray(1) );
+    D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size)) );
+
+    D( glBindVertexArray(0) );
+
+    LOG(OK, "quad '{}' created\n", q.meshes[0].vao);
+    return q;
+}
+
+Model
+getPlane(GLint drawMode)
+{
+    f32 planeVertices[] {
+        // positions            // texcoords   // normals         
+         25.0f, -0.5f,  25.0f,  25.0f,  0.0f,  0.0f, 1.0f, 0.0f,  
+        -25.0f, -0.5f, -25.0f,   0.0f, 25.0f,  0.0f, 1.0f, 0.0f,  
+        -25.0f, -0.5f,  25.0f,   0.0f,  0.0f,  0.0f, 1.0f, 0.0f,  
+                                                                  
+        -25.0f, -0.5f, -25.0f,   0.0f, 25.0f,  0.0f, 1.0f, 0.0f,  
+         25.0f, -0.5f,  25.0f,  25.0f,  0.0f,  0.0f, 1.0f, 0.0f,  
+         25.0f, -0.5f, -25.0f,  25.0f, 25.0f,  0.0f, 1.0f, 0.0f 
+    };
+
+    Model q;
+    q.meshes.resize(1, {});
+
+    D( glGenVertexArrays(1, &q.meshes[0].vao) );
+    D( glBindVertexArray(q.meshes[0].vao) );
+
+    D( glGenBuffers(1, &q.meshes[0].vbo) );
+    D( glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo) );
+    D( glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, drawMode) );
+
+    constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
+    constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+    constexpr size_t stride = 8 * sizeof(f32);
+    /* positions */
+    D( glEnableVertexAttribArray(0) );
+    D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0) );
+    /* texture coords */
+    D (glEnableVertexAttribArray(1) );
+    D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size)) );
+    /* normals */
+    D (glEnableVertexAttribArray(2) );
+    D( glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * (v3Size + v2Size))) );
+
+    D( glBindVertexArray(0) );
+
+    LOG(OK, "quad '{}' created\n", q.meshes[0].vao);
+    return q;
+}
+
+void
+drawQuad(const Model& q)
+{
+    D( glBindVertexArray(q.meshes[0].vao) );
+    D( glDrawElements(GL_TRIANGLES, q.meshes[0].eboSize, GL_UNSIGNED_INT, nullptr) );
+}
+
+void
+drawPlane(const Model& q)
+{
+    D( glBindVertexArray(q.meshes[0].vao) );
+    D( glDrawArrays(GL_TRIANGLES, 0, 6) );
 }

@@ -99,7 +99,7 @@ Shader::loadShader(GLenum type, std::string_view path)
 }
 
 void
-Shader::use()
+Shader::use() const
 {
     D( glUseProgram(id) );
 }
@@ -164,17 +164,17 @@ Shader::queryActiveUniforms()
 void 
 Shader::setM4(std::string_view name, const m4& m)
 {
-    GLint tU;
-    D( tU = glGetUniformLocation(id, name.data()) );
-    D( glUniformMatrix4fv(tU, 1, GL_FALSE, (GLfloat*)m.e) );
+    GLint ul;
+    D( ul = glGetUniformLocation(id, name.data()) );
+    D( glUniformMatrix4fv(ul, 1, GL_FALSE, (GLfloat*)m.e) );
 }
 
 void 
 Shader::setM3(std::string_view name, const m3& m)
 {
-    GLint tU;
-    D( tU = glGetUniformLocation(id, name.data()) );
-    D( glUniformMatrix3fv(tU, 1, GL_FALSE, (GLfloat*)m.e) );
+    GLint ul;
+    D( ul = glGetUniformLocation(id, name.data()) );
+    D( glUniformMatrix3fv(ul, 1, GL_FALSE, (GLfloat*)m.e) );
 }
 
 
@@ -184,6 +184,14 @@ Shader::setV3(std::string_view name, const v3& v)
     GLint ul;
     D( ul = glGetUniformLocation(id, name.data()) );
     D( glUniform3fv(ul, 1, (GLfloat*)v.e) );
+}
+
+void
+Shader::setI(std::string_view name, const GLint i)
+{
+    GLint ul;
+    D( ul = glGetUniformLocation(id, name.data()) );
+    D( glUniform1i(ul, i) );
 }
 
 void

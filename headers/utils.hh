@@ -3,7 +3,7 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 #include <print>
 #include <string_view>
 #include <vector>

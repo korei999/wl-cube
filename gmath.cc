@@ -239,7 +239,7 @@ m4Scale(const m4& m, const v3& s)
 }
 
 m4
-m4Trans(const m4& m, const v3& tv)
+m4Translate(const m4& m, const v3& tv)
 {
     m4 tm {.e {
         {1,    0,    0,    0},
@@ -287,7 +287,7 @@ m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P)
         {0,    0,    0,    1}
     }};
 
-    return m4Iden() * (m4Trans(m0, {-P.x, -P.y, -P.z}));
+    return m4Iden() * (m4Translate(m0, {-P.x, -P.y, -P.z}));
 }
 
 m4
@@ -356,7 +356,7 @@ m3Inverse(const m3& m)
     f32 det = e[0][0] * (e[1][1] * e[2][2] - e[2][1] * e[1][2]) -
               e[0][1] * (e[1][0] * e[2][2] - e[1][2] * e[2][0]) +
               e[0][2] * (e[1][0] * e[2][1] - e[1][1] * e[2][0]);
-    f32 invdet = 1 / det;
+    f32 invdet = 1.0f / det;
 
     return {
         (e[1][1] * e[2][2] - e[2][1] * e[1][2]) * invdet,
@@ -371,4 +371,10 @@ m3Inverse(const m3& m)
         (e[2][0] * e[0][1] - e[0][0] * e[2][1]) * invdet,
         (e[0][0] * e[1][1] - e[1][0] * e[0][1]) * invdet
     };
+}
+
+m3 
+m3Normal(const m3& m)
+{
+    return m3Transpose(m3Inverse(m));
 }

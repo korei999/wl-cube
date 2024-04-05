@@ -2,7 +2,7 @@
 #include "gmath.hh"
 #include "shader.hh"
 
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 #include <string_view>
 #include <vector>
 
@@ -15,10 +15,10 @@ struct Ubo
     GLuint point;
 
     Ubo() = default;
-    Ubo(size_t _size);
+    Ubo(size_t _size, GLint drawMode);
     ~Ubo();
 
-    void createBuffer(size_t _size);
+    void createBuffer(size_t _size, GLint drawMode);
     void bindBlock(Shader* sh, std::string_view block, GLuint _point);
     void bufferData(void* data, size_t offset, size_t _size);
 };
@@ -43,10 +43,15 @@ struct Model
     std::vector<Mesh> meshes;
 
     Model() = default;
+    Model(const Model& other) = delete;
+    Model(Model&& other);
     Model(std::string_view path);
     ~Model();
 
-    void loadOBJ(std::string_view path);
+    Model& operator=(const Model& other) = delete;
+    Model& operator=(Model&& other);
+
+    void loadOBJ(std::string_view path, GLint drawMode = GL_STATIC_DRAW);
     void draw();
     void draw(size_t i);
     void draw(const Mesh& mesh);
@@ -55,9 +60,9 @@ struct Model
     void drawInstanced(const Mesh& mesh, GLsizei count);
 
 private:
-    void parseOBJ(std::string_view path);
+    void parseOBJ(std::string_view path, GLint drawMode);
     /* copy buffers to the gpu */
-    void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh);
+    void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh, GLint drawMode);
 };
 
 inline u64
@@ -83,3 +88,8 @@ namespace std
         }
     };
 }
+
+Model getQuad(GLint drawMode = GL_STATIC_DRAW);
+Model getPlane(GLint drawMode = GL_STATIC_DRAW);
+void drawQuad(const Model& q);
+void drawPlane(const Model& q);

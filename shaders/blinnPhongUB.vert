@@ -13,11 +13,18 @@ layout (std140) uniform ProjView
 
 uniform mat4 model;
 
+out vec3 vsPos;
 out vec2 vsTex;
+out vec3 vsNorm;
+out mat4 vsModel;
 
 void
 main()
 {
-    vsTex = aTex;
     gl_Position = ubProj * ubView * model * vec4(aPos, 1.0);
+
+    vsPos = aPos;
+    vsTex = aTex;
+    vsNorm = aNorm;
+    vsModel = model;
 }

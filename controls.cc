@@ -80,6 +80,14 @@ procKeysOnce(WlClient* self, u32 key, u32 pressed)
             }
             break;
 
+        case KEY_B:
+            if (pressed)
+            {
+                showFb = !showFb;
+                LOG(OK, "showFb: {}\n", showFb);
+            }
+            break;
+
         default:
             break;
     }
@@ -99,6 +107,24 @@ PlayerControls::procKeys(WlClient* self)
     {
         fov -= 100.0f * deltaTime;
         LOG(OK, "fov: {:.3f}\n", fov);
+    }
+    if (pressedKeys[KEY_Z])
+    {
+        f32 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
+        x += inc * deltaTime;
+        LOG(OK, "x: {:.3f}\n", x);
+    }
+    if (pressedKeys[KEY_X])
+    {
+        f32 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
+        y += inc * deltaTime;
+        LOG(OK, "y: {:.3f}\n", y);
+    }
+    if (pressedKeys[KEY_C])
+    {
+        f32 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
+        z += inc * deltaTime;
+        LOG(OK, "z: {:.3f}\n", z);
     }
 }
 
@@ -147,7 +173,7 @@ procMovements(WlClient* self)
 void
 PlayerControls::updateDeltaTime()
 {
-    f64 currTime = timeNow();
+    currTime = timeNow();
     player.deltaTime = currTime - player.lastFrameTime;
     player.lastFrameTime = currTime;
 }

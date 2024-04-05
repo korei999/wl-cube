@@ -135,26 +135,26 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode)
 }
 
 void
-Texture::use()
+Texture::bind(GLint glTexture)
 {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, this->id);
+    D( glActiveTexture(glTexture) );
+    D( glBindTexture(GL_TEXTURE_2D, this->id) );
 }
 
 void
 Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height)
 {
-    glGenTextures(1, &this->id);
-    glBindTexture(GL_TEXTURE_2D, this->id);
+    D( glGenTextures(1, &this->id) );
+    D( glBindTexture(GL_TEXTURE_2D, this->id) );
     /* set the texture wrapping parameters */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texMode);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texMode);
+    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texMode) );
+    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texMode) );
     /* set texture filtering parameters */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST) );
+    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) );
     /* load image, create texture and generate mipmaps */
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    D( glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data) );
+    D( glGenerateMipmap(GL_TEXTURE_2D) );
     /* set the reference counter for each new texture */
     idOwnersCounter = std::make_shared<GLuint>(this->id);
 }

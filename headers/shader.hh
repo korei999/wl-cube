@@ -1,7 +1,7 @@
 #pragma once
 #include "gmath.hh"
 
-#include <GLES3/gl3.h>
+#include <GLES3/gl32.h>
 #include <string_view>
 
 struct Shader
@@ -17,10 +17,11 @@ struct Shader
     void operator=(Shader&& other);
 
     void loadShaders(std::string_view vertShaderPath, std::string_view fragShaderPath);
-    void use();
+    void use() const;
     void setM3(std::string_view name, const m3& m);
     void setM4(std::string_view name, const m4& m);
     void setV3(std::string_view name, const v3& v);
+    void setI(std::string_view name, const GLint i);
     void setF(std::string_view name, cf32 f);
     void queryActiveUniforms();
 
