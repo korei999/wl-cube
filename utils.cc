@@ -46,7 +46,7 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    /* C99 vla, clang doesn't allow to implicitly assing to this non-standard type, but using auto just works */
+    /* C99 vla, clang doesn't allow to explicitly assing to this non-standard type, but using auto just works */
     auto d = (u32 (*)[width])dest;
     auto s = (u32 (*)[width])src;
 
