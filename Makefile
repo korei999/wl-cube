@@ -4,7 +4,7 @@ CXX := clang++ -stdlib=libc++ -fcolor-diagnostics -fansi-escape-codes -fdiagnost
 # compile wayland glue code with c compiler due to linkage issues
 CC := clang -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
 
-WARNINGS := -Wall -Wextra -Wpedantic -Wno-gnu-anonymous-struct -Wno-missing-braces -Wno-c99-designator -Wno-vla-extension
+WARNINGS := -Wall -Wextra -Wno-c99-designator
 
 include debug.mk
 
@@ -32,7 +32,7 @@ EXEC := $(BD)/$(BIN)
 SRCS := $(shell find $(SRCD) -name '*.cc')
 OBJ := $(SRCS:%=$(BD)/%.o)
 
-all: CXX += -flto=full $(SAFE_STACK) 
+all: CXX += -flto=full $(SAFE_STACK) -DFPS_COUNTER
 all: CC += -flto=full $(SAFE_STACK) 
 all: CXXFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
 all: CFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
@@ -81,7 +81,7 @@ $(WLD)/relative-pointer-unstable-v1.c: $(WLD)/relative-pointer-unstable-v1.h
 
 .PHONY: clean tags
 clean:
-	rm -rf $(BD) $(WLD)
+	rm -rf $(BD) $(WLD) tags
 
 tags:
 	ctags -R --language-force=C++ --extras=+q+r --c++-kinds=+p+l+x+L+A+N+U+Z
