@@ -10,6 +10,7 @@ DEBUG += -DDEBUG
 DEBUG += -DLOGS
 DEBUG += -DFPS_COUNTER
 # DEBUG += -DMODEL
+# DEBUG += -DTEXTURE
 
 WNO := 
 WNO += -Wno-unused-parameter

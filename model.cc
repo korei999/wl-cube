@@ -1,6 +1,7 @@
 #include "headers/model.hh"
 #include "headers/utils.hh"
 
+#include <thread>
 #include <unordered_map>
 #include <exception>
 
@@ -635,8 +636,10 @@ parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlC
 
     Parser p(path, " \n");
     u64 diffuseTexHash = 0;
-    auto ins = materials->insert({u64(0), {}}); /* it's impossible to get this type otherwise */
+    auto ins = materials->insert({u64(0), {}}); /* it's 'impossible' to get this type otherwise */
     materials->clear();
+
+    std::vector<std::thread> threads;
 
     while (!p.finished())
     {
@@ -652,19 +655,25 @@ parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlC
 
             case newmtlHash:
                 p.nextWord("\n");
-                ins = materials->insert({hashFNV(p.word), Texture {}});
+                ins = materials->insert({hashFNV(p.word), {}});
                 break;
 
             case mapKdHash:
                 p.nextWord("\n");
-                ins.first->second.loadBMP(replaceFileSuffixInPath(path, p.word),
-                                          false,
-                                          GL_MIRRORED_REPEAT,
-                                          c);
+                /* TODO: implement thread pool for this kind of stuff */
+                threads.emplace_back(&Texture::loadBMP,
+                                     &ins.first->second,
+                                     replaceFileSuffixInPath(path, p.word),
+                                     false,
+                                     GL_MIRRORED_REPEAT,
+                                     c);
                 break;
 
             default:
                 break;
         }
     }
+
+    for (auto& thread : threads)
+        thread.join();
 }

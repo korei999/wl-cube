@@ -1,13 +1,13 @@
 #pragma once
 #include "ultratypes.h"
 
-#include <GLES3/gl32.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+#include <GLES3/gl32.h>
+#include <mutex>
 #include <print>
 #include <string_view>
 #include <vector>
-#include <mutex>
 
 enum LogSeverity : int
 {
@@ -18,29 +18,10 @@ enum LogSeverity : int
     FATAL
 };
 
-extern std::mutex glContextMtx;
-
-std::vector<char> loadFileToCharArray(std::string_view path, size_t addBytes = 1);
-f64 timeNow();
-int rngGet(int min, int max);
-int rngGet();
-f32 rngGet(f32 min, f32 max);
-void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
-void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip);
-void flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
-
-template <typename type>
-__attribute__((no_sanitize("undefined"))) /* can complain about unaligned pointers */
-type
-readTypeBytes(const std::vector<char>& vec, size_t i)
-{
-    return *(type*)&vec[i];
-}
-
 struct Parser
 {
     std::string word;
-    std::string_view defSeps;
+    std::string defSeps;
     std::vector<char> file;
     size_t start;
     size_t end;
@@ -67,6 +48,16 @@ struct Parser
     bool isSeparator(char c, std::string_view separators);
 };
 
+std::vector<char> loadFileToCharArray(std::string_view path, size_t addBytes = 1);
+f64 timeNow();
+int rngGet(int min, int max);
+int rngGet();
+f32 rngGet(f32 min, f32 max);
+void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
+void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip);
+void flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
+std::string replaceFileSuffixInPath(std::string_view str, std::string_view suffix);
+
 const std::string_view severityStr[FATAL + 1] {
     "",
     "[GOOD]",
@@ -74,6 +65,8 @@ const std::string_view severityStr[FATAL + 1] {
     "[BAD]",
     "[FATAL]"
 };
+
+extern std::mutex glContextMtx;
 
 extern GLenum glLastErrorCode;
 extern EGLint eglLastErrorCode;
@@ -160,13 +153,19 @@ extern EGLint eglLastErrorCode;
         ((hex >> 0)  & 0xFF) / 255.0f                                                                                  \
     }
 
+template <typename Type>
+__attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
+Type
+readTypeBytes(const std::vector<char>& vec, size_t i)
+{
+    return *(Type*)&vec[i];
+}
+
 constexpr inline size_t
 hashFNV(std::string_view str)
 {
-	size_t hash = 0xCBF29CE484222325;
-	for (size_t i = 0; i < str.size(); i++)
+    size_t hash = 0xCBF29CE484222325;
+    for (size_t i = 0; i < str.size(); i++)
         hash = (hash ^ str[i]) * 0x100000001B3;
-	return hash;
+    return hash;
 }
-
-std::string replaceFileSuffixInPath(std::string_view str, std::string_view suffix);

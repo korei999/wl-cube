@@ -60,7 +60,9 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
 
     if (!inserted.second)
     {
+#ifdef TEXTURE
         LOG(WARNING, "texture '{}' is already loaded with id '{}', setting '{}' to this->id\n", path, inserted.first->second->id, inserted.first->second->id);
+#endif
         this->idOwnersCounter = inserted.first->second->idOwnersCounter;
         this->id = *this->idOwnersCounter.get();
         this->texPath = path;
@@ -84,19 +86,28 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
 
     bmp.skipBytes(8);
     imageDataAddress = bmp.read32();
+
+#ifdef TEXTURE
     LOG(OK, "imageDataAddress: {}\n", imageDataAddress);
+#endif
 
     bmp.skipBytes(4);
     width = bmp.read32();
     height = bmp.read32();
+#ifdef TEXTURE
     LOG(OK, "width: {}, height: {}\n", width, height);
+#endif
 
     [[maybe_unused]] auto colorPlane = bmp.read16();
+#ifdef TEXTURE
     LOG(OK, "colorPlane: {}\n", colorPlane);
+#endif
 
     GLint format = GL_RGB;
     bitDepth = bmp.read16();
+#ifdef TEXTURE
     LOG(OK, "bitDepth: {}\n", bitDepth);
+#endif
 
     switch (bitDepth)
     {
@@ -116,11 +127,15 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
     bitDepth = 32;  /* forcing RBGA */
     nPixels = width * height;
     byteDepth = bitDepth / 8;
+#ifdef TEXTURE
     LOG(OK, "nPixels: {}, byteDepth: {}\n", nPixels, byteDepth);
+#endif
     std::vector<u8> pixels(nPixels * byteDepth);
 
     bmp.setPos(imageDataAddress);
+#ifdef TEXTURE
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
+#endif
 
     if (format == GL_RGBA)
         flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
@@ -133,7 +148,9 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
 
     setTexture((u8*)pixels.data(), texMode, format, width, height, c);
 
+#ifdef TEXTURE
     LOG(OK, "{}: id: {}, texMode: {}\n", path, this->id, format);
+#endif
     this->texPath = path;
 }
 
