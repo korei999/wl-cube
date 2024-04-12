@@ -18,6 +18,7 @@ constexpr size_t commentHash = hashFNV("#");
 Model::Model(Model&& other)
 {
     this->meshes = std::move(other.meshes);
+    this->objects = std::move(other.objects);
 }
 
 Model::Model(std::string_view path)
@@ -36,17 +37,23 @@ Model::~Model()
             glDeleteBuffers(1, &mesh.ebo);
         }
     }
-#ifdef DEBUG
-    else
+
+    if (this->objects.size())
     {
-        LOG(OK, "model '{}' of size: {}, is not deleted\n", this->savedPath, this->meshes.size());
+        for (auto& materials : objects)
+            for (auto& mesh : materials)
+            {
+                glDeleteVertexArrays(1, &mesh.vao);
+                glDeleteBuffers(1, &mesh.vbo);
+                glDeleteBuffers(1, &mesh.ebo);
+            }
     }
-#endif
 }
 
 Model&
 Model::operator=(Model&& other)
 {
+    this->objects = std::move(other.objects);
     this->meshes = std::move(other.meshes);
     return *this;
 }
@@ -69,9 +76,16 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
         int& operator[](size_t i) { return pos[i]; }
     };
 
+    struct MaterialData
+    {
+        std::vector<FaceData> fs;
+        std::string usemtl;
+    };
+
     struct Object
     {
-        std::vector<FaceData> fs; /* face data indices */
+        // std::vector<FaceData> fs; /* face data indices */
+        std::vector<MaterialData> fss;
         std::string o; /* object name */
         std::string usemtl; /* material name */
     };
@@ -110,6 +124,9 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
                 /* TODO: figure out how to split 1 object that has differrent materials */
                 if (objects.back().usemtl.empty())
                     objects.back().usemtl = objP.word;
+
+                objects.back().fss.push_back({});
+                objects.back().fss.back().usemtl = objP.word;
                 break;
 
             case oHash:
@@ -177,7 +194,8 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
 #ifdef MODEL
                 LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
 #endif
-                objects.back().fs.push_back(tf);
+                // objects.back().fs.push_back(tf);
+                objects.back().fss.back().fs.push_back(tf);
                 break;
 
             default:
@@ -188,18 +206,16 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
 #ifdef Model
     for (auto& i : objects)
-    {
         LOG(OK, "o: '{}', usemtl: '{}'\n", i.o, i.usemtl);
-    }
 #endif
 
     /* parse mtl file and load all the textures, later move them to the models */
-    std::unordered_map<u64, Texture> materials(objects.size() * 2);
+    std::unordered_map<u64, Texture> materialsMap(objects.size() * 2);
 
     if (!mtllibName.empty())
     {
         std::string pathToMtl = replaceFileSuffixInPath(path, mtllibName);
-        parseMtl(&materials, pathToMtl, c);
+        parseMtl(&materialsMap, pathToMtl, c);
     }
 
     /* if no textures or normals just add one with zeros */
@@ -214,57 +230,61 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
     verts.reserve(vs.size());
     inds.reserve(vs.size());
 
-    this->meshes.clear();
-    for (auto& faces : objects)
+    // this->meshes.clear();
+    size_t oCount = 0;
+    for (auto& materials : objects)
     {
-        Mesh mesh {
-            .name = faces.o
-        };
-        GLuint faceIdx = 0;
+        this->objects.push_back({});
 
-        for (auto& face : faces.fs)
+        for (auto& faces : materials.fss)
         {
-            /* three vertices for each face */
-            constexpr size_t len = LEN(face.pos);
-            for (size_t i = 0; i < len; i += 3)
-            {
-                FacePositions p {face[i], face[i + 1], face[i + 2]};
-                if (p.y == -1)
-                    p.y = 0;
+            Mesh mesh {
+                .name = materials.o
+            };
+            GLuint faceIdx = 0;
 
-                auto insTry = uniqFaces.insert({p, faceIdx});
-                if (insTry.second) /* false if we tried to insert duplicate */
+            for (auto& face : faces.fs)
+            {
+                /* three vertices for each face */
+                constexpr size_t len = LEN(face.pos);
+                for (size_t i = 0; i < len; i += 3)
                 {
-                    /* first v3 positions, second v2 textures, last v3 normals */
-                    verts.push_back({vs[p.x], vts[p.y], vns[p.z]});
-                    inds.push_back(faceIdx++);
-                }
-                else
-                {
-                    inds.push_back(insTry.first->second);
+                    FacePositions p {face[i], face[i + 1], face[i + 2]};
+                    if (p.y == -1)
+                        p.y = 0;
+
+                    auto insTry = uniqFaces.insert({p, faceIdx});
+                    if (insTry.second) /* false if we tried to insert duplicate */
+                    {
+                        /* first v3 positions, second v2 textures, last v3 normals */
+                        verts.push_back({vs[p.x], vts[p.y], vns[p.z]});
+                        inds.push_back(faceIdx++);
+                    }
+                    else
+                    {
+                        inds.push_back(insTry.first->second);
+                    }
                 }
             }
+            setBuffers(verts, inds, mesh, drawMode, c);
+            mesh.eboSize = inds.size();
+
+            auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
+
+            // this->meshes.push_back(mesh);
+            // this->meshes.back().diffuse = (foundTex->second);
+
+            this->objects.back().push_back(std::move(mesh));
+            this->objects.back().back().diffuse = std::move(foundTex->second);
+
+            /* do not forget to clear buffers */
+            verts.clear();
+            inds.clear();
         }
-        setBuffers(verts, inds, mesh, drawMode, c);
-        mesh.eboSize = inds.size();
-
-        auto foundTex = materials.find(hashFNV(faces.usemtl));
-
-        this->meshes.push_back(std::move(mesh));
-        this->meshes.back().diffuse = std::move(foundTex->second);
-
-        /* do not forget to clear buffers */
-        verts.clear();
-        inds.clear();
     }
 
-    for (auto b = materials.bucket_count(); b--;)
-    {
-        if (materials.bucket_size(b) > 1)
-            LOG(WARNING, "bucket.size: {}\n", materials.bucket_size(b));
-    }
-
-    this->meshes.shrink_to_fit();
+    // this->meshes.shrink_to_fit();
+    this->objects.shrink_to_fit();
 }
 
 void
@@ -331,19 +351,6 @@ Model::draw()
 }
 
 void
-Model::draw(BindTextures draw)
-{
-    for (auto& mesh : meshes)
-    {
-        if (draw == BindTextures::bind)
-            mesh.diffuse.bind(GL_TEXTURE0);
-
-        glBindVertexArray(mesh.vao);
-        glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
-    }
-}
-
-void
 Model::draw(size_t i)
 {
     glBindVertexArray(meshes[i].vao);
@@ -380,6 +387,18 @@ Model::drawInstanced(const Mesh& mesh, GLsizei count)
 {
     glBindVertexArray(mesh.vao);
     glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
+}
+
+void
+Model::drawTex()
+{
+    for (auto& materials : objects)
+        for (auto& mesh : materials)
+        {
+            mesh.diffuse.bind(GL_TEXTURE0);
+            glBindVertexArray(mesh.vao);
+            glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
+        }
 }
 
 Ubo::Ubo(size_t _size, GLint drawMode)

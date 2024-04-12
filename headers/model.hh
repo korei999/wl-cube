@@ -57,15 +57,11 @@ struct Mesh
     std::string name;
 };
 
-enum class BindTextures : s8
-{
-    bind,
-    noBind
-};
-
 struct Model
 {
+    /* TODO: remove meshes and keep objects */
     std::vector<Mesh> meshes;
+    std::vector<std::vector<Mesh>> objects;
     std::string_view savedPath;
 
     Model() = default;
@@ -79,12 +75,13 @@ struct Model
 
     void loadOBJ(std::string_view path, GLint drawMode = GL_STATIC_DRAW, WlClient* c = nullptr);
     void draw();
-    void draw(BindTextures draw);
     void draw(size_t i);
     void draw(const Mesh& mesh);
     void drawInstanced(GLsizei count);
     void drawInstanced(size_t i, GLsizei count);
     void drawInstanced(const Mesh& mesh, GLsizei count);
+    /* bind texture for each drawcall */
+    void drawTex();
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, WlClient* c);

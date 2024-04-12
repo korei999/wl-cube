@@ -1,10 +1,5 @@
 #include "headers/frame.hh"
-#include "headers/gmath.hh"
-#include "headers/shader.hh"
-#include "headers/utils.hh"
 #include "headers/model.hh"
-#include "headers/texture.hh"
-#include "headers/wayland.hh"
 
 #include <thread>
 
@@ -55,6 +50,7 @@ Shader cubeDepthSh;
 Shader omniDirShadowSh;
 Shader colorSh;
 Model cube;
+Model sphere;
 Model plane;
 Model quad;
 Model teaPot;
@@ -111,16 +107,16 @@ WlClient::setupDraw()
     /* unbind before creating threads */
     this->unbindGlContext();
     /* models */
-    // std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, this);
-    // std::thread m1(&Model::loadOBJ, &sponza, "/home/korei/source/Sponza/sponza.obj", GL_STATIC_DRAW, this);
-    cube.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, this);
-    sponza.loadOBJ("test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, this);
+    std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, this);
+    std::thread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, this);
+    std::thread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, this);
     /* textures */
     // std::thread t0(&Texture::loadBMP, &boxTex, "test-assets/silverBox.bmp", false, GL_MIRRORED_REPEAT, this);
     // std::thread t1(&Texture::loadBMP, &dirtTex, "test-assets/dirt.bmp", false, GL_MIRRORED_REPEAT, this);
 
-    // m0.join();
-    // m1.join();
+    m0.join();
+    m1.join();
+    m2.join();
     // t0.join();
     // t1.join();
 
@@ -145,7 +141,7 @@ renderScene(Shader* sh, bool depth)
         sh->setM3("uNormalMatrix", m3Normal(m));
         boxTex.bind(GL_TEXTURE0);
     }
-    sponza.draw(BindTextures::bind);
+    sponza.drawTex();
 }
 
 void
@@ -215,16 +211,6 @@ WlClient::drawFrame()
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
         renderScene(&omniDirShadowSh, false);
 
-        // if (showFb) /* KEY_B */
-        // {
-            // debugDepthQuadSh.use();
-            // debugDepthQuadSh.setF("uNearPlane", nearPlane);
-            // debugDepthQuadSh.setF("uFarPlane", farPlane);
-            // glActiveTexture(GL_TEXTURE0);
-            // glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
-            // drawQuad(quad);
-        // }
-
         /* draw light source */
         m4 cubeTm = m4Iden();
         cubeTm = m4Translate(cubeTm, lightPos);
@@ -232,7 +218,7 @@ WlClient::drawFrame()
         colorSh.use();
         colorSh.setM4("uModel", cubeTm);
         colorSh.setV3("uColor", v3(1, 1, 1));
-        cube.draw();
+        sphere.drawTex();
 
         incCounter += 1.0 * player.deltaTime;
     }
@@ -258,7 +244,6 @@ WlClient::mainLoop()
     {
         drawFrame();
 
-        /* swap buffers and dispatch */
         EGLD( eglSwapBuffers(eglDisplay, eglSurface) );
         if (wl_display_dispatch(display) == -1)
             LOG(FATAL, "wl_display_dispatch error\n");
