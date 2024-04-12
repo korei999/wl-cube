@@ -22,7 +22,7 @@ struct Texture
     void bind(GLint glTexture);
 
 private:
-    static std::unordered_map<std::string_view, Texture*>* loadedTex;
+    static std::unordered_map<u64, Texture*>* loadedTex;
 
     void setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, WlClient* c);
 };

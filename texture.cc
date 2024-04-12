@@ -3,7 +3,7 @@
 
 /* create with new, because it's must not be automatically destroyed prior to texture destruction */
 /* silince the addres sanitizer */
-auto* Texture::loadedTex = new std::unordered_map<std::string_view, Texture*>;
+auto* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
 
 Texture::Texture(std::string_view path, bool flip, GLint texMode)
 {
@@ -18,7 +18,8 @@ Texture::~Texture()
         if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
         {
             LOG(OK, "\ttexure '{}': id: '{}' deleted\n", this->texPath, this->id);
-            loadedTex->erase(this->texPath);
+            auto found = loadedTex->find(hashFNV(this->texPath));
+            loadedTex->erase(found);
             glDeleteTextures(1, &id);
         }
     }
@@ -55,7 +56,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
         return;
     }
 
-    auto inserted = loadedTex->insert({path, this});
+    auto inserted = loadedTex->insert({hashFNV(path), this});
 
     if (!inserted.second)
     {
