@@ -114,7 +114,7 @@ WlClient::setupDraw()
     // std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, this);
     // std::thread m1(&Model::loadOBJ, &sponza, "/home/korei/source/Sponza/sponza.obj", GL_STATIC_DRAW, this);
     cube.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, this);
-    sponza.loadOBJ("/home/korei/source/Sponza/sponza.obj", GL_STATIC_DRAW, this);
+    sponza.loadOBJ("test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, this);
     /* textures */
     // std::thread t0(&Texture::loadBMP, &boxTex, "test-assets/silverBox.bmp", false, GL_MIRRORED_REPEAT, this);
     // std::thread t1(&Texture::loadBMP, &dirtTex, "test-assets/dirt.bmp", false, GL_MIRRORED_REPEAT, this);
