@@ -4,18 +4,16 @@
 #include <unordered_map>
 #include <exception>
 
-[[maybe_unused]] constexpr size_t vHash = hashFNV("v");
-[[maybe_unused]] constexpr size_t vtHash = hashFNV("vt");
-[[maybe_unused]] constexpr size_t vnHash = hashFNV("vn");
-[[maybe_unused]] constexpr size_t fHash = hashFNV("f");
-[[maybe_unused]] constexpr size_t mtllibHash = hashFNV("mtllib");
-[[maybe_unused]] constexpr size_t oHash = hashFNV("o");
-[[maybe_unused]] constexpr size_t usemtlHash = hashFNV("usemtl");
-[[maybe_unused]] constexpr size_t materialHash = hashFNV("Material");
-[[maybe_unused]] constexpr size_t sHash = hashFNV("s");
-[[maybe_unused]] constexpr size_t offHash = hashFNV("off");
-[[maybe_unused]] constexpr size_t newmtlHash = hashFNV("newmtl");
-[[maybe_unused]] constexpr size_t commentHash = hashFNV("#");
+static void parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlClient* c);
+
+constexpr size_t vHash = hashFNV("v");
+constexpr size_t vtHash = hashFNV("vt");
+constexpr size_t vnHash = hashFNV("vn");
+constexpr size_t fHash = hashFNV("f");
+constexpr size_t mtllibHash = hashFNV("mtllib");
+constexpr size_t oHash = hashFNV("o");
+constexpr size_t usemtlHash = hashFNV("usemtl");
+constexpr size_t commentHash = hashFNV("#");
 
 Model::Model(Model&& other)
 {
@@ -29,18 +27,21 @@ Model::Model(std::string_view path)
 
 Model::~Model()
 {
-    /* TODO: */
-    LOG(OK, "trying to delete model of size: {}\n", this->meshes.size());
     if (this->meshes.size())
     {
         for (auto& mesh : this->meshes)
         {
-            LOG(OK, "\t\tvao: {}, vbo: {}, ebo: {}\n", mesh.vao, mesh.vbo, mesh.ebo);
-            D( glDeleteVertexArrays(1, &mesh.vao) );
-            D( glDeleteBuffers(1, &mesh.vbo) );
-            D( glDeleteBuffers(1, &mesh.ebo) );
+            glDeleteVertexArrays(1, &mesh.vao);
+            glDeleteBuffers(1, &mesh.vbo);
+            glDeleteBuffers(1, &mesh.ebo);
         }
     }
+#ifdef DEBUG
+    else
+    {
+        LOG(OK, "model '{}' of size: {}, is not deleted\n", this->savedPath, this->meshes.size());
+    }
+#endif
 }
 
 Model&
@@ -51,16 +52,31 @@ Model::operator=(Model&& other)
 }
 
 void
-Model::parseOBJ(std::string_view path, GLint drawMode)
+Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
 {
-    Parser parse(path, " /\n");
+    Parser objP(path, " /\n");
 
-    std::vector<v3> vs;
-    std::vector<v2> vts;
-    std::vector<v3> vns;
+    std::vector<v3> vs {};
+    std::vector<v2> vts {};
+    std::vector<v3> vns {};
+    std::string oName {};
+    std::string mtllibName {};
 
-    using Face = std::vector<std::array<int, 9>>;
-    std::vector<Face> objects;
+    struct FaceData
+    {
+        int pos[9];
+
+        int& operator[](size_t i) { return pos[i]; }
+    };
+
+    struct Object
+    {
+        std::vector<FaceData> fs; /* face data indices */
+        std::string o; /* object name */
+        std::string usemtl; /* material name */
+    };
+
+    std::vector<Object> objects;
 
     auto wordToInt = [](const std::string& str)
     {
@@ -70,99 +86,121 @@ Model::parseOBJ(std::string_view path, GLint drawMode)
         return std::stoi(str);
     };
 
-    while (!parse.finished())
+    while (!objP.finished())
     {
+        objP.nextWord();
+
+        size_t wordHash = hashFNV(objP.word);
         v3 tv;
-        std::array<int, 9> tf;
-        parse.nextWord();
-        size_t wordHash = hashFNV(parse.word);
+        FaceData tf;
 
         switch (wordHash)
         {
             case commentHash:
-                parse.skipWord("\n");
-#ifdef MODEL
-                LOG(OK, "{}\n", parse.word);
-#endif
+                objP.skipWord("\n");
+                break;
+
+            case mtllibHash:
+                objP.nextWord("\n");
+                mtllibName = objP.word;
+                break;
+
+            case usemtlHash:
+                objP.nextWord("\n");
+                /* TODO: figure out how to split 1 object that has differrent materials */
+                if (objects.back().usemtl.empty())
+                    objects.back().usemtl = objP.word;
                 break;
 
             case oHash:
                 /* give space for new object */
                 objects.push_back({});
+                objP.nextWord("\n");
+
+                objects.back().o = objP.word;
                 break;
 
             case vHash:
                 /* get 3 floats */
-                parse.nextWord();
-                tv.x = std::stof(parse.word);
-                parse.nextWord();
-                tv.y = std::stof(parse.word);
-                parse.nextWord();
-                tv.z = std::stof(parse.word);
-#ifdef MODEL
-                LOG(OK, "v {} {} {}\n", tv.x, tv.y, tv.z);
-#endif
+                objP.nextWord();
+                tv.x = std::stof(objP.word);
+                objP.nextWord();
+                tv.y = std::stof(objP.word);
+                objP.nextWord();
+                tv.z = std::stof(objP.word);
+
                 vs.push_back(tv);
                 break;
 
             case vtHash:
                 /* get 2 floats */
-                parse.nextWord();
-                tv.x = std::stof(parse.word);
-                parse.nextWord();
-                tv.y = std::stof(parse.word);
-#ifdef MODEL
-                LOG(OK, "vt {} {}\n", tv.x, tv.y);
-#endif
+                objP.nextWord();
+                tv.x = std::stof(objP.word);
+                objP.nextWord();
+                tv.y = std::stof(objP.word);
+
                 vts.push_back(tv.xy);
                 break;
 
             case vnHash:
                 /* get 3 floats */
-                parse.nextWord();
-                tv.x = std::stof(parse.word);
-                parse.nextWord();
-                tv.y = std::stof(parse.word);
-                parse.nextWord();
-                tv.z = std::stof(parse.word);
-#ifdef MODEL
-                LOG(OK, "vn {} {} {}\n", tv.x, tv.y, tv.z);
-#endif
+                objP.nextWord();
+                tv.x = std::stof(objP.word);
+                objP.nextWord();
+                tv.y = std::stof(objP.word);
+                objP.nextWord();
+                tv.z = std::stof(objP.word);
+
                 vns.push_back(tv);
                 break;
 
             case fHash:
                 /* get 9 ints */
-                parse.nextWord();
-                tf[0] = wordToInt(parse.word) - 1; /* obj faces count from 1 */
-                parse.nextWord();
-                tf[1] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[2] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[3] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[4] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[5] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[6] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[7] = wordToInt(parse.word) - 1;
-                parse.nextWord();
-                tf[8] = wordToInt(parse.word) - 1;
+                objP.nextWord();
+                tf[0] = wordToInt(objP.word) - 1; /* obj faces count from 1 */
+                objP.nextWord();
+                tf[1] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[2] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[3] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[4] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[5] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[6] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[7] = wordToInt(objP.word) - 1;
+                objP.nextWord();
+                tf[8] = wordToInt(objP.word) - 1;
 #ifdef MODEL
                 LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
 #endif
-                objects.back().push_back(tf);
+                objects.back().fs.push_back(tf);
                 break;
 
             default:
-                /* nextlines are gonna be empty tokens, skip them */
+                /* nextlines are empty tokens, skip them */
                 break;
         }
     }
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
+#ifdef Model
+    for (auto& i : objects)
+    {
+        LOG(OK, "o: '{}', usemtl: '{}'\n", i.o, i.usemtl);
+    }
+#endif
+
+    /* parse mtl file and load all the textures, later move them to the models */
+    std::unordered_map<u64, Texture> materials(objects.size() * 2);
+
+    if (!mtllibName.empty())
+    {
+        std::string pathToMtl = replaceFileSuffixInPath(path, mtllibName);
+        parseMtl(&materials, pathToMtl, c);
+    }
 
     /* if no textures or normals just add one with zeros */
     if (!vts.size())
@@ -170,7 +208,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode)
     if (!vns.size())
         vns.push_back({});
 
-    std::unordered_map<VertexPos, GLuint> uniqFaces;
+    std::unordered_map<FacePositions, GLuint> uniqFaces;
     std::vector<Vertex> verts;
     std::vector<GLuint> inds;
     verts.reserve(vs.size());
@@ -179,23 +217,26 @@ Model::parseOBJ(std::string_view path, GLint drawMode)
     this->meshes.clear();
     for (auto& faces : objects)
     {
-        Mesh mesh;
+        Mesh mesh {
+            .name = faces.o
+        };
         GLuint faceIdx = 0;
 
-        for (auto& face : faces)
+        for (auto& face : faces.fs)
         {
             /* three vertices for each face */
-            for (size_t i = 0; i < face.size(); i += 3)
+            constexpr size_t len = LEN(face.pos);
+            for (size_t i = 0; i < len; i += 3)
             {
-                VertexPos p {face[i], face[i + 1], face[i + 2]};
-                if (p[1] == -1)
-                    p[1] = 0;
+                FacePositions p {face[i], face[i + 1], face[i + 2]};
+                if (p.y == -1)
+                    p.y = 0;
 
                 auto insTry = uniqFaces.insert({p, faceIdx});
                 if (insTry.second) /* false if we tried to insert duplicate */
                 {
                     /* first v3 positions, second v2 textures, last v3 normals */
-                    verts.push_back({vs[ p[0] ], vts[ p[1] ], vns[ p[2] ]});
+                    verts.push_back({vs[p.x], vts[p.y], vns[p.z]});
                     inds.push_back(faceIdx++);
                 }
                 else
@@ -204,26 +245,36 @@ Model::parseOBJ(std::string_view path, GLint drawMode)
                 }
             }
         }
-        setBuffers(verts, inds, mesh, drawMode);
+        setBuffers(verts, inds, mesh, drawMode, c);
         mesh.eboSize = inds.size();
 
-        this->meshes.push_back(mesh);
+        auto foundTex = materials.find(hashFNV(faces.usemtl));
+
+        this->meshes.push_back(std::move(mesh));
+        this->meshes.back().diffuse = std::move(foundTex->second);
 
         /* do not forget to clear buffers */
         verts.clear();
         inds.clear();
     }
 
+    for (auto b = materials.bucket_count(); b--;)
+    {
+        if (materials.bucket_size(b) > 1)
+            LOG(WARNING, "bucket.size: {}\n", materials.bucket_size(b));
+    }
+
     this->meshes.shrink_to_fit();
 }
 
 void
-Model::loadOBJ(std::string_view path, GLint drawMode)
+Model::loadOBJ(std::string_view path, GLint drawMode, WlClient* c)
 {
     try
     {
         LOG(OK, "loading model: '{}'...\n", path);
-        parseOBJ(path, drawMode);
+        this->parseOBJ(path, drawMode, c);
+        this->savedPath = path;
     }
     catch (const std::exception& e)
     {
@@ -232,35 +283,41 @@ Model::loadOBJ(std::string_view path, GLint drawMode)
 }
 
 void
-Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m, GLint drawMode)
+Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m, GLint drawMode, WlClient* c)
 {
+    std::lock_guard lock(glContextMtx);
+
+    c->bindGlContext();
+
     auto vsData = verts.data();
     auto inData = inds.data();
 
-    D( glGenVertexArrays(1, &m.vao) );
-    D( glBindVertexArray(m.vao) );
+    glGenVertexArrays(1, &m.vao);
+    glBindVertexArray(m.vao);
 
-    D( glGenBuffers(1, &m.vbo) );
-    D( glBindBuffer(GL_ARRAY_BUFFER, m.vbo) );
-    D( glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(*vsData), vsData, drawMode) );
+    glGenBuffers(1, &m.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m.vbo);
+    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(*vsData), vsData, drawMode);
 
-    D( glGenBuffers(1, &m.ebo) );
-    D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m.ebo) );
-    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(*inData), inData, drawMode) );
+    glGenBuffers(1, &m.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(*inData), inData, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
     /* positions */
-    D( glEnableVertexAttribArray(0) );
-    D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)0) );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)0);
     /* texture coords */
-    D (glEnableVertexAttribArray(1) );
-    D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * v3Size)) );
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * v3Size));
     /* normals */
-    D( glEnableVertexAttribArray(2) );
-    D( glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * (v3Size + v2Size))) );
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * (v3Size + v2Size)));
 
-    D( glBindVertexArray(0) );
+    glBindVertexArray(0);
+
+    c->unbindGlContext();
 }
 
 void
@@ -268,23 +325,36 @@ Model::draw()
 {
     for (auto& mesh : meshes)
     {
-        D( glBindVertexArray(mesh.vao) );
-        D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr) );
+        glBindVertexArray(mesh.vao);
+        glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
+    }
+}
+
+void
+Model::draw(BindTextures draw)
+{
+    for (auto& mesh : meshes)
+    {
+        if (draw == BindTextures::bind)
+            mesh.diffuse.bind(GL_TEXTURE0);
+
+        glBindVertexArray(mesh.vao);
+        glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
     }
 }
 
 void
 Model::draw(size_t i)
 {
-    D( glBindVertexArray(meshes[i].vao) );
-    D( glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr) );
+    glBindVertexArray(meshes[i].vao);
+    glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr);
 }
 
 void
 Model::draw(const Mesh& mesh)
 {
-    D( glBindVertexArray(mesh.vao) );
-    D( glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr) );
+    glBindVertexArray(mesh.vao);
+    glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
 }
 
 
@@ -293,23 +363,23 @@ Model::drawInstanced(GLsizei count)
 {
     for (auto& mesh : meshes)
     {
-        D( glBindVertexArray(mesh.vao) );
-        D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
+        glBindVertexArray(mesh.vao);
+        glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
     }
 }
 
 void
 Model::drawInstanced(size_t i, GLsizei count)
 {
-    D( glBindVertexArray(meshes[i].vao) );
-    D( glDrawElementsInstanced(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr, count) );
+    glBindVertexArray(meshes[i].vao);
+    glDrawElementsInstanced(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr, count);
 }
 
 void
 Model::drawInstanced(const Mesh& mesh, GLsizei count)
 {
-    D( glBindVertexArray(mesh.vao) );
-    D( glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count) );
+    glBindVertexArray(mesh.vao);
+    glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
 }
 
 Ubo::Ubo(size_t _size, GLint drawMode)
@@ -319,7 +389,7 @@ Ubo::Ubo(size_t _size, GLint drawMode)
 
 Ubo::~Ubo()
 {
-    D( glDeleteBuffers(1, &id) );
+    glDeleteBuffers(1, &id);
     LOG(OK, "ubo '{}' deleted\n", id);
 }
 
@@ -327,10 +397,10 @@ void
 Ubo::createBuffer(size_t _size, GLint drawMode)
 {
     size = _size;
-    D( glGenBuffers(1, &id) );
-    D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
-    D( glBufferData(GL_UNIFORM_BUFFER, size, nullptr, drawMode) );
-    D( glBindBuffer(GL_UNIFORM_BUFFER, 0) );
+    glGenBuffers(1, &id);
+    glBindBuffer(GL_UNIFORM_BUFFER, id);
+    glBufferData(GL_UNIFORM_BUFFER, size, nullptr, drawMode);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void
@@ -338,21 +408,21 @@ Ubo::bindBlock(Shader* sh, std::string_view block, GLuint _point)
 {
     point = _point;
     GLuint index;
-    D( index = glGetUniformBlockIndex(sh->id, block.data()) );
-    D( glUniformBlockBinding(sh->id, index, _point) );
+    index = glGetUniformBlockIndex(sh->id, block.data());
+    glUniformBlockBinding(sh->id, index, _point);
     LOG(OK, "uniform block: '{}' at '{}', in shader '{}'\n", block, index, sh->id);
 
-    D( glBindBufferBase(GL_UNIFORM_BUFFER, _point, id) );
+    glBindBufferBase(GL_UNIFORM_BUFFER, _point, id);
     /* or */
-    // D( glBindBufferRange(GL_UNIFORM_BUFFER, point, id, 0, size) );
+    // glBindBufferRange(GL_UNIFORM_BUFFER, point, id, 0, size);
 }
 
 void
 Ubo::bufferData(void* data, size_t offset, size_t _size)
 {
-    D( glBindBuffer(GL_UNIFORM_BUFFER, id) );
-    D( glBufferSubData(GL_UNIFORM_BUFFER, offset, _size, data) );
-    D( glBindBuffer(GL_UNIFORM_BUFFER, 0) );
+    glBindBuffer(GL_UNIFORM_BUFFER, id);
+    glBufferSubData(GL_UNIFORM_BUFFER, offset, _size, data);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 Model
@@ -372,31 +442,32 @@ getQuad(GLint drawMode)
     Model q;
     q.meshes.resize(1, {});
 
-    D( glGenVertexArrays(1, &q.meshes[0].vao) );
-    D( glBindVertexArray(q.meshes[0].vao) );
+    glGenVertexArrays(1, &q.meshes[0].vao);
+    glBindVertexArray(q.meshes[0].vao);
 
-    D( glGenBuffers(1, &q.meshes[0].vbo) );
-    D( glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo) );
-    D( glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, drawMode) );
+    glGenBuffers(1, &q.meshes[0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, drawMode);
 
-    D( glGenBuffers(1, &q.meshes[0].ebo) );
-    D( glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.meshes[0].ebo) );
-    D( glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, drawMode) );
+    glGenBuffers(1, &q.meshes[0].ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.meshes[0].ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, drawMode);
     q.meshes[0].eboSize = LEN(quadIndices);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
     constexpr size_t stride = 5 * sizeof(f32);
     /* positions */
-    D( glEnableVertexAttribArray(0) );
-    D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0) );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0);
     /* texture coords */
-    D (glEnableVertexAttribArray(1) );
-    D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size)) );
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size));
 
-    D( glBindVertexArray(0) );
+    glBindVertexArray(0);
 
     LOG(OK, "quad '{}' created\n", q.meshes[0].vao);
+    q.savedPath = "Quad";
     return q;
 }
 
@@ -417,42 +488,169 @@ getPlane(GLint drawMode)
     Model q;
     q.meshes.resize(1, {});
 
-    D( glGenVertexArrays(1, &q.meshes[0].vao) );
-    D( glBindVertexArray(q.meshes[0].vao) );
+    glGenVertexArrays(1, &q.meshes[0].vao);
+    glBindVertexArray(q.meshes[0].vao);
 
-    D( glGenBuffers(1, &q.meshes[0].vbo) );
-    D( glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo) );
-    D( glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, drawMode) );
+    glGenBuffers(1, &q.meshes[0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
     constexpr size_t stride = 8 * sizeof(f32);
     /* positions */
-    D( glEnableVertexAttribArray(0) );
-    D( glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0) );
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0);
     /* texture coords */
-    D (glEnableVertexAttribArray(1) );
-    D( glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size)) );
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size));
     /* normals */
-    D (glEnableVertexAttribArray(2) );
-    D( glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * (v3Size + v2Size))) );
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * (v3Size + v2Size)));
 
-    D( glBindVertexArray(0) );
+    glBindVertexArray(0);
 
-    LOG(OK, "quad '{}' created\n", q.meshes[0].vao);
+    LOG(OK, "plane '{}' created\n", q.meshes[0].vao);
     return q;
 }
 
 void
 drawQuad(const Model& q)
 {
-    D( glBindVertexArray(q.meshes[0].vao) );
-    D( glDrawElements(GL_TRIANGLES, q.meshes[0].eboSize, GL_UNSIGNED_INT, nullptr) );
+    glBindVertexArray(q.meshes[0].vao);
+    glDrawElements(GL_TRIANGLES, q.meshes[0].eboSize, GL_UNSIGNED_INT, nullptr);
 }
 
 void
 drawPlane(const Model& q)
 {
-    D( glBindVertexArray(q.meshes[0].vao) );
-    D( glDrawArrays(GL_TRIANGLES, 0, 6) );
+    glBindVertexArray(q.meshes[0].vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+Model
+getCube(GLint drawMode)
+{
+    float cubeVertices[] {
+        // back face
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+        -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
+        // front face
+        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+         1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
+        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
+        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+        // left face
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+        -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
+        // right face
+         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
+         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+        // bottom face
+        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+         1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+        -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+        // top face
+        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+         1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+         1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+         1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+        -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+    };
+
+    Model q;
+    q.meshes.resize(1, {});
+
+    glGenVertexArrays(1, &q.meshes[0].vao);
+    glBindVertexArray(q.meshes[0].vao);
+
+    glGenBuffers(1, &q.meshes[0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, drawMode);
+
+    constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
+    constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+    constexpr size_t stride = 8 * sizeof(f32);
+
+    /* positions */
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    /* texture coords */
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * v3Size));
+    /* normals */
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(f32) * (v3Size + v2Size)));
+
+    glBindVertexArray(0);
+
+    LOG(OK, "cube '{}' created\n", q.meshes[0].vao);
+    return q;
+}
+
+void
+drawCube(const Model& q)
+{
+    glBindVertexArray(q.meshes[0].vao);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+}
+
+static void
+parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlClient* c)
+{
+    constexpr size_t newmtlHash = hashFNV("newmtl");
+    constexpr size_t mapKdHash = hashFNV("map_Kd"); /* diffuse texture */
+
+    Parser p(path, " \n");
+    u64 diffuseTexHash = 0;
+    auto ins = materials->insert({u64(0), {}}); /* it's impossible to get this type otherwise */
+    materials->clear();
+
+    while (!p.finished())
+    {
+        p.nextWord();
+
+        size_t wordHash = hashFNV(p.word);
+
+        switch (wordHash)
+        {
+            case commentHash:
+                p.skipWord("\n");
+                break;
+
+            case newmtlHash:
+                p.nextWord("\n");
+                ins = materials->insert({hashFNV(p.word), Texture {}});
+                break;
+
+            case mapKdHash:
+                p.nextWord("\n");
+                ins.first->second.loadBMP(replaceFileSuffixInPath(path, p.word),
+                                          false,
+                                          GL_MIRRORED_REPEAT,
+                                          c);
+                break;
+
+            default:
+                break;
+        }
+    }
 }

@@ -1,12 +1,27 @@
 #pragma once
 #include "gmath.hh"
 #include "shader.hh"
+#include "texture.hh"
+#include "wayland.hh"
 
-#include <GLES3/gl32.h>
-#include <string_view>
-#include <vector>
+struct FacePositions
+{
+    int x, y, z;
 
-using VertexPos = std::array<int, 3>;
+    bool
+    operator==(const FacePositions& other) const
+    {
+        return this->x == other.x &&
+               this->y == other.y &&
+               this->z == other.z; 
+    }
+};
+
+struct Materials
+{
+    /* TODO: add other materials */
+    Texture diffuse;
+};
 
 struct Ubo
 {
@@ -36,11 +51,22 @@ struct Mesh
     GLuint vbo;
     GLuint ebo;
     GLuint eboSize;
+
+    Texture diffuse;
+
+    std::string name;
+};
+
+enum class BindTextures : s8
+{
+    bind,
+    noBind
 };
 
 struct Model
 {
     std::vector<Mesh> meshes;
+    std::string_view savedPath;
 
     Model() = default;
     Model(const Model& other) = delete;
@@ -51,8 +77,9 @@ struct Model
     Model& operator=(const Model& other) = delete;
     Model& operator=(Model&& other);
 
-    void loadOBJ(std::string_view path, GLint drawMode = GL_STATIC_DRAW);
+    void loadOBJ(std::string_view path, GLint drawMode = GL_STATIC_DRAW, WlClient* c = nullptr);
     void draw();
+    void draw(BindTextures draw);
     void draw(size_t i);
     void draw(const Mesh& mesh);
     void drawInstanced(GLsizei count);
@@ -60,29 +87,29 @@ struct Model
     void drawInstanced(const Mesh& mesh, GLsizei count);
 
 private:
-    void parseOBJ(std::string_view path, GLint drawMode);
+    void parseOBJ(std::string_view path, GLint drawMode, WlClient* c);
     /* copy buffers to the gpu */
-    void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh, GLint drawMode);
+    void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh, GLint drawMode, WlClient* c);
 };
 
 inline u64
-hashFaceVertex(const VertexPos& p)
+hashFaceVertex(const FacePositions& p)
 {
     auto cantorPair = [](u64 a, u64 b) -> u64
     {
         return ((a + b + 1) * ((a + b) / 2) + b);
     };
 
-    return cantorPair(cantorPair(p[0], p[1]), p[2]);
+    return cantorPair(cantorPair(p.x, p.y), p.z);
 }
 
 namespace std
 {
     template <>
-    struct hash<VertexPos>
+    struct hash<FacePositions>
     {
         size_t
-        operator()(const VertexPos& p) const
+        operator()(const FacePositions& p) const
         {
             return hashFaceVertex(p);
         }
@@ -91,5 +118,7 @@ namespace std
 
 Model getQuad(GLint drawMode = GL_STATIC_DRAW);
 Model getPlane(GLint drawMode = GL_STATIC_DRAW);
+Model getCube(GLint drawMode = GL_STATIC_DRAW);
 void drawQuad(const Model& q);
 void drawPlane(const Model& q);
+void drawCube(const Model& q);

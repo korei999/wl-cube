@@ -1,12 +1,13 @@
 #pragma once
 #include "ultratypes.h"
 
+#include <GLES3/gl32.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
-#include <GLES3/gl32.h>
 #include <print>
 #include <string_view>
 #include <vector>
+#include <mutex>
 
 enum LogSeverity : int
 {
@@ -17,15 +18,19 @@ enum LogSeverity : int
     FATAL
 };
 
-std::vector<char> fileLoad(std::string_view path, size_t addBytes = 1);
+extern std::mutex glContextMtx;
+
+std::vector<char> loadFileToCharArray(std::string_view path, size_t addBytes = 1);
 f64 timeNow();
 int rngGet(int min, int max);
 int rngGet();
 f32 rngGet(f32 min, f32 max);
 void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
 void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip);
+void flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
 
 template <typename type>
+__attribute__((no_sanitize("undefined"))) /* can complain about unaligned pointers */
 type
 readTypeBytes(const std::vector<char>& vec, size_t i)
 {
@@ -37,13 +42,15 @@ struct Parser
     std::string word;
     std::string_view defSeps;
     std::vector<char> file;
-    size_t start = 0;
-    size_t end = 0;
+    size_t start;
+    size_t end;
 
+    Parser(std::string_view defaultSeparators, size_t addBytes = 1);
     Parser(std::string_view path, std::string_view defaultSeparators, size_t addBytes = 1);
 
     char& operator[](size_t i) { return file[i]; };
 
+    void loadFile(std::string_view path, size_t addBytes = 1);
     void nextWord(std::string_view separators);
     void nextWord();
     void skipWord(std::string_view separators);
@@ -57,8 +64,6 @@ struct Parser
     void setPos(size_t p);
     size_t size() const { return file.size(); };
     bool finished();
-
-private:
     bool isSeparator(char c, std::string_view separators);
 };
 
@@ -87,7 +92,7 @@ extern EGLint eglLastErrorCode;
                 abort();                                                                                               \
         } while (0)
 #else
-#    define LOG(severity, ...) do {} while (0)
+#    define LOG(severity, ...)
 #endif
 
 #ifdef DEBUG
@@ -134,7 +139,7 @@ extern EGLint eglLastErrorCode;
         {                                                                                                              \
             C;                                                                                                         \
             if ((eglLastErrorCode = eglGetError()) != EGL_SUCCESS)                                                     \
-                LOG(WARNING, "eglLastErrorCode: {:#x}\n", eglLastErrorCode);                                           \
+                LOG(FATAL, "eglLastErrorCode: {:#x}\n", eglLastErrorCode);                                             \
         }
 #else
 #    define EGLD(C) C
@@ -155,7 +160,7 @@ extern EGLint eglLastErrorCode;
         ((hex >> 0)  & 0xFF) / 255.0f                                                                                  \
     }
 
-inline constexpr size_t
+constexpr inline size_t
 hashFNV(std::string_view str)
 {
 	size_t hash = 0xCBF29CE484222325;
@@ -163,3 +168,5 @@ hashFNV(std::string_view str)
         hash = (hash ^ str[i]) * 0x100000001B3;
 	return hash;
 }
+
+std::string replaceFileSuffixInPath(std::string_view str, std::string_view suffix);

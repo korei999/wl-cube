@@ -5,6 +5,7 @@
 #include "ultratypes.h"
 
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
 #include <wayland-egl-core.h>
@@ -66,10 +67,12 @@ struct WlClient
     void enableRelativeMode();
     void togglePointerRelativeMode();
     void toggleFullscreen();
-    void setCursor(std::string_view cursorType = "left_ptr");
+    void setCursor(std::string_view cursorType);
     void setFullscreen();
     void unsetFullscreen();
     void drawFrame();
     void setupDraw();
-    void swapBuffersAndDispatch();
+    void bindGlContext();
+    void unbindGlContext();
+    void setSwapInterval(int interval);
 };

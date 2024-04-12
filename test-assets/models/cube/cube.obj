@@ -1,6 +1,6 @@
 # Blender 3.6.0
 # www.blender.org
-mtllib cube2.mtl
+mtllib cube.mtl
 o typoCube
 v -1.000000 -1.000000 1.000000
 v -1.000000 1.000000 1.000000

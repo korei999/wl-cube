@@ -14,19 +14,7 @@ typedef uint64_t                u64;
 typedef float                   f32;
 typedef double                  f64;
 
-typedef const s8                cs8;
-typedef const u8                cu8;
-typedef const s16               cs16;
-typedef const u16               cu16;
-typedef const s32               cs32;
-typedef const u32               cu32;
-typedef const s64               cs64;
-typedef const u64               cu64;
-
 typedef float                   f32;
 typedef double                  f64;
-
-typedef const f32               cf32;
-typedef const f64               cf64;
 
 #endif

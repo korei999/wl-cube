@@ -24,9 +24,9 @@ PlayerControls::procMouse()
         mouse.pitch = -89.9;
 
     front = v3Norm({
-            f32(cos(TO_RAD(mouse.yaw)) * cos(TO_RAD(mouse.pitch))),
-            f32(sin(TO_RAD(mouse.pitch))),
-            f32(sin(TO_RAD(mouse.yaw)) * cos(TO_RAD(mouse.pitch)))
+            f32(cos(toRad(mouse.yaw)) * cos(toRad(mouse.pitch))),
+            f32(sin(toRad(mouse.pitch))),
+            f32(sin(toRad(mouse.yaw)) * cos(toRad(mouse.pitch)))
     });
 
     right = v3Norm(v3Cross(front, up));
@@ -129,7 +129,7 @@ PlayerControls::procKeys(WlClient* self)
 }
 
 static void
-procMovements(WlClient* self)
+procMovements([[maybe_unused]] WlClient* self)
 {
     f64 moveSpeed = player.moveSpeed * player.deltaTime;
 
@@ -174,14 +174,14 @@ void
 PlayerControls::updateDeltaTime()
 {
     currTime = timeNow();
-    player.deltaTime = currTime - player.lastFrameTime;
-    player.lastFrameTime = currTime;
+    deltaTime = currTime - lastFrameTime;
+    lastFrameTime = currTime;
 }
 
 void 
 PlayerControls::updateView()
 {
-    view = m4LookAt(player.pos, player.pos + player.front, player.up);
+    view = m4LookAt(pos, pos + front, up);
 }
 
 void 

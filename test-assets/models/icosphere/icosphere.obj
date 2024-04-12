@@ -1,6 +1,6 @@
 # Blender v2.79 (sub 7) OBJ File: ''
 # www.blender.org
-mtllib untitled.mtl
+mtllib icosphere.mtl
 o Icosphere
 v 0.767710 0.000008 0.660603
 v 1.491317 0.552788 1.186328

@@ -15,7 +15,7 @@ uniform vec3 uViewPos;
 out vec4 outColor;
 
 float
-ShadowCalculation(vec3 lightDir)
+shadowCalculation(vec3 lightDir)
 {
     /* perform perspective divide */
     vec3 projCoords = vFragPosLightSpace.xyz / vFragPosLightSpace.w;
@@ -67,7 +67,7 @@ main()
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
     vec3 specular = spec * lightColor;
     /* calculate shadow */
-    float shadow = ShadowCalculation(lightDir);
+    float shadow = shadowCalculation(lightDir);
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
 
     outColor = vec4(lighting, 1.0);

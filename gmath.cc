@@ -12,9 +12,9 @@ f32
 v3Length(const v3& v)
 {
     f32 res = 0;
-    res += SQ(v.x);
-    res += SQ(v.y);
-    res += SQ(v.z);
+    res += sq(v.x);
+    res += sq(v.y);
+    res += sq(v.z);
 
     return sqrt(res);
 }
@@ -27,7 +27,7 @@ v3Norm(const v3& v)
 }
 
 v3
-v3Norm(const v3& v, cf32 length)
+v3Norm(const v3& v, const f32 length)
 {
     return v3 {v.x / length, v.y / length, v.z / length};
 }
@@ -77,7 +77,7 @@ v3::operator-=(const v3& other)
 }
 
 v3
-operator*(const v3& v, cf32 s)
+operator*(const v3& v, const f32 s)
 {
     return v3 {
         v.x * s,
@@ -87,7 +87,7 @@ operator*(const v3& v, cf32 s)
 }
 
 v3&
-v3::operator*=(cf32 s)
+v3::operator*=(const f32 s)
 {
     *this = *this * s;
     return *this;
@@ -102,7 +102,7 @@ v3Rad(const v3& l, const v3& r)
 f32
 v3Dist(const v3& l, const v3& r)
 {
-    return sqrt(SQ(r.x - l.x) + SQ(r.y - l.y) + SQ(r.z - l.z));
+    return sqrt(sq(r.x - l.x) + sq(r.y - l.y) + sq(r.z - l.z));
 }
 
 f32
@@ -154,19 +154,19 @@ operator*(const m4& l, const m4& r)
 }
 
 m4
-m4Rot(const m4& m, cf32 th, const v3& ax)
+m4Rot(const m4& m, const f32 th, const v3& ax)
 {
-    cf32 c = cos(th);
-    cf32 s = sin(th);
+    const f32 c = cos(th);
+    const f32 s = sin(th);
 
-    cf32 x = ax.x;
-    cf32 y = ax.y;
-    cf32 z = ax.z;
+    const f32 x = ax.x;
+    const f32 y = ax.y;
+    const f32 z = ax.z;
 
     m4 r {.e {
-        {((1 - c)*SQ(x)) + c, ((1 - c)*x*y) - s*z, ((1 - c)*x*z) + s*y, 0},
-        {((1 - c)*x*y) + s*z, ((1 - c)*SQ(y)) + c, ((1 - c)*y*z) - s*x, 0},
-        {((1 - c)*x*z) - s*y, ((1 - c)*y*z) + s*x, ((1 - c)*SQ(z)) + c, 0},
+        {((1 - c)*sq(x)) + c, ((1 - c)*x*y) - s*z, ((1 - c)*x*z) + s*y, 0},
+        {((1 - c)*x*y) + s*z, ((1 - c)*sq(y)) + c, ((1 - c)*y*z) - s*x, 0},
+        {((1 - c)*x*z) - s*y, ((1 - c)*y*z) + s*x, ((1 - c)*sq(z)) + c, 0},
         {0,                   0,                   0,                   1}
     }};
 
@@ -174,7 +174,7 @@ m4Rot(const m4& m, cf32 th, const v3& ax)
 }
 
 m4
-m4RotX(const m4& m, cf32 angle)
+m4RotX(const m4& m, const f32 angle)
 {
     m4 axisX {.e {
         {1, 0,           0,          0},
@@ -187,7 +187,7 @@ m4RotX(const m4& m, cf32 angle)
 }
 
 m4
-m4RotY(const m4& m, cf32 angle)
+m4RotY(const m4& m, const f32 angle)
 {
     m4 axisY {.e {
         {cos(angle), 0, -sin(angle), 0},
@@ -200,7 +200,7 @@ m4RotY(const m4& m, cf32 angle)
 }
 
 m4
-m4RotZ(const m4& m, cf32 angle)
+m4RotZ(const m4& m, const f32 angle)
 {
     m4 axisZ {.e {
         {cos(angle),  sin(angle), 0, 0},
@@ -213,7 +213,7 @@ m4RotZ(const m4& m, cf32 angle)
 }
 
 m4
-m4Scale(const m4& m, cf32 s)
+m4Scale(const m4& m, const f32 s)
 {
     m4 sm {.e {
         {s, 0, 0, 0},
@@ -252,7 +252,7 @@ m4Translate(const m4& m, const v3& tv)
 }
 
 m4
-m4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f)
+m4Pers(const f32 fov, const f32 asp, const f32 n, const f32 f)
 {
     /* b(back), l(left) are not needed if our viewing volume is symmetric */
     f32 t = n * tan(fov / 2);
@@ -267,7 +267,7 @@ m4Pers(cf32 fov, cf32 asp, cf32 n, cf32 f)
 }
 
 m4
-m4Ortho(cf32 l, cf32 r, cf32 b, cf32 t, cf32 n, cf32 f)
+m4Ortho(const f32 l, const f32 r, const f32 b, const f32 t, const f32 n, const f32 f)
 {
     return m4 {.e {
         {2/(r-l),       0,            0,           0},
@@ -377,4 +377,18 @@ m3
 m3Normal(const m3& m)
 {
     return m3Transpose(m3Inverse(m));
+}
+
+v3
+v3Color(const u32 hex)
+{
+    v3 t = COLOR3(hex);
+    return t;
+}
+
+v4
+v4Color(const u32 hex)
+{
+    v4 t = COLOR4(hex);
+    return t;
 }

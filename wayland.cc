@@ -227,14 +227,6 @@ WlClient::~WlClient()
         wl_compositor_destroy(compositor);
     if (registry)
         wl_registry_destroy(registry);
-    if (display)
-        wl_display_disconnect(display);
-    if (eglWindow)
-        wl_egl_window_destroy(eglWindow);
-    if (eglSurface)
-        EGLD(eglDestroySurface(eglDisplay, eglSurface));
-    if (eglContext)
-        EGLD(eglDestroyContext(eglDisplay, eglContext));
 }
 
 void
@@ -274,6 +266,7 @@ WlClient::init()
         EGL_BLUE_SIZE, 8,
         EGL_ALPHA_SIZE, 8,
         EGL_DEPTH_SIZE, 24,
+        EGL_STENCIL_SIZE, 8,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
         EGL_SAMPLE_BUFFERS, 1,
         EGL_SAMPLES, 4,
@@ -335,7 +328,7 @@ WlClient::disableRelativeMode()
     zwp_locked_pointer_v1_destroy(lockedPointer);
     zwp_relative_pointer_v1_destroy(relativePointer);
 
-    setCursor();
+    setCursor("left_ptr");
 }
 
 void
@@ -386,4 +379,23 @@ WlClient::toggleFullscreen()
         setFullscreen();
     else
         unsetFullscreen();
+}
+
+void 
+WlClient::bindGlContext()
+{
+    EGLD ( eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext) );
+}
+
+void 
+WlClient::unbindGlContext()
+{
+    EGLD( eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) );
+}
+
+void
+WlClient::setSwapInterval(int interval)
+{
+    swapInterval = interval;
+    EGLD( eglSwapInterval(eglDisplay, interval) );
 }

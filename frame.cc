@@ -6,16 +6,10 @@
 #include "headers/texture.hh"
 #include "headers/wayland.hh"
 
-#define SHADOW_WIDTH 1024
-#define SHADOW_HEIGHT 1024
+#include <thread>
 
-struct ShadowMap
-{
-    GLuint fbo;
-    GLuint tex;
-    int width;
-    int height;
-};
+#define SHADOW_WIDTH 2048
+#define SHADOW_HEIGHT 2048
 
 #ifdef DEBUG
 static void
@@ -31,7 +25,7 @@ debugCallback(GLenum source,
     switch (severity)
     {
         case GL_DEBUG_SEVERITY_HIGH:
-            sev = LogSeverity::FATAL;
+            sev = LogSeverity::BAD;
             break;
 
         case GL_DEBUG_SEVERITY_MEDIUM:
@@ -56,108 +50,82 @@ PlayerControls player {
     .mouse.sens = 0.07,
 };
 
-Shader shadowSh;
-Shader depthSh;
 Shader debugDepthQuadSh;
+Shader cubeDepthSh;
+Shader omniDirShadowSh;
+Shader colorSh;
 Model cube;
 Model plane;
 Model quad;
 Model teaPot;
+Model sponza;
 Texture boxTex;
 Texture dirtTex;
-v3 ambLight = COLOR3(0x444444);
 Ubo projView;
-ShadowMap depthMap;
+CubeMap cubeMap;
 
 #ifdef FPS_COUNTER
 f64 prevTime;
 #endif
 
-ShadowMap
-createShadowMap(const int width, const int height)
-{
-    GLenum none = GL_NONE;
-    ShadowMap res {};
-    res.width = width;
-    res.height = height;
-
-    D( glGenTextures(1, &res.tex) );
-    D( glBindTexture(GL_TEXTURE_2D, res.tex) );
-    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR) );
-    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR) );
-    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER) );
-    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER) );
-    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE) );
-    D( glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL) );
-	f32 borderColor[] {1.0, 1.0, 1.0, 1.0};
-	D( glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor) );
-    D( glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, nullptr) );
-    D( glBindTexture(GL_TEXTURE_2D, 0) );
-
-    GLint defFramebuffer = 0;
-    D( glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defFramebuffer) );
-    /* set up fbo */
-    D( glGenFramebuffers(1, &res.fbo) );
-    D( glBindFramebuffer(GL_FRAMEBUFFER, res.fbo) );
-
-    D( glDrawBuffers(1, &none) );
-    D( glReadBuffer(GL_NONE) );
-
-    D( glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, res.tex, 0) );
-
-    D( glActiveTexture(GL_TEXTURE0) );
-    D( glBindTexture(GL_TEXTURE_2D, res.tex) );
-
-    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER))
-        LOG(FATAL, "glCheckFramebufferStatus != GL_FRAMEBUFFER_COMPLETE\n"); 
-
-    D( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
-
-    return res;
-}
-
 void
 WlClient::setupDraw()
 {
-    if (!eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext))
-        LOG(FATAL, "eglMakeCurrent failed\n");
-
-    EGLD( eglSwapInterval(eglDisplay, swapInterval) );
-    toggleFullscreen();
+    this->bindGlContext();
+    this->setSwapInterval(1);
+    this->toggleFullscreen();
 
 #ifdef DEBUG
-    D( glEnable(GL_DEBUG_OUTPUT) );
-    D( glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS) );
-    D( glDebugMessageCallback(debugCallback, this) );
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(debugCallback, this);
 #endif
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
 
-    D( glEnable(GL_CULL_FACE) );
-    D( glEnable(GL_DEPTH_TEST) );
+    v4 gray = v4Color(0x444444FF);
+    glClearColor(gray.r, gray.g, gray.b, gray.a);
 
-    v4 gray = COLOR4(0x222222FF);
-    D( glClearColor(gray.r, gray.g, gray.b, gray.a) );
-
-    shadowSh.loadShaders("shaders/shadows/shadows.vert", "shaders/shadows/shadows.frag");
-    depthSh.loadShaders("shaders/shadows/depth.vert", "shaders/shadows/depth.frag");
     debugDepthQuadSh.loadShaders("shaders/shadows/debugQuad.vert", "shaders/shadows/debugQuad.frag");
+    cubeDepthSh.loadShaders("shaders/shadows/cubeMap/cubeMapDepth.vert", "shaders/shadows/cubeMap/cubeMapDepth.geom", "shaders/shadows/cubeMap/cubeMapDepth.frag");
+    omniDirShadowSh.loadShaders("shaders/shadows/cubeMap/omniDirShadow.vert", "shaders/shadows/cubeMap/omniDirShadow.frag");
+    colorSh.loadShaders("shaders/simple.vert", "shaders/simple.frag");
 
-    cube.loadOBJ("test-assets/models/cube/cube.obj");
-    plane.loadOBJ("test-assets/models/plane/plane.obj");
-    teaPot.loadOBJ("test-assets/models/teapot/teapot.obj");
-    quad = getQuad();
+    omniDirShadowSh.use();
+    omniDirShadowSh.setI("uDiffuseTexture", 0);
+    omniDirShadowSh.setI("uDepthMap", 1);
 
-    boxTex.loadBMP("test-assets/silverBox.bmp");
-    dirtTex.loadBMP("test-assets/dirt.bmp");
-
-    depthMap = createShadowMap(SHADOW_WIDTH, SHADOW_HEIGHT);
-    shadowSh.use();
-    shadowSh.setI("uDiffuseTexture", 0);
-    shadowSh.setI("uShadowMap", 1);
     debugDepthQuadSh.use();
-    debugDepthQuadSh.setI("uDepthMap", 0);
+    debugDepthQuadSh.setI("uDepthMap", 1);
+
+    cubeMap = createCubeShadowMap(SHADOW_WIDTH, SHADOW_HEIGHT);
 
     projView.createBuffer(sizeof(m4) * 2, GL_DYNAMIC_DRAW);
-    projView.bindBlock(&shadowSh, "ubProjView", 0);
+    projView.bindBlock(&omniDirShadowSh, "ubProjView", 0);
+    projView.bindBlock(&colorSh, "ubProjView", 0);
+
+    quad = getQuad();
+
+    /* TODO: find a better way for parallel asset loading */
+    /* each thread cannot have the same opengl context */
+    /* unbind before creating threads */
+    this->unbindGlContext();
+    /* models */
+    // std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, this);
+    // std::thread m1(&Model::loadOBJ, &sponza, "/home/korei/source/Sponza/sponza.obj", GL_STATIC_DRAW, this);
+    cube.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, this);
+    sponza.loadOBJ("/home/korei/source/Sponza/sponza.obj", GL_STATIC_DRAW, this);
+    /* textures */
+    // std::thread t0(&Texture::loadBMP, &boxTex, "test-assets/silverBox.bmp", false, GL_MIRRORED_REPEAT, this);
+    // std::thread t1(&Texture::loadBMP, &dirtTex, "test-assets/dirt.bmp", false, GL_MIRRORED_REPEAT, this);
+
+    // m0.join();
+    // m1.join();
+    // t0.join();
+    // t1.join();
+
+    /* restore context after assets are loaded */
+    this->bindGlContext();
 }
 
 f64 incCounter = 0;
@@ -168,44 +136,16 @@ f32 x = 0, y = 0, z = 0;
 void
 renderScene(Shader* sh, bool depth)
 {
-    m4 m = m4Scale(m4Translate(m4Iden(), {0, 0, 0}), 10);
-    sh->use();
-    sh->setM4("uModel", m);
-    if (!depth)
-    {
-        sh->setM3("uNormalMatrix", m3Normal(m));
-        dirtTex.bind(GL_TEXTURE0);
-    }
-    plane.draw();
+    m4 m = m4Iden();
 
-    m = m4Scale(m4Translate(m4Iden(), {1, 0.2, 0}), 0.2);
-    sh->setM4("uModel", m);
-    if (!depth)
-    {
-        sh->setM3("uNormalMatrix", m3Normal(m));
-        dirtTex.bind(GL_TEXTURE0);
-    }
-    teaPot.draw();
-
-    m = m4Scale(m4Translate(m4Iden(), {0.1, 0.2, 1}), 0.2);
+    m = m4Scale(m, 0.01);
     sh->setM4("uModel", m);
     if (!depth)
     {
         sh->setM3("uNormalMatrix", m3Normal(m));
         boxTex.bind(GL_TEXTURE0);
     }
-    cube.draw();
-
-    m = m4Translate(m4Iden(), {1, 2, 0.5});
-    v3 axis = v3Norm({0, -3, 1});
-    m = m4Scale(m4Rot(m, TO_RAD(60), axis), 0.1);
-    sh->setM4("uModel", m);
-    if (!depth)
-    {
-        sh->setM3("uNormalMatrix", m3Normal(m));
-        dirtTex.bind(GL_TEXTURE0);
-    }
-    teaPot.draw();
+    sponza.draw(BindTextures::bind);
 }
 
 void
@@ -227,65 +167,74 @@ WlClient::drawFrame()
     player.procKeys(this);
 
     f32 aspect = (f32)wWidth / (f32)wHeight;
+    constexpr f32 shadowAspect = (f32)SHADOW_WIDTH / (f32)SHADOW_HEIGHT;
 
     if (!isPaused)
     {
-        D( glClearColor(0.4, 0.4, 0.4, 1.0) );
-        D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        player.updateProj(TO_RAD(fov), aspect, 0.01f, 100.0f);
+        player.updateProj(toRad(fov), aspect, 0.01f, 100.0f);
         player.updateView();
         /* copy both proj and view in one go */
         projView.bufferData(&player, 0, sizeof(m4) * 2);
 
         // v3 lightPos {x, 4, -1};
-        v3 lightPos {(f32)sin(player.currTime) * 5, 4, -1 };
-        f32 nearPlane = 1.0, farPlane = 20.0;
-        // m4 lightProj = m4Ortho(-10, 10, -10, 10, nearPlane, farPlane);
-        m4 lightProj = m4Pers(TO_RAD(90), aspect, nearPlane, farPlane );
-        m4 lightView = m4LookAt(lightPos, {0, 0, 0}, player.up);
-        m4 lightSpaceMatrix = lightProj * lightView;
+        v3 lightPos {(f32)sin(player.currTime) * 7, 2, 0};
+        f32 nearPlane = 0.01, farPlane = 25.0;
+        m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);
+        CubeMapProjections shadowTms(shadowProj, lightPos);
 
-        /* render scene from light's point of view */
-        depthSh.use();
-        depthSh.setM4("uLightSpaceMatrix", lightSpaceMatrix);
+        /* render scene to depth cubemap */
+        glViewport(0, 0, cubeMap.width, cubeMap.height);
+        glBindFramebuffer(GL_FRAMEBUFFER, cubeMap.fbo);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-        D( glViewport(0, 0, depthMap.width, depthMap.height) );
-        D( glBindFramebuffer(GL_FRAMEBUFFER, depthMap.fbo) );
-        D( glClear(GL_DEPTH_BUFFER_BIT) );
-        D( glCullFace(GL_FRONT) );
-        renderScene(&depthSh, true);
-        D( glCullFace(GL_BACK) );
-        D( glBindFramebuffer(GL_FRAMEBUFFER, 0) );
+        cubeDepthSh.use();
+        constexpr auto len = LEN(shadowTms);
+        for (size_t i = 0; i < len; i++)
+            cubeDepthSh.setM4("uShadowMatrices[" + std::to_string(i) + "]", shadowTms[i]);
+        cubeDepthSh.setV3("uLightPos", lightPos);
+        cubeDepthSh.setF("uFarPlane", farPlane);
+        glActiveTexture(GL_TEXTURE1);
+        glCullFace(GL_FRONT);
+        renderScene(&cubeDepthSh, true);
+        glCullFace(GL_BACK);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /* reset viewport */
-        D( glViewport(0, 0, this->wWidth, this->wHeight) );
-        D( glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) );
+        glViewport(0, 0, this->wWidth, this->wHeight);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         /* render scene as normal using the denerated depth map */
-        shadowSh.use();
-        shadowSh.setM4("uProj", player.proj);
-        shadowSh.setM4("uView", player.view);
-        /* set light uniforms */
-        shadowSh.setV3("uViewPos", player.pos);
-        shadowSh.setV3("uLightPos", lightPos);
-        shadowSh.setM4("uLightSpaceMatrix", lightSpaceMatrix);
-        D( glActiveTexture(GL_TEXTURE1) );
-        D( glBindTexture(GL_TEXTURE_2D, depthMap.tex) );
+        omniDirShadowSh.use();
+        omniDirShadowSh.setV3("uLightPos", lightPos);
+        omniDirShadowSh.setV3("uViewPos", player.pos);
+        omniDirShadowSh.setF("uFarPlane", farPlane);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
+        renderScene(&omniDirShadowSh, false);
 
-        renderScene(&shadowSh, false);
+        // if (showFb) /* KEY_B */
+        // {
+            // debugDepthQuadSh.use();
+            // debugDepthQuadSh.setF("uNearPlane", nearPlane);
+            // debugDepthQuadSh.setF("uFarPlane", farPlane);
+            // glActiveTexture(GL_TEXTURE0);
+            // glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
+            // drawQuad(quad);
+        // }
 
-        if (showFb) /* KEY_B */
-        {
-            debugDepthQuadSh.use();
-            debugDepthQuadSh.setF("uNearPlane", nearPlane);
-            debugDepthQuadSh.setF("uFarPlane", farPlane);
-            D( glActiveTexture(GL_TEXTURE0) );
-            D( glBindTexture(GL_TEXTURE_2D, depthMap.tex) );
-            drawQuad(quad);
-        }
+        /* draw light source */
+        m4 cubeTm = m4Iden();
+        cubeTm = m4Translate(cubeTm, lightPos);
+        cubeTm = m4Scale(cubeTm, 0.05);
+        colorSh.use();
+        colorSh.setM4("uModel", cubeTm);
+        colorSh.setV3("uColor", v3(1, 1, 1));
+        cube.draw();
 
-        incCounter += 1 * player.deltaTime;
+        incCounter += 1.0 * player.deltaTime;
     }
 #ifdef FPS_COUNTER
         fpsCount++;
@@ -298,7 +247,6 @@ WlClient::mainLoop()
     isRunning = true;
     isRelativeMode = true;
     isPaused = false;
-    swapInterval = 1;
 
     setupDraw();
 
@@ -310,18 +258,9 @@ WlClient::mainLoop()
     {
         drawFrame();
 
-        swapBuffersAndDispatch();
+        /* swap buffers and dispatch */
+        EGLD( eglSwapBuffers(eglDisplay, eglSurface) );
+        if (wl_display_dispatch(display) == -1)
+            LOG(FATAL, "wl_display_dispatch error\n");
     }
-
-    D( glDeleteFramebuffers(1, &depthMap.fbo) );
-    D( glDeleteTextures(1, &depthMap.tex) );
-}
-
-void
-WlClient::swapBuffersAndDispatch()
-{
-    if (!eglSwapBuffers(eglDisplay, eglSurface))
-        LOG(FATAL, "eglSwapBuffers failed\n");
-    if (wl_display_dispatch(display) == -1)
-        LOG(FATAL, "wl_display_dispatch error\n");
 }

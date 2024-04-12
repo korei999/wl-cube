@@ -85,7 +85,7 @@ keyboardRepeatInfoHandler([[maybe_unused]] void* data,
                           [[maybe_unused]] s32 rate,
                           [[maybe_unused]] s32 delay)
 {
-    LOG(OK, "rate: {}\tdelay: {}\n", rate, delay);
+    //
 }
 
 
@@ -108,7 +108,11 @@ pointerEnterHandler([[maybe_unused]] void* data,
     }
     else
     {
-        wl_pointer_set_cursor(pointer, serial, self->cursorSurface, self->cursorImage->hotspot_x, self->cursorImage->hotspot_y);
+        wl_pointer_set_cursor(pointer,
+                              serial,
+                              self->cursorSurface,
+                              self->cursorImage->hotspot_x,
+                              self->cursorImage->hotspot_y);
     }
 }
 
@@ -164,8 +168,6 @@ relativePointerMotionHandler([[maybe_unused]] void *data,
 				             [[maybe_unused]] wl_fixed_t dxUnaccel,
 				             [[maybe_unused]] wl_fixed_t dyUnaccel)
 {
-    // LOG(OK, "relative: {}, {}\n", dxUnaccel, dyUnaccel);
-
     player.mouse.relX += wl_fixed_to_int(dxUnaccel);
     player.mouse.relY += wl_fixed_to_int(dyUnaccel);
 }
