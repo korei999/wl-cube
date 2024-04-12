@@ -143,7 +143,7 @@ timeNow()
     return fs.count();
 }
 
-Parser::Parser(std::string_view defaultSeparators, size_t addBytes)
+Parser::Parser(std::string_view defaultSeparators)
     : defSeps(defaultSeparators) {}
 
 Parser::Parser(std::string_view path, std::string_view defaultSeparators, size_t addBytes)

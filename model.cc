@@ -231,7 +231,6 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
     inds.reserve(vs.size());
 
     // this->meshes.clear();
-    size_t oCount = 0;
     for (auto& materials : objects)
     {
         this->objects.push_back({});
@@ -271,9 +270,6 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
 
             auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
 
-            // this->meshes.push_back(mesh);
-            // this->meshes.back().diffuse = (foundTex->second);
-
             this->objects.back().push_back(std::move(mesh));
             this->objects.back().back().diffuse = std::move(foundTex->second);
 
@@ -283,7 +279,6 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
         }
     }
 
-    // this->meshes.shrink_to_fit();
     this->objects.shrink_to_fit();
 }
 

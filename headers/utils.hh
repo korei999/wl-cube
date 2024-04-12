@@ -45,7 +45,7 @@ struct Parser
     size_t start;
     size_t end;
 
-    Parser(std::string_view defaultSeparators, size_t addBytes = 1);
+    Parser(std::string_view defaultSeparators);
     Parser(std::string_view path, std::string_view defaultSeparators, size_t addBytes = 1);
 
     char& operator[](size_t i) { return file[i]; };
