@@ -59,7 +59,7 @@ extern EGLint eglLastErrorCode;
                 abort();                                                                                               \
         } while (0)
 #else
-#    define LOG(severity, ...)
+#    define LOG(severity, ...) (void)0 /* noop */
 #endif
 
 #ifdef DEBUG
