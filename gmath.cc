@@ -5,8 +5,15 @@
 
 static m4 m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P);
 
+v2::v2(const v3& v)
+    : x(v.x), y(v.y) {}
+
+v3::v3(const v2& v)
+    : x(v.x), y(v.y) {}
+
 v3::v3(const v4& v)
     : x(v.x), y(v.y), z(v.z) {}
+
 
 f32
 v3Length(const v3& v)

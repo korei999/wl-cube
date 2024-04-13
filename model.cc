@@ -157,7 +157,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
                 objP.nextWord();
                 tv.y = std::stof(objP.word);
 
-                vts.push_back({tv.x, tv.y});
+                vts.push_back(v2(tv));
                 break;
 
             case vnHash:

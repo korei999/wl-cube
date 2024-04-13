@@ -9,6 +9,8 @@
 #define toDeg(x) (x * 180.0 / PI)
 #define toRad(x) (x * PI / 180.0)
 
+union v2;
+union v3;
 union v4;
 
 union v2
@@ -21,6 +23,7 @@ union v2
 
     v2() = default;
     v2(f32 _x, f32 _y) : x(_x), y(_y) {}
+    v2(const v3& v);
 };
 
 union v3
@@ -37,7 +40,8 @@ union v3
 
     v3() = default;
     v3(f32 _x, f32 _y, f32 _z) : x(_x), y(_y), z(_z) {}
-    v3(const v4& other);
+    v3(const v2& v);
+    v3(const v4& v);
 
     v3& operator+=(const v3& other);
     v3& operator-=(const v3& other);
