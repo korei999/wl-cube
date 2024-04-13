@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <exception>
 
-static void parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlClient* c);
+static void parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, GLint texMode, WlClient* c);
 
 constexpr size_t vHash = hashFNV("v");
 constexpr size_t vtHash = hashFNV("vt");
@@ -18,27 +18,17 @@ constexpr size_t commentHash = hashFNV("#");
 
 Model::Model(Model&& other)
 {
-    this->meshes = std::move(other.meshes);
     this->objects = std::move(other.objects);
+    this->savedPath = std::move(other.savedPath);
 }
 
-Model::Model(std::string_view path)
+Model::Model(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
 {
-    loadOBJ(path);
+    loadOBJ(path, drawMode, texMode, c);
 }
 
 Model::~Model()
 {
-    if (this->meshes.size())
-    {
-        for (auto& mesh : this->meshes)
-        {
-            glDeleteVertexArrays(1, &mesh.vao);
-            glDeleteBuffers(1, &mesh.vbo);
-            glDeleteBuffers(1, &mesh.ebo);
-        }
-    }
-
     if (this->objects.size())
     {
         for (auto& materials : objects)
@@ -55,12 +45,12 @@ Model&
 Model::operator=(Model&& other)
 {
     this->objects = std::move(other.objects);
-    this->meshes = std::move(other.meshes);
+    this->savedPath = std::move(other.savedPath);
     return *this;
 }
 
 void
-Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
+Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
 {
     Parser objP(path, " /\n");
 
@@ -216,7 +206,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
     if (!mtllibName.empty())
     {
         std::string pathToMtl = replaceFileSuffixInPath(path, mtllibName);
-        parseMtl(&materialsMap, pathToMtl, c);
+        parseMtl(&materialsMap, pathToMtl, texMode, c);
     }
 
     /* if no textures or normals just add one with zeros */
@@ -284,12 +274,12 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
 }
 
 void
-Model::loadOBJ(std::string_view path, GLint drawMode, WlClient* c)
+Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
 {
     try
     {
         LOG(OK, "loading model: '{}'...\n", path);
-        this->parseOBJ(path, drawMode, c);
+        this->parseOBJ(path, drawMode, texMode, c);
         this->savedPath = path;
     }
     catch (const std::exception& e)
@@ -339,50 +329,23 @@ Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m
 void
 Model::draw()
 {
-    for (auto& mesh : meshes)
-    {
-        glBindVertexArray(mesh.vao);
-        glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
-    }
+    for (auto& meshes : objects)
+        for (auto& mesh : meshes)
+        {
+            glBindVertexArray(mesh.vao);
+            glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
+        }
 }
-
-void
-Model::draw(size_t i)
-{
-    glBindVertexArray(meshes[i].vao);
-    glDrawElements(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr);
-}
-
-void
-Model::draw(const Mesh& mesh)
-{
-    glBindVertexArray(mesh.vao);
-    glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
-}
-
 
 void
 Model::drawInstanced(GLsizei count)
 {
-    for (auto& mesh : meshes)
-    {
-        glBindVertexArray(mesh.vao);
-        glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
-    }
-}
-
-void
-Model::drawInstanced(size_t i, GLsizei count)
-{
-    glBindVertexArray(meshes[i].vao);
-    glDrawElementsInstanced(GL_TRIANGLES, meshes[i].eboSize, GL_UNSIGNED_INT, nullptr, count);
-}
-
-void
-Model::drawInstanced(const Mesh& mesh, GLsizei count)
-{
-    glBindVertexArray(mesh.vao);
-    glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
+    for (auto& meshes : objects)
+        for (auto& mesh : meshes)
+        {
+            glBindVertexArray(mesh.vao);
+            glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
+        }
 }
 
 void
@@ -455,19 +418,20 @@ getQuad(GLint drawMode)
     };
 
     Model q;
-    q.meshes.resize(1, {});
+    q.objects.resize(1);
+    q.objects.back().resize(1);
 
-    glGenVertexArrays(1, &q.meshes[0].vao);
-    glBindVertexArray(q.meshes[0].vao);
+    glGenVertexArrays(1, &q.objects[0][0].vao);
+    glBindVertexArray(q.objects[0][0].vao);
 
-    glGenBuffers(1, &q.meshes[0].vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo);
+    glGenBuffers(1, &q.objects[0][0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0][0].vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, drawMode);
 
-    glGenBuffers(1, &q.meshes[0].ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.meshes[0].ebo);
+    glGenBuffers(1, &q.objects[0][0].ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.objects[0][0].ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, drawMode);
-    q.meshes[0].eboSize = LEN(quadIndices);
+    q.objects[0][0].eboSize = LEN(quadIndices);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
@@ -481,7 +445,7 @@ getQuad(GLint drawMode)
 
     glBindVertexArray(0);
 
-    LOG(OK, "quad '{}' created\n", q.meshes[0].vao);
+    LOG(OK, "quad '{}' created\n", q.objects[0][0].vao);
     q.savedPath = "Quad";
     return q;
 }
@@ -490,7 +454,7 @@ Model
 getPlane(GLint drawMode)
 {
     f32 planeVertices[] {
-        // positions            // texcoords   // normals         
+        /* positions            texcoords   normals          */
          25.0f, -0.5f,  25.0f,  25.0f,  0.0f,  0.0f, 1.0f, 0.0f,  
         -25.0f, -0.5f, -25.0f,   0.0f, 25.0f,  0.0f, 1.0f, 0.0f,  
         -25.0f, -0.5f,  25.0f,   0.0f,  0.0f,  0.0f, 1.0f, 0.0f,  
@@ -501,13 +465,14 @@ getPlane(GLint drawMode)
     };
 
     Model q;
-    q.meshes.resize(1, {});
+    q.objects.resize(1);
+    q.objects.back().resize(1);
 
-    glGenVertexArrays(1, &q.meshes[0].vao);
-    glBindVertexArray(q.meshes[0].vao);
+    glGenVertexArrays(1, &q.objects[0][0].vao);
+    glBindVertexArray(q.objects[0][0].vao);
 
-    glGenBuffers(1, &q.meshes[0].vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo);
+    glGenBuffers(1, &q.objects[0][0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0][0].vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
@@ -525,21 +490,21 @@ getPlane(GLint drawMode)
 
     glBindVertexArray(0);
 
-    LOG(OK, "plane '{}' created\n", q.meshes[0].vao);
+    LOG(OK, "plane '{}' created\n", q.objects[0][0].vao);
     return q;
 }
 
 void
 drawQuad(const Model& q)
 {
-    glBindVertexArray(q.meshes[0].vao);
-    glDrawElements(GL_TRIANGLES, q.meshes[0].eboSize, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(q.objects[0][0].vao);
+    glDrawElements(GL_TRIANGLES, q.objects[0][0].eboSize, GL_UNSIGNED_INT, nullptr);
 }
 
 void
 drawPlane(const Model& q)
 {
-    glBindVertexArray(q.meshes[0].vao);
+    glBindVertexArray(q.objects[0][0].vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -547,58 +512,59 @@ Model
 getCube(GLint drawMode)
 {
     float cubeVertices[] {
-        // back face
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-        -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-        // front face
-        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-         1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-        // left face
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-        -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-        // right face
-         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-        // bottom face
-        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-         1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-        -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-        // top face
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-         1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-         1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-         1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-        -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+        /* back face */
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, /* bottom-left */
+         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, /* top-right */
+         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, /* bottom-right */    
+         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, /* top-right */
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, /* bottom-left */
+        -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, /* top-left */
+        /* front face */
+        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, /* bottom-left */
+         1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, /* bottom-right */
+         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, /* top-right */
+         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, /* top-right */
+        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, /* top-left */
+        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, /* bottom-left */
+        /* left face */
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, /* top-right */
+        -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, /* top-left */
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, /* bottom-left */
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, /* bottom-left */
+        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, /* bottom-right */
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, /* top-right */
+        /* right face */
+         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, /* top-left */
+         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, /* bottom-right */
+         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, /* top-right */
+         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, /* bottom-right */
+         1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, /* top-left */
+         1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, /* bottom-left */
+        /* bottom face */
+        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, /* top-right */
+         1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, /* top-left */
+         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, /* bottom-le ft */
+         1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, /* bottom-le ft */
+        -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, /* bottom-ri ght */
+        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, /* top-right */
+        /* top face */
+        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, /* top-left */
+         1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, /* bottom-right */
+         1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, /* top-right */
+         1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, /* bottom-right */
+        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, /* top-left */
+        -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  /* bottom-left */
     };
 
     Model q;
-    q.meshes.resize(1, {});
+    q.objects.resize(1);
+    q.objects.back().resize(1);
 
-    glGenVertexArrays(1, &q.meshes[0].vao);
-    glBindVertexArray(q.meshes[0].vao);
+    glGenVertexArrays(1, &q.objects[0][0].vao);
+    glBindVertexArray(q.objects[0][0].vao);
 
-    glGenBuffers(1, &q.meshes[0].vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, q.meshes[0].vbo);
+    glGenBuffers(1, &q.objects[0][0].vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0][0].vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
@@ -617,27 +583,26 @@ getCube(GLint drawMode)
 
     glBindVertexArray(0);
 
-    LOG(OK, "cube '{}' created\n", q.meshes[0].vao);
+    LOG(OK, "cube '{}' created\n", q.objects[0][0].vao);
     return q;
 }
 
 void
 drawCube(const Model& q)
 {
-    glBindVertexArray(q.meshes[0].vao);
+    glBindVertexArray(q.objects[0][0].vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 static void
-parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlClient* c)
+parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, GLint texMode, WlClient* c)
 {
     constexpr size_t newmtlHash = hashFNV("newmtl");
     constexpr size_t mapKdHash = hashFNV("map_Kd"); /* diffuse texture */
 
     Parser p(path, " \n");
     u64 diffuseTexHash = 0;
-    auto ins = materials->insert({u64(0), Texture {}}); /* it's 'impossible' to get this type otherwise */
-    materials->clear();
+    decltype(materials->insert({u64(), Texture()})) ins; /* get iterator placeholder */
 
     std::vector<std::thread> threads;
 
@@ -665,7 +630,7 @@ parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlC
                                      &ins.first->second,
                                      replaceFileSuffixInPath(path, p.word),
                                      false,
-                                     GL_MIRRORED_REPEAT,
+                                     texMode,
                                      c);
                 break;
 

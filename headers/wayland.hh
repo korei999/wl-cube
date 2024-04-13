@@ -71,7 +71,7 @@ struct WlClient
     void setFullscreen();
     void unsetFullscreen();
     void drawFrame();
-    void setupDraw();
+    void prepareDraw();
     void bindGlContext();
     void unbindGlContext();
     void setSwapInterval(int interval);

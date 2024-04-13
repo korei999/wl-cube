@@ -60,31 +60,27 @@ struct Mesh
 struct Model
 {
     /* TODO: remove meshes and keep objects */
-    std::vector<Mesh> meshes;
+    // std::vector<Mesh> meshes;
     std::vector<std::vector<Mesh>> objects;
     std::string_view savedPath;
 
     Model() = default;
     Model(const Model& other) = delete;
     Model(Model&& other);
-    Model(std::string_view path);
+    Model(std::string_view path, GLint drawMode, GLint texMode, WlClient* c);
     ~Model();
 
     Model& operator=(const Model& other) = delete;
     Model& operator=(Model&& other);
 
-    void loadOBJ(std::string_view path, GLint drawMode = GL_STATIC_DRAW, WlClient* c = nullptr);
+    void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c);
     void draw();
-    void draw(size_t i);
-    void draw(const Mesh& mesh);
     void drawInstanced(GLsizei count);
-    void drawInstanced(size_t i, GLsizei count);
-    void drawInstanced(const Mesh& mesh, GLsizei count);
     /* bind texture for each drawcall */
     void drawTex();
 
 private:
-    void parseOBJ(std::string_view path, GLint drawMode, WlClient* c);
+    void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c);
     /* copy buffers to the gpu */
     void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh, GLint drawMode, WlClient* c);
 };

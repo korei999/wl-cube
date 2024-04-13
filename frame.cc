@@ -6,6 +6,9 @@
 #define SHADOW_WIDTH 2048
 #define SHADOW_HEIGHT 2048
 
+#define DEPTH_MAP_ID 6
+#define DEPTH_MAP_TEXID GL_TEXTURE6
+
 #ifdef DEBUG
 static void
 debugCallback(GLenum source,
@@ -65,7 +68,7 @@ f64 prevTime;
 #endif
 
 void
-WlClient::setupDraw()
+WlClient::prepareDraw()
 {
     this->bindGlContext();
     this->setSwapInterval(1);
@@ -107,18 +110,13 @@ WlClient::setupDraw()
     /* unbind before creating threads */
     this->unbindGlContext();
     /* models */
-    std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, this);
-    std::thread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, this);
-    std::thread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, this);
-    /* textures */
-    // std::thread t0(&Texture::loadBMP, &boxTex, "test-assets/silverBox.bmp", false, GL_MIRRORED_REPEAT, this);
-    // std::thread t1(&Texture::loadBMP, &dirtTex, "test-assets/dirt.bmp", false, GL_MIRRORED_REPEAT, this);
+    std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
+    std::thread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
+    std::thread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
 
     m0.join();
     m1.join();
     m2.join();
-    // t0.join();
-    // t1.join();
 
     /* restore context after assets are loaded */
     this->bindGlContext();
@@ -175,7 +173,7 @@ WlClient::drawFrame()
         projView.bufferData(&player, 0, sizeof(m4) * 2);
 
         // v3 lightPos {x, 4, -1};
-        v3 lightPos {(f32)sin(player.currTime) * 7, 2, 0};
+        v3 lightPos {(f32)sin(player.currTime) * 7, 3, 0};
         f32 nearPlane = 0.01, farPlane = 25.0;
         m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);
         CubeMapProjections shadowTms(shadowProj, lightPos);
@@ -234,7 +232,7 @@ WlClient::mainLoop()
     isRelativeMode = true;
     isPaused = false;
 
-    setupDraw();
+    prepareDraw();
 
 #ifdef FPS_COUNTER
     prevTime = timeNow();

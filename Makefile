@@ -40,8 +40,8 @@ all: $(EXEC)
 
 debug: CXX += $(ASAN)
 debug: CC += $(ASAN)
-debug: CXXFLAGS += -g -O0 -march=native $(DEBUG) $(WARNINGS) $(WNO)
-debug: CFLAGS += -g -O0 -march=native $(DEBUG) $(WARNINGS) $(WNO)
+debug: CXXFLAGS += -ggdb -O0 -march=native $(DEBUG) $(WARNINGS) $(WNO)
+debug: CFLAGS += -ggdb -O0 -march=native $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
 $(EXEC): $(OBJ) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
