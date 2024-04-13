@@ -18,36 +18,6 @@ enum LogSeverity : int
     FATAL
 };
 
-struct Parser
-{
-    std::string word;
-    std::string defSeps;
-    std::vector<char> file;
-    size_t start;
-    size_t end;
-
-    Parser(std::string_view defaultSeparators);
-    Parser(std::string_view path, std::string_view defaultSeparators, size_t addBytes = 1);
-
-    char& operator[](size_t i) { return file[i]; };
-
-    void loadFile(std::string_view path, size_t addBytes = 1);
-    void nextWord(std::string_view separators);
-    void nextWord();
-    void skipWord(std::string_view separators);
-    void skipWord();
-    void skipBytes(size_t n);
-    std::string readString(size_t size);
-    u8 read8();
-    u16 read16();
-    u32 read32();
-    u64 read64();
-    void setPos(size_t p);
-    size_t size() const { return file.size(); };
-    bool finished();
-    bool isSeparator(char c, std::string_view separators);
-};
-
 std::vector<char> loadFileToCharArray(std::string_view path, size_t addBytes = 1);
 f64 timeNow();
 int rngGet(int min, int max);
@@ -152,14 +122,6 @@ extern EGLint eglLastErrorCode;
         ((hex >> 8)  & 0xFF) / 255.0f,                                                                                 \
         ((hex >> 0)  & 0xFF) / 255.0f                                                                                  \
     }
-
-template <typename Type>
-__attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
-Type
-readTypeBytes(const std::vector<char>& vec, size_t i)
-{
-    return *(Type*)&vec[i];
-}
 
 constexpr inline size_t
 hashFNV(std::string_view str)
