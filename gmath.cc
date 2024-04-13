@@ -156,8 +156,8 @@ operator*(const m4& l, const m4& r)
 m4
 m4Rot(const m4& m, const f32 th, const v3& ax)
 {
-    const f32 c = cos(th);
-    const f32 s = sin(th);
+    const f32 c = (f32)cos(th);
+    const f32 s = (f32)sin(th);
 
     const f32 x = ax.x;
     const f32 y = ax.y;
@@ -177,10 +177,10 @@ m4
 m4RotX(const m4& m, const f32 angle)
 {
     m4 axisX {.e {
-        {1, 0,           0,          0},
-        {0, cos(angle),  sin(angle), 0},
-        {0, -sin(angle), cos(angle), 0},
-        {0, 0,           0,          1}
+        {1, 0,                 0,              0},
+        {0, (f32)cos(angle),  (f32)sin(angle), 0},
+        {0, (f32)-sin(angle), (f32)cos(angle), 0},
+        {0, 0,                0,               1}
     }};
 
     return m * axisX;
@@ -190,10 +190,10 @@ m4
 m4RotY(const m4& m, const f32 angle)
 {
     m4 axisY {.e {
-        {cos(angle), 0, -sin(angle), 0},
-        {0,          1, 0,           0},
-        {sin(angle), 0, cos(angle),  0},
-        {0,          0, 0,           1}
+        {(f32)cos(angle), 0, (f32)-sin(angle), 0},
+        {0,               1, 0,                0},
+        {(f32)sin(angle), 0, (f32)cos(angle),  0},
+        {0,               0, 0,                1}
     }};
 
     return m * axisY;
@@ -203,10 +203,10 @@ m4
 m4RotZ(const m4& m, const f32 angle)
 {
     m4 axisZ {.e {
-        {cos(angle),  sin(angle), 0, 0},
-        {-sin(angle), cos(angle), 0, 0},
-        {0,           0,          1, 0},
-        {0,           0,          0, 1}
+        {(f32)cos(angle),  (f32)sin(angle), 0, 0},
+        {(f32)-sin(angle), (f32)cos(angle), 0, 0},
+        {0,                0,               1, 0},
+        {0,                0,               0, 1}
     }};
 
     return m * axisZ;

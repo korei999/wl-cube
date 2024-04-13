@@ -1,10 +1,10 @@
 MAKEFLAGS := --jobs=$(shell nproc) --output-sync=target 
 
-CXX := clang++ -stdlib=libc++ -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
+CXX := g++ -fdiagnostics-color
 # compile wayland glue code with c compiler due to linkage issues
-CC := clang -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
+CC := gcc -fdiagnostics-color
 
-WARNINGS := -Wall -Wextra -Wno-c99-designator -fms-extensions
+WARNINGS := -Wall -Wextra -fms-extensions -Wno-missing-field-initializers
 
 include debug.mk
 
@@ -12,9 +12,9 @@ PKGS := egl glesv2 wayland-client wayland-egl wayland-cursor
 PKG := $(shell pkg-config --cflags $(PKGS))
 PKG_LIB := $(shell pkg-config --libs $(PKGS))
 
-CXXFLAGS := -std=gnu++2c $(PKG)
+CXXFLAGS := -std=gnu++23 $(PKG)
 CFLAGS := -std=gnu2x $(PKG)
-LDFLAGS := $(PKG_LIB) -fuse-ld=lld
+LDFLAGS := $(PKG_LIB)
 
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)
 WAYLAND_SCANNER := $(shell pkg-config --variable=wayland_scanner wayland-scanner)
@@ -32,8 +32,8 @@ EXEC := $(BD)/$(BIN)
 SRCS := $(shell find $(SRCD) -name '*.cc')
 OBJ := $(SRCS:%=$(BD)/%.o)
 
-all: CXX += -flto=full $(SAFE_STACK) -DFPS_COUNTER
-all: CC += -flto=full $(SAFE_STACK) 
+all: CXX += -flto=auto $(SAFE_STACK) -DFPS_COUNTER
+all: CC += -flto=auto $(SAFE_STACK) 
 all: CXXFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
 all: CFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
 all: $(EXEC)

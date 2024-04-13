@@ -42,7 +42,7 @@ debugCallback(GLenum source,
 PlayerControls player {
     .pos {0.0, 1.0, 2.0},
     .moveSpeed = 4.0,
-    .mouse.sens = 0.07,
+    .mouse {.sens = 0.07}
 };
 
 Shader debugDepthQuadSh;
@@ -152,7 +152,7 @@ WlClient::drawFrame()
     f64 currTime = timeNow();
     if (currTime >= prevTime + 1.0)
     {
-        std::print(stderr, "fps: {}, ms: {:.3f}\n", fpsCount, player.deltaTime);
+        CERR("fps: {}, ms: {:.3f}\n", fpsCount, player.deltaTime);
         fpsCount = 0;
         prevTime = currTime;
     }

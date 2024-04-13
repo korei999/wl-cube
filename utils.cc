@@ -4,6 +4,7 @@
 #include <chrono>
 #include <random>
 #include <mutex>
+#include <climits>
 
 std::mutex glContextMtx;
 
@@ -119,7 +120,7 @@ loadFileToCharArray(std::string_view path, size_t addBytes)
 {
     std::lock_guard lock(fileMtx);
 
-    std::ifstream file(path, std::ios::in | std::ios::ate | std::ios::binary);
+    std::ifstream file(path.data(), std::ios::in | std::ios::ate | std::ios::binary);
     if (!file.is_open())
         LOG(FATAL, "failed to open file: {}\n", path);
 

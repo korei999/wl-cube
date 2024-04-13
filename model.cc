@@ -157,7 +157,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, WlClient* c)
                 objP.nextWord();
                 tv.y = std::stof(objP.word);
 
-                vts.push_back(tv.xy);
+                vts.push_back({tv.x, tv.y});
                 break;
 
             case vnHash:
@@ -636,7 +636,7 @@ parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, WlC
 
     Parser p(path, " \n");
     u64 diffuseTexHash = 0;
-    auto ins = materials->insert({u64(0), {}}); /* it's 'impossible' to get this type otherwise */
+    auto ins = materials->insert({u64(0), Texture {}}); /* it's 'impossible' to get this type otherwise */
     materials->clear();
 
     std::vector<std::thread> threads;

@@ -1,7 +1,10 @@
 #define _POSIX_C_SOURCE 199309L
+
 #include "headers/input.hh"
 #include "headers/utils.hh"
 #include "headers/wayland.hh"
+
+#include <cstring>
 
 static const zwp_relative_pointer_v1_listener relativePointerListener {
 	.relative_motion = relativePointerMotionHandler

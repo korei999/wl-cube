@@ -5,9 +5,10 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl32.h>
 #include <mutex>
-#include <print>
 #include <string_view>
 #include <vector>
+#include <iostream>
+#include <format>
 
 enum LogSeverity : int
 {
@@ -45,12 +46,15 @@ extern EGLint eglLastErrorCode;
 #define ODD(A) (A & 1)
 #define EVEN(A) (!ODD(A))
 
+#define COUT std::cout << std::format
+#define CERR std::cerr << std::format
+
 #ifdef LOGS
 #    define LOG(severity, ...)                                                                                         \
         do                                                                                                             \
         {                                                                                                              \
-            std::print(stderr, "{}({}): {} ", __FILE__, __LINE__, severityStr[severity]);                              \
-            std::print(stderr, __VA_ARGS__);                                                                           \
+            CERR("{}({}): {} ", __FILE__, __LINE__, severityStr[severity]);                                            \
+            CERR(__VA_ARGS__);                                                                                         \
             if (severity == FATAL)                                                                                     \
                 abort();                                                                                               \
         } while (0)
