@@ -51,7 +51,7 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    /* C99 vla, clang doesn't allow to explicitly assing to this non-standard type, but using auto just works */
+    /* C99 vla */
     auto d = (u32 (*)[width])dest;
     auto s = (u32 (*)[width])src;
 
@@ -64,7 +64,7 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
             u32 R =   t & 0x00'ff'00'00;
             u32 B =   t & 0x00'00'00'ff;
             u32 tt = (t & 0xff'00'ff'00) | (R >> (4 * 4)) | (B << (4 * 4));
-            d[r -f][c] = tt;
+            d[r - f][c] = tt;
         }
         f += inc;
     }

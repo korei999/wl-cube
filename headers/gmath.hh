@@ -33,11 +33,6 @@ union v3
     {
         f32 r, g, b;
     };
-    // struct
-    // {
-        // v2 xy;
-        // f32 ignoredZ;
-    // };
     f32 e[3];
 
     v3() = default;
@@ -59,16 +54,6 @@ union v4
     {
         f32 r, g, b, a;
     };
-    // struct
-    // {
-        // v3 xyz;
-        // f32 ignoredW;
-    // };
-    // struct
-    // {
-        // v2 xy;
-        // v2 ingonredZW;
-    // };
     f32 e[4];
 
     v4() = default;
