@@ -8,17 +8,26 @@
 #include <string_view>
 #include <unordered_map>
 
+enum TexType : int
+{
+    diffuse = 0,
+    normal
+};
+
 struct Texture
 {
     GLuint id = 0;
-    std::shared_ptr<GLuint> idOwnersCounter;
+    TexType type;
+
+    /* TODO: figure out shared ownership */
+    // std::shared_ptr<GLuint> idOwnersCounter;
     std::string texPath;
 
     Texture() = default;
-    Texture(std::string_view path, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
+    Texture(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
     ~Texture();
 
-    void loadBMP(std::string_view path, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, WlClient* c = nullptr);
+    void loadBMP(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, WlClient* c = nullptr);
     void bind(GLint glTexture);
 
 private:

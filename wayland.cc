@@ -378,6 +378,7 @@ void
 WlClient::toggleFullscreen()
 {
     isFullscreen = !isFullscreen;
+
     if (isFullscreen)
         setFullscreen();
     else

@@ -5,16 +5,23 @@
 #include <unordered_map>
 #include <exception>
 
-static void parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, GLint texMode, WlClient* c);
+static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, WlClient* c);
 
-constexpr size_t vHash = hashFNV("v");
-constexpr size_t vtHash = hashFNV("vt");
-constexpr size_t vnHash = hashFNV("vn");
-constexpr size_t fHash = hashFNV("f");
-constexpr size_t mtllibHash = hashFNV("mtllib");
-constexpr size_t oHash = hashFNV("o");
-constexpr size_t usemtlHash = hashFNV("usemtl");
-constexpr size_t commentHash = hashFNV("#");
+enum Hash : u64
+{
+    comment = hashFNV("#"),
+    v = hashFNV("v"),
+    vt = hashFNV("vt"),
+    vn = hashFNV("vn"),
+    f = hashFNV("f"),
+    mtllib = hashFNV("mtllib"),
+    o = hashFNV("o"),
+    usemtl = hashFNV("usemtl"),
+    newmtl = hashFNV("newmtl"),
+    diff = hashFNV("map_Kd"),
+    amb = hashFNV("map_Ka"),
+    disp = hashFNV("map_Disp") /* use as normal map */
+};
 
 Model::Model(Model&& other)
 {
@@ -75,10 +82,8 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
 
     struct Object
     {
-        // std::vector<FaceData> fs; /* face data indices */
-        std::vector<MaterialData> fss;
+        std::vector<MaterialData> mds;
         std::string o; /* object name */
-        std::string usemtl; /* material name */
     };
 
     std::vector<Object> objects;
@@ -101,26 +106,22 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
 
         switch (wordHash)
         {
-            case commentHash:
+            case Hash::comment:
                 objP.skipWord("\n");
                 break;
 
-            case mtllibHash:
+            case Hash::mtllib:
                 objP.nextWord("\n");
                 mtllibName = objP.word;
                 break;
 
-            case usemtlHash:
+            case Hash::usemtl:
                 objP.nextWord("\n");
-                /* TODO: figure out how to split 1 object that has differrent materials */
-                if (objects.back().usemtl.empty())
-                    objects.back().usemtl = objP.word;
-
-                objects.back().fss.push_back({});
-                objects.back().fss.back().usemtl = objP.word;
+                objects.back().mds.push_back({});
+                objects.back().mds.back().usemtl = objP.word;
                 break;
 
-            case oHash:
+            case Hash::o:
                 /* give space for new object */
                 objects.push_back({});
                 objP.nextWord("\n");
@@ -128,7 +129,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
                 objects.back().o = objP.word;
                 break;
 
-            case vHash:
+            case Hash::v:
                 /* get 3 floats */
                 objP.nextWord();
                 tv.x = std::stof(objP.word);
@@ -140,7 +141,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
                 vs.push_back(tv);
                 break;
 
-            case vtHash:
+            case Hash::vt:
                 /* get 2 floats */
                 objP.nextWord();
                 tv.x = std::stof(objP.word);
@@ -150,7 +151,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
                 vts.push_back(v2(tv));
                 break;
 
-            case vnHash:
+            case Hash::vn:
                 /* get 3 floats */
                 objP.nextWord();
                 tv.x = std::stof(objP.word);
@@ -162,7 +163,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
                 vns.push_back(tv);
                 break;
 
-            case fHash:
+            case Hash::f:
                 /* get 9 ints */
                 objP.nextWord();
                 tf[0] = wordToInt(objP.word) - 1; /* obj faces count from 1 */
@@ -185,8 +186,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
 #ifdef MODEL
                 LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
 #endif
-                // objects.back().fs.push_back(tf);
-                objects.back().fss.back().fs.push_back(tf);
+                objects.back().mds.back().fs.push_back(tf);
                 break;
 
             default:
@@ -201,7 +201,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
 #endif
 
     /* parse mtl file and load all the textures, later move them to the models */
-    std::unordered_map<u64, Texture> materialsMap(objects.size() * 2);
+    std::unordered_map<u64, Materials> materialsMap(objects.size() * 2);
 
     if (!mtllibName.empty())
     {
@@ -226,7 +226,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
     {
         this->objects.push_back({});
 
-        for (auto& faces : materials.fss)
+        for (auto& faces : materials.mds)
         {
             Mesh mesh {
                 .name = materials.o
@@ -243,7 +243,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
                     if (p.y == -1)
                         p.y = 0;
 
-                    auto insTry = uniqFaces.insert({p, faceIdx});
+                    auto insTry = uniqFaces.try_emplace(p, faceIdx);
                     if (insTry.second) /* false if we tried to insert duplicate */
                     {
                         /* first v3 positions, second v2 textures, last v3 normals */
@@ -262,7 +262,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
             auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
 
             this->objects.back().push_back(std::move(mesh));
-            this->objects.back().back().diffuse = std::move(foundTex->second);
+            this->objects.back().back().materials = std::move(foundTex->second);
 
             /* do not forget to clear buffers */
             verts.clear();
@@ -349,14 +349,14 @@ Model::drawInstanced(GLsizei count)
 }
 
 void
-Model::drawTex()
+Model::drawTex(GLint primitives)
 {
     for (auto& materials : objects)
         for (auto& mesh : materials)
         {
-            mesh.diffuse.bind(GL_TEXTURE0);
+            mesh.materials.diffuse.bind(GL_TEXTURE0);
             glBindVertexArray(mesh.vao);
-            glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
+            glDrawElements(primitives, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
         }
 }
 
@@ -595,14 +595,10 @@ drawCube(const Model& q)
 }
 
 static void
-parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, GLint texMode, WlClient* c)
+parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, WlClient* c)
 {
-    constexpr size_t newmtlHash = hashFNV("newmtl");
-    constexpr size_t mapKdHash = hashFNV("map_Kd"); /* diffuse texture */
-
     Parser p(path, " \n");
-    u64 diffuseTexHash = 0;
-    decltype(materials->insert({u64(), Texture()})) ins; /* get iterator placeholder */
+    decltype(materials->insert({u64(), Materials()})) ins; /* get iterator placeholder */
 
     std::vector<std::thread> threads;
 
@@ -614,21 +610,33 @@ parseMtl(std::unordered_map<u64, Texture>* materials, std::string_view path, GLi
 
         switch (wordHash)
         {
-            case commentHash:
+            case Hash::comment:
                 p.skipWord("\n");
                 break;
 
-            case newmtlHash:
+            case Hash::newmtl:
                 p.nextWord("\n");
                 ins = materials->insert({hashFNV(p.word), {}});
                 break;
 
-            case mapKdHash:
+            case Hash::diff:
                 p.nextWord("\n");
                 /* TODO: implement thread pool for this kind of stuff */
                 threads.emplace_back(&Texture::loadBMP,
-                                     &ins.first->second,
+                                     &ins.first->second.diffuse,
                                      replaceFileSuffixInPath(path, p.word),
+                                     TexType::diffuse,
+                                     false,
+                                     texMode,
+                                     c);
+                break;
+
+            case Hash::disp:
+                p.nextWord("\n");
+                threads.emplace_back(&Texture::loadBMP,
+                                     &ins.first->second.normal,
+                                     replaceFileSuffixInPath(path, p.word),
+                                     TexType::normal,
                                      false,
                                      texMode,
                                      c);

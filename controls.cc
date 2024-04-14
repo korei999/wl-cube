@@ -80,14 +80,6 @@ procKeysOnce(WlClient* self, u32 key, u32 pressed)
             }
             break;
 
-        case KEY_B:
-            if (pressed)
-            {
-                showFb = !showFb;
-                LOG(OK, "showFb: {}\n", showFb);
-            }
-            break;
-
         default:
             break;
     }

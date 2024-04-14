@@ -3,11 +3,8 @@
 
 #include <thread>
 
-#define SHADOW_WIDTH 2048
-#define SHADOW_HEIGHT 2048
-
-#define DEPTH_MAP_ID 6
-#define DEPTH_MAP_TEXID GL_TEXTURE6
+#define SHADOW_WIDTH 720
+#define SHADOW_HEIGHT 720
 
 #ifdef DEBUG
 static void
@@ -20,25 +17,46 @@ debugCallback(GLenum source,
               const void* user)
 {
     int sev = LogSeverity::OK;
-    switch (severity)
+    const char* typeStr {};
+    const char* sourceStr {};
+
+    switch (source)
     {
-        case GL_DEBUG_SEVERITY_HIGH:
-            sev = LogSeverity::BAD;
-            break;
+        case GL_DEBUG_SOURCE_API: sourceStr = "API"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: sourceStr = "Window System"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: sourceStr = "Shader Compiler"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY: sourceStr = "Third Party"; break;
+        case GL_DEBUG_SOURCE_APPLICATION: sourceStr = "Application"; break;
+        case GL_DEBUG_SOURCE_OTHER: sourceStr = "Other"; break;
 
-        case GL_DEBUG_SEVERITY_MEDIUM:
-            sev = LogSeverity::WARNING;
-            break;
-
-        case GL_DEBUG_SEVERITY_LOW:
-            sev = LogSeverity::OK;
-            break;
-
-        default:
-            break;
+        default: break;
     }
 
-    LOG(sev, "{}\n", message);
+    switch (type)
+    {
+        case GL_DEBUG_TYPE_ERROR: typeStr = "Error"; break;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: typeStr = "Deprecated Behavior"; break;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: typeStr = "Undefined Behavior"; break;
+        case GL_DEBUG_TYPE_PORTABILITY: typeStr = "Portability"; break;
+        case GL_DEBUG_TYPE_PERFORMANCE: typeStr = "Performance"; break;
+        case GL_DEBUG_TYPE_MARKER: typeStr = "Marker"; break;
+        case GL_DEBUG_TYPE_PUSH_GROUP: typeStr = "Push Group"; break;
+        case GL_DEBUG_TYPE_POP_GROUP: typeStr = "Pop Group"; break;
+        case GL_DEBUG_TYPE_OTHER: typeStr = "Other"; break;
+
+        default: break;
+    }
+
+    switch (severity)
+    {
+        case GL_DEBUG_SEVERITY_HIGH: sev = LogSeverity::BAD; break;
+        case GL_DEBUG_SEVERITY_MEDIUM: sev = LogSeverity::WARNING; break;
+
+        case GL_DEBUG_SEVERITY_LOW:
+        default: break;
+    }
+
+    LOG(sev, "source: '{}', type: '{}'\n{}\n", sourceStr, typeStr, message);
 }
 #endif
 
@@ -105,8 +123,6 @@ WlClient::prepareDraw()
 
     quad = getQuad();
 
-    /* TODO: find a better way for parallel asset loading */
-    /* each thread cannot have the same opengl context */
     /* unbind before creating threads */
     this->unbindGlContext();
     /* models */
@@ -124,7 +140,6 @@ WlClient::prepareDraw()
 
 f64 incCounter = 0;
 f64 fov = 90.0f;
-bool showFb = false;
 f32 x = 0, y = 0, z = 0;
 
 void

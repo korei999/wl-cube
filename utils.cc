@@ -7,6 +7,7 @@
 #include <climits>
 
 std::mutex glContextMtx;
+std::mutex logMtx;
 
 static std::mt19937 rngCreate();
 

@@ -38,6 +38,7 @@ const std::string_view severityStr[FATAL + 1] {
 };
 
 extern std::mutex glContextMtx;
+extern std::mutex logMtx;
 
 extern GLenum glLastErrorCode;
 extern EGLint eglLastErrorCode;
@@ -53,6 +54,7 @@ extern EGLint eglLastErrorCode;
 #    define LOG(severity, ...)                                                                                         \
         do                                                                                                             \
         {                                                                                                              \
+            std::lock_guard lock(logMtx);                                                                              \
             CERR("{}({}): {} ", __FILE__, __LINE__, severityStr[severity]);                                            \
             CERR(__VA_ARGS__);                                                                                         \
             if (severity == FATAL)                                                                                     \

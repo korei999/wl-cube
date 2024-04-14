@@ -17,12 +17,6 @@ struct FacePositions
     }
 };
 
-struct Materials
-{
-    /* TODO: add other materials */
-    Texture diffuse;
-};
-
 struct Ubo
 {
     GLuint id;
@@ -45,6 +39,12 @@ struct Vertex
     v3 norm;
 };
 
+struct Materials
+{
+    Texture diffuse;
+    Texture normal;
+};
+
 struct Mesh
 {
     GLuint vao;
@@ -52,15 +52,13 @@ struct Mesh
     GLuint ebo;
     GLuint eboSize;
 
-    Texture diffuse;
+    Materials materials;
 
     std::string name;
 };
 
 struct Model
 {
-    /* TODO: remove meshes and keep objects */
-    // std::vector<Mesh> meshes;
     std::vector<std::vector<Mesh>> objects;
     std::string_view savedPath;
 
@@ -77,7 +75,7 @@ struct Model
     void draw();
     void drawInstanced(GLsizei count);
     /* bind texture for each drawcall */
-    void drawTex();
+    void drawTex(GLint primitives = GL_TRIANGLES);
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c);

@@ -3,26 +3,25 @@
 
 /* create with new, because it's must not be automatically destroyed prior to texture destruction */
 /* silince the addres sanitizer */
-std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
+// std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
 
-Texture::Texture(std::string_view path, bool flip, GLint texMode)
+Texture::Texture(std::string_view path, TexType type, bool flip, GLint texMode)
 {
-    loadBMP(path, flip, texMode);
+    loadBMP(path, type, flip, texMode);
 }
 
 Texture::~Texture()
 {
-    if (this->id != 0)
-    {
-        // LOG(OK, "{}: id: {}, use_count: {}\n", this->texPath, this->id, this->idOwnersCounter.use_count());
-        if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
-        {
-            LOG(OK, "\ttexure '{}': id: '{}' deleted\n", this->texPath, this->id);
-            auto found = loadedTex->find(hashFNV(this->texPath));
-            loadedTex->erase(found);
-            glDeleteTextures(1, &id);
-        }
-    }
+    // LOG(OK, "{}: id: {}, use_count: {}\n", this->texPath, this->id, this->idOwnersCounter.use_count());
+    // if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
+    // {
+#ifdef TEXTURE
+    LOG(OK, "\ttexure '{}': id: '{}' deleted\n", this->texPath, this->id);
+#endif
+    // auto found = loadedTex->find(hashFNV(this->texPath));
+    // loadedTex->erase(found);
+    glDeleteTextures(1, &id);
+    // }
 }
 
 /* Bitmap file format
@@ -48,7 +47,7 @@ Texture::~Texture()
  */
 
 void
-Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
+Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, WlClient* c)
 {
     if (this->id != 0)
     {
@@ -56,18 +55,22 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
         return;
     }
 
-    auto inserted = loadedTex->insert({hashFNV(path), this});
+    // auto inserted = loadedTex->try_emplace(hashFNV(path), this);
 
-    if (!inserted.second)
-    {
-#ifdef TEXTURE
-        LOG(WARNING, "texture '{}' is already loaded with id '{}', setting '{}' to this->id\n", path, inserted.first->second->id, inserted.first->second->id);
-#endif
-        this->idOwnersCounter = inserted.first->second->idOwnersCounter;
-        this->id = *this->idOwnersCounter.get();
-        this->texPath = path;
-        return;
-    }
+    // if (!inserted.second)
+    // {
+// #ifdef TEXTURE
+        // LOG(WARNING, "texture '{}' is already loaded with id '{}', setting '{}' to this->id\n", path, inserted.first->second->id, inserted.first->second->id);
+// #endif
+        // LOG(WARNING, "pShared: {}, path: '{}'\n", (void*)inserted.first->second->idOwnersCounter.get(), path);
+        // this->idOwnersCounter = inserted.first->second->idOwnersCounter;
+        // if (this->idOwnersCounter.get())
+            // this->id = *this->idOwnersCounter.get();
+        // this->texPath = path;
+        // this->type = type;
+
+        // return;
+    // }
 
     u32 imageDataAddress;
     s32 width;
@@ -76,35 +79,35 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
     u16 bitDepth;
     u8 byteDepth;
 
-    LOG(OK, "loading '{}' bitmap...\n", path);
+    LOG(OK, "loading '{}' texture...\n", path);
 
-    Parser bmp(path, "", 0);
-    auto BM = bmp.readString(2);
+    Parser p(path, "", 0);
+    auto BM = p.readString(2);
 
     if (BM != "BM")
         LOG(FATAL, "BM: {}, bmp file should have 'BM' as first 2 bytes\n", BM);
 
-    bmp.skipBytes(8);
-    imageDataAddress = bmp.read32();
+    p.skipBytes(8);
+    imageDataAddress = p.read32();
 
 #ifdef TEXTURE
     LOG(OK, "imageDataAddress: {}\n", imageDataAddress);
 #endif
 
-    bmp.skipBytes(4);
-    width = bmp.read32();
-    height = bmp.read32();
+    p.skipBytes(4);
+    width = p.read32();
+    height = p.read32();
 #ifdef TEXTURE
     LOG(OK, "width: {}, height: {}\n", width, height);
 #endif
 
-    [[maybe_unused]] auto colorPlane = bmp.read16();
+    [[maybe_unused]] auto colorPlane = p.read16();
 #ifdef TEXTURE
     LOG(OK, "colorPlane: {}\n", colorPlane);
 #endif
 
     GLint format = GL_RGB;
-    bitDepth = bmp.read16();
+    bitDepth = p.read16();
 #ifdef TEXTURE
     LOG(OK, "bitDepth: {}\n", bitDepth);
 #endif
@@ -124,7 +127,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
             break;
     }
 
-    bitDepth = 32;  /* forcing RBGA */
+    bitDepth = 32;  /* force RBGA */
     nPixels = width * height;
     byteDepth = bitDepth / 8;
 #ifdef TEXTURE
@@ -132,17 +135,17 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
 #endif
     std::vector<u8> pixels(nPixels * byteDepth);
 
-    bmp.setPos(imageDataAddress);
+    p.setPos(imageDataAddress);
 #ifdef TEXTURE
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
 #endif
 
     if (format == GL_RGBA)
-        flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
+        flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
     else
     {
         /* setting each alpha with 1.0 */
-        flipCpyBGRtoRGBA((u8*)pixels.data(), (u8*)&bmp[bmp.start], width, height, flip);
+        flipCpyBGRtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
         format = GL_RGBA;
     }
 
@@ -152,6 +155,7 @@ Texture::loadBMP(std::string_view path, bool flip, GLint texMode, WlClient* c)
     LOG(OK, "{}: id: {}, texMode: {}\n", path, this->id, format);
 #endif
     this->texPath = path;
+    this->type = type;
 }
 
 void
@@ -179,7 +183,7 @@ Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsize
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     /* set the reference counter for each new texture */
-    idOwnersCounter = std::make_shared<GLuint>(this->id);
+    // idOwnersCounter = std::make_shared<GLuint>(this->id);
 
     c->unbindGlContext();
 }
