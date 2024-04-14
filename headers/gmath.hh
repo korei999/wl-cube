@@ -22,8 +22,8 @@ union v2
     f32 e[2];
 
     v2() = default;
-    v2(f32 _x, f32 _y) : x(_x), y(_y) {}
     v2(const v3& v);
+    constexpr v2(f32 _x, f32 _y) : x(_x), y(_y) {}
 };
 
 union v3
@@ -39,9 +39,13 @@ union v3
     f32 e[3];
 
     v3() = default;
-    v3(f32 _x, f32 _y, f32 _z) : x(_x), y(_y), z(_z) {}
     v3(const v2& v);
     v3(const v4& v);
+    constexpr v3(f32 _x, f32 _y, f32 _z) : x(_x), y(_y), z(_z) {}
+    constexpr v3(u32 hex)
+        : x(((hex >> 16) & 0xFF) / 255.0f),
+          y(((hex >> 8)  & 0xFF) / 255.0f),
+          z(((hex >> 0)  & 0xFF) / 255.0f) {}
 
     v3& operator+=(const v3& other);
     v3& operator-=(const v3& other);
@@ -61,7 +65,7 @@ union v4
     f32 e[4];
 
     v4() = default;
-    v4(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
+    constexpr v4(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
 };
 
 union m4
@@ -79,7 +83,8 @@ union m3
 
     m3() = default;
     m3(const m4& m) : v(m.v[0], m.v[1], m.v[2]) {}
-    m3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8) : p(_0, _1, _2, _3, _4, _5, _6, _7, _8) {}
+    constexpr m3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8)
+        : p(_0, _1, _2, _3, _4, _5, _6, _7, _8) {}
 };
 
 #ifdef LOGS

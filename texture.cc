@@ -2,7 +2,6 @@
 #include "headers/parser.hh"
 
 /* create with new, because it's must not be automatically destroyed prior to texture destruction */
-/* silince the addres sanitizer */
 // std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
 
 Texture::Texture(std::string_view path, TexType type, bool flip, GLint texMode)
@@ -12,16 +11,7 @@ Texture::Texture(std::string_view path, TexType type, bool flip, GLint texMode)
 
 Texture::~Texture()
 {
-    // LOG(OK, "{}: id: {}, use_count: {}\n", this->texPath, this->id, this->idOwnersCounter.use_count());
-    // if (this->idOwnersCounter.use_count() == 1) /* one reference means that we are the only owner */
-    // {
-#ifdef TEXTURE
-    LOG(OK, "\ttexure '{}': id: '{}' deleted\n", this->texPath, this->id);
-#endif
-    // auto found = loadedTex->find(hashFNV(this->texPath));
-    // loadedTex->erase(found);
     glDeleteTextures(1, &id);
-    // }
 }
 
 /* Bitmap file format
@@ -46,31 +36,24 @@ Texture::~Texture()
  *	DATA:	X	Pixels
  */
 
+// static std::mutex insMtx;
+
 void
 Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, WlClient* c)
 {
+    LOG(OK, "loading '{}' texture...\n", path);
+
     if (this->id != 0)
     {
         LOG(WARNING, "already set with id '{}'\n", this->id);
         return;
     }
+    this->texPath = path;
+    this->type = type;
 
+    // insMtx.lock();
     // auto inserted = loadedTex->try_emplace(hashFNV(path), this);
-
-    // if (!inserted.second)
-    // {
-// #ifdef TEXTURE
-        // LOG(WARNING, "texture '{}' is already loaded with id '{}', setting '{}' to this->id\n", path, inserted.first->second->id, inserted.first->second->id);
-// #endif
-        // LOG(WARNING, "pShared: {}, path: '{}'\n", (void*)inserted.first->second->idOwnersCounter.get(), path);
-        // this->idOwnersCounter = inserted.first->second->idOwnersCounter;
-        // if (this->idOwnersCounter.get())
-            // this->id = *this->idOwnersCounter.get();
-        // this->texPath = path;
-        // this->type = type;
-
-        // return;
-    // }
+    // insMtx.unlock();
 
     u32 imageDataAddress;
     s32 width;
@@ -78,8 +61,6 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
     u32 nPixels;
     u16 bitDepth;
     u8 byteDepth;
-
-    LOG(OK, "loading '{}' texture...\n", path);
 
     Parser p(path, "", 0);
     auto BM = p.readString(2);
@@ -154,8 +135,6 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
 #ifdef TEXTURE
     LOG(OK, "{}: id: {}, texMode: {}\n", path, this->id, format);
 #endif
-    this->texPath = path;
-    this->type = type;
 }
 
 void
@@ -182,8 +161,6 @@ Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsize
     /* load image, create texture and generate mipmaps */
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
-    /* set the reference counter for each new texture */
-    // idOwnersCounter = std::make_shared<GLuint>(this->id);
 
     c->unbindGlContext();
 }

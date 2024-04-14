@@ -1,4 +1,5 @@
 #include "headers/frame.hh"
+#include "headers/colors.hh"
 #include "headers/model.hh"
 
 #include <thread>
@@ -126,13 +127,11 @@ WlClient::prepareDraw()
     /* unbind before creating threads */
     this->unbindGlContext();
     /* models */
-    std::thread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
-    std::thread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
-    std::thread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
-
-    m0.join();
-    m1.join();
-    m2.join();
+    {
+        std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
+        std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
+        std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
+    }
 
     /* restore context after assets are loaded */
     this->bindGlContext();
@@ -189,6 +188,7 @@ WlClient::drawFrame()
 
         // v3 lightPos {x, 4, -1};
         v3 lightPos {(f32)sin(player.currTime) * 7, 3, 0};
+        constexpr v3 lightColor(Color::snow);
         f32 nearPlane = 0.01, farPlane = 25.0;
         m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);
         CubeMapProjections shadowTms(shadowProj, lightPos);
@@ -218,6 +218,7 @@ WlClient::drawFrame()
         /* render scene as normal using the denerated depth map */
         omniDirShadowSh.use();
         omniDirShadowSh.setV3("uLightPos", lightPos);
+        omniDirShadowSh.setV3("uLightColor", lightColor);
         omniDirShadowSh.setV3("uViewPos", player.pos);
         omniDirShadowSh.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
@@ -230,7 +231,7 @@ WlClient::drawFrame()
         cubeTm = m4Scale(cubeTm, 0.05);
         colorSh.use();
         colorSh.setM4("uModel", cubeTm);
-        colorSh.setV3("uColor", v3(1, 1, 1));
+        colorSh.setV3("uColor", lightColor);
         sphere.drawTex();
 
         incCounter += 1.0 * player.deltaTime;

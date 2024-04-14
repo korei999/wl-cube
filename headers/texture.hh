@@ -4,9 +4,8 @@
 #include "utils.hh"
 #include "wayland.hh"
 
-#include <memory>
 #include <string_view>
-#include <unordered_map>
+// #include <unordered_map>
 
 enum TexType : int
 {
@@ -20,7 +19,6 @@ struct Texture
     TexType type;
 
     /* TODO: figure out shared ownership */
-    // std::shared_ptr<GLuint> idOwnersCounter;
     std::string texPath;
 
     Texture() = default;
@@ -31,7 +29,7 @@ struct Texture
     void bind(GLint glTexture);
 
 private:
-    static std::unordered_map<u64, Texture*>* loadedTex;
+    // static std::unordered_map<u64, Texture*>* loadedTex;
 
     void setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, WlClient* c);
 };

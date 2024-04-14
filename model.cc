@@ -600,7 +600,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
     Parser p(path, " \n");
     decltype(materials->insert({u64(), Materials()})) ins; /* get iterator placeholder */
 
-    std::vector<std::thread> threads;
+    std::vector<std::jthread> threads;
 
     while (!p.finished())
     {
@@ -646,7 +646,4 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 break;
         }
     }
-
-    for (auto& thread : threads)
-        thread.join();
 }

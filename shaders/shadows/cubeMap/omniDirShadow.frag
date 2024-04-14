@@ -11,6 +11,7 @@ uniform sampler2D uDiffuseTex;
 uniform samplerCube uDepthMap;
 
 uniform vec3 uLightPos;
+uniform vec3 uLightColor;
 uniform vec3 uViewPos;
 
 uniform float uFarPlane;
@@ -73,7 +74,7 @@ main()
 {
     vec3 color = texture(uDiffuseTex, vIn.tex).rgb;
     vec3 normal = normalize(vIn.norm);
-    vec3 lightColor = vec3(1.0);
+    vec3 lightColor = uLightColor;
     /* ambient */
     vec3 ambient = 0.15 * color;
     /* diffuse */

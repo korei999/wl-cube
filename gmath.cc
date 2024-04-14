@@ -14,7 +14,6 @@ v3::v3(const v2& v)
 v3::v3(const v4& v)
     : x(v.x), y(v.y), z(v.z) {}
 
-
 f32
 v3Length(const v3& v)
 {
