@@ -1,8 +1,8 @@
 MAKEFLAGS := --jobs=$(shell nproc) --output-sync=target 
 
-CXX := g++ -fdiagnostics-color
+CXX := clang++ -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
 # compile wayland glue code with c compiler due to linkage issues
-CC := gcc -fdiagnostics-color
+CC := clang -fcolor-diagnostics -fansi-escape-codes -fdiagnostics-format=msvc
 
 WARNINGS := -Wall -Wextra -fms-extensions -Wno-missing-field-initializers
 
@@ -32,6 +32,12 @@ EXEC := $(BD)/$(BIN)
 SRCS := $(shell find $(SRCD) -name '*.cc')
 OBJ := $(SRCS:%=$(BD)/%.o)
 
+gcc: CXX = g++ -fdiagnostics-color -flto=auto $(SAFE_STACK) -DFPS_COUNTER
+gcc: CC = gcc -fdiagnostics-color -flto=auto $(SAFE_STACK) 
+gcc: CXXFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
+gcc: CFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
+gcc: $(EXEC)
+
 all: CXX += -flto=auto $(SAFE_STACK) -DFPS_COUNTER
 all: CC += -flto=auto $(SAFE_STACK) 
 all: CXXFLAGS += -g -O3 -march=native -ffast-math $(WARNINGS) -DNDEBUG
@@ -40,8 +46,8 @@ all: $(EXEC)
 
 debug: CXX += $(ASAN)
 debug: CC += $(ASAN)
-debug: CXXFLAGS += -g -O0 -march=native $(DEBUG) $(WARNINGS) $(WNO)
-debug: CFLAGS += -g -O0 -march=native $(DEBUG) $(WARNINGS) $(WNO)
+debug: CXXFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
+debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
 $(EXEC): $(OBJ) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o

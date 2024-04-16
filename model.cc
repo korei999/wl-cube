@@ -20,7 +20,9 @@ enum Hash : u64
     newmtl = hashFNV("newmtl"),
     diff = hashFNV("map_Kd"),
     amb = hashFNV("map_Ka"),
-    disp = hashFNV("map_Disp") /* use as normal map */
+    disp = hashFNV("map_Disp"),
+    bump = hashFNV("map_bump"),
+    norm = hashFNV("norm")
 };
 
 Model::Model(Model&& other)
@@ -46,6 +48,7 @@ Model::~Model()
                 glDeleteBuffers(1, &mesh.ebo);
             }
     }
+    int wer;
 }
 
 Model&
@@ -631,7 +634,8 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                                      c);
                 break;
 
-            case Hash::disp:
+            case Hash::bump:
+            case Hash::norm:
                 p.nextWord("\n");
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.normal,
