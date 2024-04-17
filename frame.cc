@@ -74,7 +74,6 @@ Shader colorSh;
 Model cube;
 Model sphere;
 Model plane;
-Model quad;
 Model teaPot;
 Model sponza;
 Texture boxTex;
@@ -121,8 +120,6 @@ WlClient::prepareDraw()
     projView.createBuffer(sizeof(m4) * 2, GL_DYNAMIC_DRAW);
     projView.bindBlock(&omniDirShadowSh, "ubProjView", 0);
     projView.bindBlock(&colorSh, "ubProjView", 0);
-
-    quad = getQuad();
 
     /* unbind before creating threads */
     this->unbindGlContext();
