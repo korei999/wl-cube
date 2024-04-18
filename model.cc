@@ -3,9 +3,11 @@
 
 #include <thread>
 #include <unordered_map>
-#include <exception>
 
 static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, WlClient* c);
+static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
+    /* copy buffers to the gpu */
+static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, Mesh* mesh, GLint drawMode, WlClient* c);
 
 enum Hash : u64
 {
@@ -257,8 +259,10 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
                         inds.push_back(insTry.first->second);
                     }
                 }
+                /* make tangent and bitangent vectors */
+                setTanBitan(&verts[verts.size() - 1], &verts[verts.size() - 2], &verts[verts.size() - 3]);
             }
-            setBuffers(verts, inds, mesh, drawMode, c);
+            setBuffers(&verts, &inds, &mesh, drawMode, c);
             mesh.eboSize = inds.size();
 
             auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
@@ -278,50 +282,49 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
 void
 Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
 {
-    try
-    {
-        LOG(OK, "loading model: '{}'...\n", path);
-        this->parseOBJ(path, drawMode, texMode, c);
-        this->savedPath = path;
-    }
-    catch (const std::exception& e)
-    {
-        LOG(FATAL, "parseOBJ error: {}\n", e.what());
-    }
+    LOG(OK, "loading model: '{}'...\n", path);
+    this->parseOBJ(path, drawMode, texMode, c);
+    this->savedPath = path;
 }
 
-void
-Model::setBuffers(std::vector<Vertex>& verts, std::vector<GLuint>& inds, Mesh& m, GLint drawMode, WlClient* c)
+static void
+setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, Mesh* m, GLint drawMode, WlClient* c)
 {
     std::lock_guard lock(glContextMtx);
 
     c->bindGlContext();
 
-    auto vsData = verts.data();
-    auto inData = inds.data();
+    auto vsData = verts->data();
+    auto inData = inds->data();
 
-    glGenVertexArrays(1, &m.vao);
-    glBindVertexArray(m.vao);
+    glGenVertexArrays(1, &m->vao);
+    glBindVertexArray(m->vao);
 
-    glGenBuffers(1, &m.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m.vbo);
-    glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(*vsData), vsData, drawMode);
+    glGenBuffers(1, &m->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+    glBufferData(GL_ARRAY_BUFFER, verts->size() * sizeof(*vsData), vsData, drawMode);
 
-    glGenBuffers(1, &m.ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m.ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(*inData), inData, drawMode);
+    glGenBuffers(1, &m->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds->size() * sizeof(*inData), inData, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
     /* positions */
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)0);
+    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     /* texture coords */
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * v3Size));
+    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(f32) * v3Size));
     /* normals */
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, sizeof(*vsData), (void*)(sizeof(f32) * (v3Size + v2Size)));
+    glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(f32) * (v3Size + v2Size)));
+    /* tangents */
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, v3Size, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(f32) * (2*v3Size + v2Size)));
+    /* bitangents */
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, v3Size, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(f32) * (3*v3Size + v2Size)));
 
     glBindVertexArray(0);
 
@@ -649,4 +652,28 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 break;
         }
     }
+}
+
+static void
+setTanBitan(Vertex* ver0, Vertex* ver1, Vertex* ver2)
+{
+    v3 edge0 = ver1->pos - ver0->pos;
+    v3 edge1 = ver2->pos - ver0->pos;
+
+    v2 deltaUV0 = ver1->tex - ver0->tex;
+    v2 deltaUV1 = ver2->tex - ver0->tex;
+
+    f32 invDet = 1.0f / (deltaUV0.x * deltaUV1.y - deltaUV1.x * deltaUV0.y);
+
+    /* TODO: figure out how to do this correctly */
+    ver0->tan = ver1->tan = ver2->tan = v3(
+        invDet * (deltaUV1.y * edge0.x - deltaUV0.y * edge1.x),
+        invDet * (deltaUV1.y * edge0.y - deltaUV0.y * edge1.y),
+        invDet * (deltaUV1.y * edge0.z - deltaUV0.y * edge1.z)
+    );
+    ver0->bitan = ver1->bitan = ver2->bitan = v3(
+        invDet * (-deltaUV1.x * edge0.x + deltaUV0.x * edge1.x),
+        invDet * (-deltaUV1.x * edge0.y + deltaUV0.x * edge1.y),
+        invDet * (-deltaUV1.x * edge0.z + deltaUV0.x * edge1.z)
+    );
 }

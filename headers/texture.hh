@@ -18,7 +18,7 @@ struct Texture
     GLuint id = 0;
     TexType type;
 
-    /* TODO: figure out shared ownership */
+    /* TODO: make some sort of shared ownership for same assets */
     std::string texPath;
 
     Texture() = default;

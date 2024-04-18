@@ -37,6 +37,8 @@ struct Vertex
     v3 pos;
     v2 tex;
     v3 norm;
+    v3 tan;
+    v3 bitan;
 };
 
 struct Materials
@@ -79,8 +81,6 @@ struct Model
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c);
-    /* copy buffers to the gpu */
-    void setBuffers(std::vector<Vertex>& vs, std::vector<GLuint>& els, Mesh& mesh, GLint drawMode, WlClient* c);
 };
 
 inline u64
