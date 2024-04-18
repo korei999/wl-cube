@@ -41,7 +41,7 @@ shadowCalculation(vec3 fragPos)
     float shadow = 0.0;
     float bias = 0.02;
     float offset = 0.1;
-    int samples = 9;
+    int samples = sampleOffsetDirections.length();
     float viewDist = length(uViewPos - fragPos);
     float diskRadius = (1.0 + (viewDist / uFarPlane)) * 0.15;
     for (int i = 0; i < samples; i++)
@@ -52,7 +52,7 @@ shadowCalculation(vec3 fragPos)
             shadow += 1.0;
     }
 
-    return shadow * 0.11;
+    return shadow * (1.0 / float(samples));
 }
 
 void

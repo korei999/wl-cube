@@ -114,21 +114,6 @@ extern EGLint eglLastErrorCode;
 #    define EGLD(C) C
 #endif
 
-#define COLOR4(hex)                                                                                                    \
-    {                                                                                                                  \
-        ((hex >> 24) & 0xFF) / 255.0f,                                                                                 \
-        ((hex >> 16) & 0xFF) / 255.0f,                                                                                 \
-        ((hex >> 8)  & 0xFF) / 255.0f,                                                                                 \
-        ((hex >> 0)  & 0xFF) / 255.0f                                                                                  \
-    }
-
-#define COLOR3(hex)                                                                                                    \
-    {                                                                                                                  \
-        ((hex >> 16) & 0xFF) / 255.0f,                                                                                 \
-        ((hex >> 8)  & 0xFF) / 255.0f,                                                                                 \
-        ((hex >> 0)  & 0xFF) / 255.0f                                                                                  \
-    }
-
 constexpr inline size_t
 hashFNV(std::string_view str)
 {

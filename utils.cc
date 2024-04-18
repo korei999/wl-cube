@@ -45,7 +45,7 @@ rngGet(f32 min, f32 max)
     return std::uniform_real_distribution {min, max}(mt);
 }
 
-__attribute__((no_sanitize("undefined"))) /* can complain about unaligned pointers */
+__attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
 void
 flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
 {
