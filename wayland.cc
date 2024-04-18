@@ -331,7 +331,7 @@ WlClient::disableRelativeMode()
     zwp_locked_pointer_v1_destroy(lockedPointer);
     zwp_relative_pointer_v1_destroy(relativePointer);
 
-    setCursor("left_ptr");
+    setCursor("right_ptr");
 }
 
 void
@@ -365,12 +365,7 @@ void
 WlClient::togglePointerRelativeMode()
 {
     isRelativeMode = !isRelativeMode;
-
-    if (isRelativeMode)
-        enableRelativeMode();
-    else
-        disableRelativeMode();
-
+    isRelativeMode ? enableRelativeMode() : disableRelativeMode();
     LOG(OK, "relative mode: {}\n", isRelativeMode);
 }
 
@@ -378,11 +373,7 @@ void
 WlClient::toggleFullscreen()
 {
     isFullscreen = !isFullscreen;
-
-    if (isFullscreen)
-        setFullscreen();
-    else
-        unsetFullscreen();
+    isFullscreen ? setFullscreen() : unsetFullscreen();
 }
 
 void 

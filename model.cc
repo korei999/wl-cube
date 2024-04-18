@@ -48,7 +48,6 @@ Model::~Model()
                 glDeleteBuffers(1, &mesh.ebo);
             }
     }
-    int wer;
 }
 
 Model&

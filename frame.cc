@@ -99,6 +99,7 @@ WlClient::prepareDraw()
 #endif
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
 
     v4 gray = v4Color(0x444444FF);
     glClearColor(gray.r, gray.g, gray.b, gray.a);
@@ -244,6 +245,7 @@ WlClient::mainLoop()
     isRunning = true;
     isRelativeMode = true;
     isPaused = false;
+    setCursor("right_ptr");
 
     prepareDraw();
 

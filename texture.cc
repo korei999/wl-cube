@@ -108,7 +108,6 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
             break;
     }
 
-    bitDepth = 32;  /* force RBGA */
     nPixels = width * height;
     byteDepth = bitDepth / 8;
 #ifdef TEXTURE
@@ -121,13 +120,16 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
 #endif
 
-    if (format == GL_RGBA)
-        flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
-    else
+    switch (format)
     {
-        /* setting each alpha with 1.0 */
-        flipCpyBGRtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
-        format = GL_RGBA;
+        default:
+        case GL_RGB:
+            flipCpyBGRtoRGB((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
+            break;
+
+        case GL_RGBA:
+            flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
+            break;
     }
 
     setTexture((u8*)pixels.data(), texMode, format, width, height, c);

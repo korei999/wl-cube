@@ -58,11 +58,12 @@ shadowCalculation(vec3 fragPos)
 void
 main()
 {
-    vec3 color = texture(uDiffuseTex, vIn.tex).rgb;
+    vec4 color = texture(uDiffuseTex, vIn.tex);
+
     vec3 normal = normalize(vIn.norm);
     vec3 lightColor = uLightColor;
     /* ambient */
-    vec3 ambient = 0.15 * color;
+    vec3 ambient = 0.15 * color.rgb;
     /* diffuse */
     vec3 lightDir = normalize(uLightPos - vIn.fragPos);
     float diff = max(dot(lightDir, normal), 0.0);
@@ -75,7 +76,10 @@ main()
     vec3 specular = spec * lightColor;
     /* calculate shadow */
     float shadow = shadowCalculation(vIn.fragPos);
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color.rgb;
 
-    outColor = vec4(lighting, 1.0);
+    if (color.a < 0.1)
+        discard;
+
+    outColor = vec4(lighting, color.a);
 }

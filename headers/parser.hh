@@ -4,6 +4,7 @@
 struct Parser
 {
     std::string word;
+
     std::string defSeps;
     std::vector<char> file;
     size_t start;

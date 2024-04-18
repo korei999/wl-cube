@@ -20,7 +20,7 @@ keyboardEnterHandler([[maybe_unused]] void* data,
                      [[maybe_unused]] wl_surface* surface,
                      [[maybe_unused]] wl_array* keys)
 {
-    LOG(OK, "keyboardEnterHandle\n");
+    LOG(OK, "keyboardEnterHandler\n");
 
     auto self = (WlClient*)data;
 
@@ -34,7 +34,7 @@ keyboardLeaveHandler([[maybe_unused]] void* data,
                      [[maybe_unused]] u32 serial,
                      [[maybe_unused]] wl_surface* surface)
 {
-    LOG(OK, "keyboardLeaveHandle\n");
+    LOG(OK, "keyboardLeaveHandler\n");
 
     auto self = (WlClient*)data;
 
@@ -97,7 +97,7 @@ pointerEnterHandler([[maybe_unused]] void* data,
                     [[maybe_unused]] wl_fixed_t surfaceX,
                     [[maybe_unused]] wl_fixed_t surfaceY)
 {
-    LOG(OK, "pointerEnterHandle\n");
+    LOG(OK, "pointerEnterHandler\n");
 
     auto self = (WlClient*)data;
     self->pointerSerial = serial;
@@ -122,7 +122,7 @@ pointerLeaveHandler([[maybe_unused]] void* data,
                     [[maybe_unused]] u32 serial,
                     [[maybe_unused]] wl_surface* surface)
 {
-    LOG(OK, "pointerLeaveHandle\n");
+    LOG(OK, "pointerLeaveHandler\n");
 }
 
 void

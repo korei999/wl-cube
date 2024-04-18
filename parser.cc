@@ -22,7 +22,7 @@ Parser::nextWord(std::string_view separators)
     while (file[end] && !isSeparator(file[end], separators))
         end++;
 
-    word = std::string(file.begin() + start, file.begin() + end);
+    word = {file.begin() + start, file.begin() + end};
     start = end = end + 1;
 }
 
