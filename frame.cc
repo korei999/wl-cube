@@ -150,7 +150,6 @@ renderScene(Shader* sh, bool depth)
     if (!depth)
     {
         sh->setM3("uNormalMatrix", m3Normal(m));
-        boxTex.bind(GL_TEXTURE0);
     }
     sponza.drawTex();
 }

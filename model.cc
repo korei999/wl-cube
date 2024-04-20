@@ -360,6 +360,7 @@ Model::drawTex(GLint primitives)
         for (auto& mesh : materials)
         {
             mesh.materials.diffuse.bind(GL_TEXTURE0);
+
             glBindVertexArray(mesh.vao);
             glDrawElements(primitives, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
         }
