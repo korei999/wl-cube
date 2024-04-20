@@ -46,6 +46,7 @@ struct WlClient : App
 
     wl_keyboard* keyboard {};
 
+    WlClient(std::string_view name);
     virtual ~WlClient() override;
 
     virtual void init() override;

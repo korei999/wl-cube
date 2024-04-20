@@ -195,6 +195,12 @@ static const wl_registry_listener registryListener {
     .global_remove = registryGlobalRemoveHandler
 };
 
+WlClient::WlClient(std::string_view name)
+{
+    this->name = name;
+    init();
+}
+
 WlClient::~WlClient()
 {
     LOG(OK, "cleanup ...\n");

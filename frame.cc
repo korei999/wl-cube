@@ -83,7 +83,7 @@ Ubo projView;
 CubeMap cubeMap;
 
 #ifdef FPS_COUNTER
-f64 prevTime;
+f64 _prevTime;
 #endif
 
 void
@@ -158,13 +158,13 @@ void
 drawFrame(App* app)
 {
 #ifdef FPS_COUNTER
-    static int fpsCount = 0;
-    f64 currTime = timeNow();
-    if (currTime >= prevTime + 1.0)
+    static int _fpsCount = 0;
+    f64 _currTime = timeNow();
+    if (_currTime >= _prevTime + 1.0)
     {
-        CERR("fps: {}, ms: {:.3f}\n", fpsCount, player.deltaTime);
-        fpsCount = 0;
-        prevTime = currTime;
+        CERR("fps: {}, ms: {:.3f}\n", _fpsCount, player.deltaTime);
+        _fpsCount = 0;
+        _prevTime = _currTime;
     }
 #endif
 
@@ -235,7 +235,7 @@ drawFrame(App* app)
         incCounter += 1.0 * player.deltaTime;
     }
 #ifdef FPS_COUNTER
-        fpsCount++;
+        _fpsCount++;
 #endif
 }
 
@@ -248,7 +248,7 @@ run(App* app)
     app->setCursorImage("right_ptr");
 
 #ifdef FPS_COUNTER
-    prevTime = timeNow();
+    _prevTime = timeNow();
 #endif
 
     prepareDraw(app);

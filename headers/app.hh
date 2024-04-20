@@ -15,7 +15,7 @@ struct App
     bool isRelativeMode = false;
     bool isFullscreen = false;
 
-    const std::string_view name = "wl-cube";
+    std::string_view name;
 
     virtual ~App() = default;
 

@@ -9,11 +9,10 @@ int
 main()
 {
 #ifdef __linux__
-    WlClient app {};
+    WlClient app("wl-cube");
 #elif _WIN32
     /* Win32 app {} */
 #endif
-    app.init();
 
     run(&app);
 }
