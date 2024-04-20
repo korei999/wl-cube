@@ -1,10 +1,17 @@
 #include "headers/controls.hh"
 #include "headers/frame.hh"
 #include "headers/utils.hh"
+#include <cmath>
+
+#ifdef __linux__
+#include <linux/input-event-codes.h>
+#elif _WIN32
+    /* Win32 app {} */
+#endif
 
 bool pressedKeys[300] {};
 
-static void procMovements(WlClient* self);
+static void procMovements(App* c);
 
 void
 PlayerControls::procMouse()
@@ -24,16 +31,16 @@ PlayerControls::procMouse()
         mouse.pitch = -89.9;
 
     front = v3Norm({
-            f32(cos(toRad(mouse.yaw)) * cos(toRad(mouse.pitch))),
-            f32(sin(toRad(mouse.pitch))),
-            f32(sin(toRad(mouse.yaw)) * cos(toRad(mouse.pitch)))
+        f32(cos(toRad(mouse.yaw)) * cos(toRad(mouse.pitch))),
+        f32(sin(toRad(mouse.pitch))),
+        f32(sin(toRad(mouse.yaw)) * cos(toRad(mouse.pitch)))
     });
 
     right = v3Norm(v3Cross(front, up));
 }
 
 void
-procKeysOnce(WlClient* self, u32 key, u32 pressed)
+procKeysOnce(App* app, u32 key, u32 pressed)
 {
     switch (key)
     {
@@ -41,22 +48,22 @@ procKeysOnce(WlClient* self, u32 key, u32 pressed)
         case KEY_GRAVE:
             if (pressed)
             {
-                self->isPaused = !self->isPaused;
-                if (self->isPaused)
-                    LOG(WARNING, "paused: {}\n", self->isPaused);
+                app->isPaused = !app->isPaused;
+                if (app->isPaused)
+                    LOG(WARNING, "paused: {}\n", app->isPaused);
             }
             break;
 
         case KEY_Q:
             if (pressed)
-                self->togglePointerRelativeMode();
+                app->togglePointerRelativeMode();
             break;
 
         case KEY_ESC:
         case KEY_CAPSLOCK:
             if (pressed)
             {
-                self->isRunning = false;
+                app->isRunning = false;
                 LOG(OK, "quit...\n");
             }
             break;
@@ -68,15 +75,13 @@ procKeysOnce(WlClient* self, u32 key, u32 pressed)
 
         case KEY_F:
             if (pressed)
-                self->toggleFullscreen();
+                app->toggleFullscreen();
             break;
 
         case KEY_V:
             if (pressed)
             {
-                self->swapInterval = !self->swapInterval;
-                EGLD( eglSwapInterval(self->eglDisplay, self->swapInterval) );
-                LOG(OK, "swapInterval: {}\n", self->swapInterval);
+                app->toggleVSync();
             }
             break;
 
@@ -86,9 +91,9 @@ procKeysOnce(WlClient* self, u32 key, u32 pressed)
 }
 
 void
-PlayerControls::procKeys(WlClient* self)
+PlayerControls::procKeys(App* app)
 {
-    procMovements(self);
+    procMovements(app);
 
     if (pressedKeys[KEY_I])
     {
@@ -121,7 +126,7 @@ PlayerControls::procKeys(WlClient* self)
 }
 
 static void
-procMovements([[maybe_unused]] WlClient* self)
+procMovements(App* c)
 {
     f64 moveSpeed = player.moveSpeed * player.deltaTime;
 

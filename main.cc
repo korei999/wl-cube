@@ -1,9 +1,19 @@
-#include "headers/wayland.hh"
+#include "headers/frame.hh"
+#ifdef __linux__
+#include "platform/wayland/wayland.hh"
+#elif _WIN32
+// #include "windowsSomething.hh"
+#endif
 
 int
 main()
 {
-    WlClient app;
+#ifdef __linux__
+    WlClient app {};
+#elif _WIN32
+    /* Win32 app {} */
+#endif
     app.init();
-    app.mainLoop();
+
+    run(&app);
 }

@@ -4,10 +4,10 @@
 #include <thread>
 #include <unordered_map>
 
-static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, WlClient* c);
+static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c);
 static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
     /* copy buffers to the gpu */
-static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, Mesh* mesh, GLint drawMode, WlClient* c);
+static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, Mesh* mesh, GLint drawMode, App* c);
 
 enum Hash : u64
 {
@@ -33,7 +33,7 @@ Model::Model(Model&& other)
     this->savedPath = std::move(other.savedPath);
 }
 
-Model::Model(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
+Model::Model(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     loadOBJ(path, drawMode, texMode, c);
 }
@@ -61,7 +61,7 @@ Model::operator=(Model&& other)
 }
 
 void
-Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
+Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     Parser objP(path, " /\n");
 
@@ -280,7 +280,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* 
 }
 
 void
-Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c)
+Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     LOG(OK, "loading model: '{}'...\n", path);
     this->parseOBJ(path, drawMode, texMode, c);
@@ -288,7 +288,7 @@ Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, WlClient* c
 }
 
 static void
-setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, Mesh* m, GLint drawMode, WlClient* c)
+setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, Mesh* m, GLint drawMode, App* c)
 {
     std::lock_guard lock(glContextMtx);
 
@@ -600,7 +600,7 @@ drawCube(const Model& q)
 }
 
 static void
-parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, WlClient* c)
+parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c)
 {
     Parser p(path, " \n");
     decltype(materials->insert({u64(), Materials()})) ins; /* get iterator placeholder */

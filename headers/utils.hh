@@ -2,7 +2,6 @@
 #include "ultratypes.h"
 
 #include <EGL/egl.h>
-#include <EGL/eglext.h>
 #include <GLES3/gl32.h>
 #include <mutex>
 #include <string_view>

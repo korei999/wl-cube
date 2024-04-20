@@ -1,7 +1,7 @@
-#include "headers/controls.hh"
-#include "headers/frame.hh"
-#include "headers/wayland.hh"
-#include "headers/utils.hh"
+#include "../../headers/controls.hh"
+#include "../../headers/frame.hh"
+#include "wayland.hh"
+#include "../../headers/utils.hh"
 
 void
 keyboardKeymapHandler([[maybe_unused]] void* data,
@@ -22,10 +22,10 @@ keyboardEnterHandler([[maybe_unused]] void* data,
 {
     LOG(OK, "keyboardEnterHandler\n");
 
-    auto self = (WlClient*)data;
+    auto app = (WlClient*)data;
 
-    if (self->isRelativeMode)
-        self->enableRelativeMode();
+    if (app->isRelativeMode)
+        app->enableRelativeMode();
 }
 
 void
@@ -36,13 +36,13 @@ keyboardLeaveHandler([[maybe_unused]] void* data,
 {
     LOG(OK, "keyboardLeaveHandler\n");
 
-    auto self = (WlClient*)data;
+    auto app = (WlClient*)data;
 
     for (auto& key : pressedKeys)
         key = 0;
 
-    if (self->isRelativeMode)
-        self->disableRelativeMode();
+    if (app->isRelativeMode)
+        app->disableRelativeMode();
 }
 
 void
@@ -53,7 +53,7 @@ keyboardKeyHandler([[maybe_unused]] void* data,
                    [[maybe_unused]] u32 key,
                    [[maybe_unused]] u32 keyState)
 {
-    auto self = (WlClient*)data;
+    auto app = (WlClient*)data;
 
 #ifdef DEBUG
     if (key >= LEN(pressedKeys))
@@ -64,7 +64,7 @@ keyboardKeyHandler([[maybe_unused]] void* data,
 #endif
 
     pressedKeys[key] = keyState;
-    procKeysOnce(self, key, keyState);
+    procKeysOnce(app, key, keyState);
 }
 
 void
@@ -99,10 +99,10 @@ pointerEnterHandler([[maybe_unused]] void* data,
 {
     LOG(OK, "pointerEnterHandler\n");
 
-    auto self = (WlClient*)data;
-    self->pointerSerial = serial;
+    auto app = (WlClient*)data;
+    app->pointerSerial = serial;
 
-    if (self->isRelativeMode)
+    if (app->isRelativeMode)
     {
         wl_pointer_set_cursor(pointer, serial, nullptr, 0, 0);
     }
@@ -110,9 +110,9 @@ pointerEnterHandler([[maybe_unused]] void* data,
     {
         wl_pointer_set_cursor(pointer,
                               serial,
-                              self->cursorSurface,
-                              self->cursorImage->hotspot_x,
-                              self->cursorImage->hotspot_y);
+                              app->cursorSurface,
+                              app->cursorImage->hotspot_x,
+                              app->cursorImage->hotspot_y);
     }
 }
 

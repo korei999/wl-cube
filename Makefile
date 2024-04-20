@@ -25,7 +25,8 @@ RELATIVE_POINTER := $(WAYLAND_PROTOCOLS_DIR)/unstable/relative-pointer/relative-
 
 SRCD := .
 BD := ./build
-WLD := ./wayland-protocols
+WLD := ./platform/wayland/
+WLPD := $(WLD)/wayland-protocols
 BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
@@ -57,37 +58,37 @@ $(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell.c.o $(BD)/pointer
 	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BD)/%.c.o: $(WLD)/%.c
+$(BD)/%.c.o: $(WLPD)/%.c $(WLD)/*
 	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(WLD)/xdg-shell.h:
+$(WLPD)/xdg-shell.h:
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) client-header $(XDG_SHELL) $@ 
 
-$(WLD)/xdg-shell.c: $(WLD)/xdg-shell.h
+$(WLPD)/xdg-shell.c: $(WLPD)/xdg-shell.h
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(XDG_SHELL) $@
 
-$(WLD)/pointer-constraints-unstable-v1.h:
+$(WLPD)/pointer-constraints-unstable-v1.h:
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) client-header $(POINTER_CONSTRAINTS) $@ 
 
-$(WLD)/pointer-constraints-unstable-v1.c: $(WLD)/pointer-constraints-unstable-v1.h
+$(WLPD)/pointer-constraints-unstable-v1.c: $(WLPD)/pointer-constraints-unstable-v1.h
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(POINTER_CONSTRAINTS) $@ 
 
-$(WLD)/relative-pointer-unstable-v1.h:
+$(WLPD)/relative-pointer-unstable-v1.h:
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) client-header $(RELATIVE_POINTER) $@ 
 
-$(WLD)/relative-pointer-unstable-v1.c: $(WLD)/relative-pointer-unstable-v1.h
+$(WLPD)/relative-pointer-unstable-v1.c: $(WLPD)/relative-pointer-unstable-v1.h
 	mkdir -p $(dir $@)
 	$(WAYLAND_SCANNER) private-code $(RELATIVE_POINTER) $@ 
 
 .PHONY: clean tags
 clean:
-	rm -rf $(BD) $(WLD) tags
+	rm -rf $(BD) $(WLPD) tags
 
 tags:
 	ctags -R --language-force=C++ --extras=+q+r --c++-kinds=+p+l+x+L+A+N+U+Z

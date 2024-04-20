@@ -1,31 +1,18 @@
 #pragma once
-#include "../wayland-protocols/xdg-shell.h"
-#include "../wayland-protocols/pointer-constraints-unstable-v1.h"
-#include "../wayland-protocols/relative-pointer-unstable-v1.h"
-#include "ultratypes.h"
+#include "wayland-protocols/xdg-shell.h"
+#include "wayland-protocols/pointer-constraints-unstable-v1.h"
+#include "wayland-protocols/relative-pointer-unstable-v1.h"
+#include "../../headers/app.hh"
+#include "../../headers/ultratypes.h"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <wayland-client-protocol.h>
 #include <wayland-cursor.h>
 #include <wayland-egl-core.h>
-#include <string_view>
 
-struct WlClient
+struct WlClient : App
 {
-    int wWidth = 1920;
-    int wHeight = 1080;
-
-    bool isRunning = false;
-    bool isConfigured = false;
-    int swapInterval = 1;
-
-    bool isPaused = false;
-    bool isRelativeMode = false;
-    bool isFullscreen = false;
-
-    std::string_view appName = "wl-cube";
-
     wl_display* display {};
     wl_registry* registry {};
 
@@ -59,20 +46,19 @@ struct WlClient
 
     wl_keyboard* keyboard {};
 
-    ~WlClient();
+    virtual ~WlClient() override;
 
-    void init();
-    void mainLoop();
-    void disableRelativeMode();
-    void enableRelativeMode();
-    void togglePointerRelativeMode();
-    void toggleFullscreen();
-    void setCursor(std::string_view cursorType);
-    void setFullscreen();
-    void unsetFullscreen();
-    void drawFrame();
-    void prepareDraw();
-    void bindGlContext();
-    void unbindGlContext();
-    void setSwapInterval(int interval);
+    virtual void init() override;
+    virtual void disableRelativeMode() override;
+    virtual void enableRelativeMode() override;
+    virtual void togglePointerRelativeMode() override;
+    virtual void toggleFullscreen() override;
+    virtual void setCursorImage(std::string_view cursorType) override;
+    virtual void setFullscreen() override;
+    virtual void unsetFullscreen() override;
+    virtual void bindGlContext() override;
+    virtual void unbindGlContext() override;
+    virtual void setSwapInterval(int interval) override;
+    virtual void toggleVSync() override;
+    virtual void swapBuffers() override;
 };

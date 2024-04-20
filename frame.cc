@@ -2,6 +2,7 @@
 #include "headers/colors.hh"
 #include "headers/model.hh"
 
+#include <cmath>
 #include <thread>
 
 #define SHADOW_WIDTH 720
@@ -86,16 +87,16 @@ f64 prevTime;
 #endif
 
 void
-WlClient::prepareDraw()
+prepareDraw(App* app)
 {
-    this->bindGlContext();
-    this->setSwapInterval(1);
-    this->toggleFullscreen();
+    app->bindGlContext();
+    app->setSwapInterval(1);
+    app->toggleFullscreen();
 
 #ifdef DEBUG
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(debugCallback, this);
+    glDebugMessageCallback(debugCallback, app);
 #endif
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -123,16 +124,16 @@ WlClient::prepareDraw()
     projView.bindBlock(&colorSh, "ubProjView", 0);
 
     /* unbind before creating threads */
-    this->unbindGlContext();
+    app->unbindGlContext();
     /* models */
     {
-        std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
-        std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
-        std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, this);
+        std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
     }
 
     /* restore context after assets are loaded */
-    this->bindGlContext();
+    app->bindGlContext();
 }
 
 f64 incCounter = 0;
@@ -155,7 +156,7 @@ renderScene(Shader* sh, bool depth)
 }
 
 void
-WlClient::drawFrame()
+drawFrame(App* app)
 {
 #ifdef FPS_COUNTER
     static int fpsCount = 0;
@@ -170,12 +171,12 @@ WlClient::drawFrame()
 
     player.updateDeltaTime();
     player.procMouse();
-    player.procKeys(this);
+    player.procKeys(app);
 
-    f32 aspect = (f32)wWidth / (f32)wHeight;
+    f32 aspect = (f32)app->wWidth / (f32)app->wHeight;
     constexpr f32 shadowAspect = (f32)SHADOW_WIDTH / (f32)SHADOW_HEIGHT;
 
-    if (!isPaused)
+    if (!app->isPaused)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -210,7 +211,7 @@ WlClient::drawFrame()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         /* reset viewport */
-        glViewport(0, 0, this->wWidth, this->wHeight);
+        glViewport(0, 0, app->wWidth, app->wHeight);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         /* render scene as normal using the denerated depth map */
@@ -239,26 +240,25 @@ WlClient::drawFrame()
 #endif
 }
 
-void 
-WlClient::mainLoop()
+void
+run(App* app)
 {
-    isRunning = true;
-    isRelativeMode = true;
-    isPaused = false;
-    setCursor("right_ptr");
-
-    prepareDraw();
+    app->isRunning = true;
+    app->isRelativeMode = true;
+    app->isPaused = false;
+    app->setCursorImage("right_ptr");
 
 #ifdef FPS_COUNTER
     prevTime = timeNow();
 #endif
 
-    while (isRunning)
-    {
-        drawFrame();
+    prepareDraw(app);
+    player.updateDeltaTime(); /* reset delta time before drawing */
 
-        EGLD( eglSwapBuffers(eglDisplay, eglSurface) );
-        if (wl_display_dispatch(display) == -1)
-            LOG(FATAL, "wl_display_dispatch error\n");
+    while (app->isRunning)
+    {
+        drawFrame(app);
+
+        app->swapBuffers();
     }
 }

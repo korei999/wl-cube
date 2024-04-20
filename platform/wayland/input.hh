@@ -1,6 +1,6 @@
 #pragma once
-#include "ultratypes.h"
-#include "../wayland-protocols/relative-pointer-unstable-v1.h"
+#include "../../headers/ultratypes.h"
+#include "wayland-protocols/relative-pointer-unstable-v1.h"
 
 #include <linux/input-event-codes.h>
 

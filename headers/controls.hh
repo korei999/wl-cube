@@ -1,8 +1,6 @@
 #pragma once
 #include "gmath.hh"
-#include "wayland.hh"
-
-#include <linux/input-event-codes.h>
+#include "app.hh"
 
 struct Mouse
 {
@@ -22,7 +20,7 @@ struct Mouse
     f64 yaw = -90.0;
     f64 pitch = 0;
 
-    u32 button = BTN_MOUSE;
+    u32 button = 0;
     u32 state = 0;
 };
 
@@ -45,12 +43,12 @@ struct PlayerControls
     Mouse mouse {};
 
     void procMouse();
-    void procKeys(WlClient* self);
+    void procKeys(App* app);
     void updateDeltaTime();
     void updateView();
     void updateProj(f32 fov, f32 aspect, f32 near, f32 far);
 };
 
-void procKeysOnce(WlClient* self, u32 key, u32 pressed);
+void procKeysOnce(App* app, u32 key, u32 pressed);
 
 extern bool pressedKeys[300];

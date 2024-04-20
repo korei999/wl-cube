@@ -2,7 +2,7 @@
 #include "gmath.hh"
 #include "ultratypes.h"
 #include "utils.hh"
-#include "wayland.hh"
+#include "app.hh"
 
 #include <string_view>
 // #include <unordered_map>
@@ -25,13 +25,13 @@ struct Texture
     Texture(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
     ~Texture();
 
-    void loadBMP(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, WlClient* c = nullptr);
+    void loadBMP(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, App* c = nullptr);
     void bind(GLint glTexture);
 
 private:
     // static std::unordered_map<u64, Texture*>* loadedTex;
 
-    void setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, WlClient* c);
+    void setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, App* c);
 };
 
 struct ShadowMap

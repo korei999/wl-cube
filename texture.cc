@@ -39,7 +39,7 @@ Texture::~Texture()
 // static std::mutex insMtx;
 
 void
-Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, WlClient* c)
+Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, App* c)
 {
     LOG(OK, "loading '{}' texture...\n", path);
 
@@ -147,7 +147,7 @@ Texture::bind(GLint glTexture)
 }
 
 void
-Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, WlClient* c)
+Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, App* c)
 {
     std::lock_guard lock(glContextMtx);
     c->bindGlContext();

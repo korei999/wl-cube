@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 199309L
 
-#include "headers/input.hh"
-#include "headers/utils.hh"
-#include "headers/wayland.hh"
+#include "input.hh"
+#include "../../headers/utils.hh"
+#include "wayland.hh"
 
 #include <cstring>
 
@@ -30,11 +30,11 @@ static const wl_keyboard_listener keyboardListener {
 /* mutter compositor will complain if we do not pong */
 static void
 xdgWmBasePing([[maybe_unused]] void* data,
-		      [[maybe_unused]] xdg_wm_base* xdgWmBase,
-		      [[maybe_unused]] u32 serial)
+              [[maybe_unused]] xdg_wm_base* xdgWmBase,
+              [[maybe_unused]] u32 serial)
 {
-    auto self = (WlClient*)data;
-    xdg_wm_base_pong(self->xdgWmBase, serial);
+    auto app = (WlClient*)data;
+    xdg_wm_base_pong(app->xdgWmBase, serial);
 }
 
 static void
@@ -42,19 +42,19 @@ seatCapabilitiesHandler([[maybe_unused]] void* data,
                         [[maybe_unused]] wl_seat* seat,
                         [[maybe_unused]] u32 capabilities)
 {
-    auto self = (WlClient*)data;
+    auto app = (WlClient*)data;
 
     if (capabilities & WL_SEAT_CAPABILITY_POINTER)
     {
-        self->pointer = wl_seat_get_pointer(self->seat);
-        self->cursorTheme = wl_cursor_theme_load(nullptr, 24, self->shm);
-        wl_pointer_add_listener(self->pointer, &pointerListener, self);
+        app->pointer = wl_seat_get_pointer(app->seat);
+        app->cursorTheme = wl_cursor_theme_load(nullptr, 24, app->shm);
+        wl_pointer_add_listener(app->pointer, &pointerListener, app);
         LOG(GOOD, "pointer works.\n");
     }
     if (capabilities & WL_SEAT_CAPABILITY_KEYBOARD)
     {
-        self->keyboard = wl_seat_get_keyboard(seat);
-        wl_keyboard_add_listener(self->keyboard, &keyboardListener, self);
+        app->keyboard = wl_seat_get_keyboard(seat);
+        wl_keyboard_add_listener(app->keyboard, &keyboardListener, app);
         LOG(GOOD, "keyboard works.\n");
     }
     if (capabilities & WL_SEAT_CAPABILITY_TOUCH)
@@ -73,27 +73,27 @@ xdgSurfaceConfigureHandler([[maybe_unused]] void* data,
                            [[maybe_unused]] xdg_surface* xdgSurface,
                            [[maybe_unused]] u32 serial)
 {
-    auto self = (WlClient*)data;
-	xdg_surface_ack_configure(xdgSurface, serial);
-    self->isConfigured = true;
+    auto app = (WlClient*)data;
+    xdg_surface_ack_configure(xdgSurface, serial);
+    app->isConfigured = true;
 }
 
 static void
 xdgToplevelConfigureHandler([[maybe_unused]] void* data,
-			                [[maybe_unused]] xdg_toplevel* xdgToplevel,
-			                [[maybe_unused]] s32 width,
-			                [[maybe_unused]] s32 height,
-			                [[maybe_unused]] wl_array* states)
+                            [[maybe_unused]] xdg_toplevel* xdgToplevel,
+                            [[maybe_unused]] s32 width,
+                            [[maybe_unused]] s32 height,
+                            [[maybe_unused]] wl_array* states)
 {
-    auto self = (WlClient*)data;
+    auto app = (WlClient*)data;
 
     if (width > 0 && height > 0)
     {
-        if (width != self->wWidth || height != self->wHeight)
+        if (width != app->wWidth || height != app->wHeight)
         {
-            wl_egl_window_resize(self->eglWindow, width, height, 0, 0);
-            self->wWidth = width;
-            self->wHeight = height;
+            wl_egl_window_resize(app->eglWindow, width, height, 0, 0);
+            app->wWidth = width;
+            app->wHeight = height;
         }
     }
 }
@@ -102,16 +102,16 @@ static void
 xdgToplevelCloseHandler([[maybe_unused]] void* data,
 		                [[maybe_unused]] xdg_toplevel* xdgToplevel)
 {
-    auto self = (WlClient*)data;
-    self->isRunning = false;
+    auto app = (WlClient*)data;
+    app->isRunning = false;
     LOG(OK, "closing...\n");
 }
 
 static void
 xdgToplevelConfigureBounds([[maybe_unused]] void* data,
-				           [[maybe_unused]] xdg_toplevel* xdgToplevel,
-				           [[maybe_unused]] s32 width,
-				           [[maybe_unused]] s32 height)
+                           [[maybe_unused]] xdg_toplevel* xdgToplevel,
+                           [[maybe_unused]] s32 width,
+                           [[maybe_unused]] s32 height)
 {
     //
 }
@@ -127,8 +127,8 @@ static const xdg_wm_base_listener xdgWmBaseListener {
 
 static void
 xdgToplevelWmCapabilities([[maybe_unused]] void* data,
-				          [[maybe_unused]] xdg_toplevel* xdgToplevel,
-				          [[maybe_unused]] wl_array* capabilities)
+                          [[maybe_unused]] xdg_toplevel* xdgToplevel,
+                          [[maybe_unused]] wl_array* capabilities)
 {
     //
 }
@@ -142,43 +142,43 @@ static const xdg_toplevel_listener xdgToplevelListener {
 
 static void
 registryGlobalHandler([[maybe_unused]] void* data,
-		              [[maybe_unused]] wl_registry* registry,
-		              [[maybe_unused]] u32 name,
-		              [[maybe_unused]] const char* interface,
-		              [[maybe_unused]] u32 version)
+                      [[maybe_unused]] wl_registry* registry,
+                      [[maybe_unused]] u32 name,
+                      [[maybe_unused]] const char* interface,
+                      [[maybe_unused]] u32 version)
 {
     LOG(OK, "interface: '{}', version: {}, name: {}\n", interface, version, name);
-    auto self = (WlClient*)data;
+    auto app = (WlClient*)data;
 
     if (strcmp(interface, wl_seat_interface.name) == 0)
     {
-        self->seat = (wl_seat*)wl_registry_bind(registry, name, &wl_seat_interface, 1);
-        wl_seat_add_listener(self->seat, &seatListener, self);
+        app->seat = (wl_seat*)wl_registry_bind(registry, name, &wl_seat_interface, 1);
+        wl_seat_add_listener(app->seat, &seatListener, app);
     }
     else if (strcmp(interface, wl_compositor_interface.name) == 0)
     {
-        self->compositor = (wl_compositor*)wl_registry_bind(registry, name, &wl_compositor_interface, version);
+        app->compositor = (wl_compositor*)wl_registry_bind(registry, name, &wl_compositor_interface, version);
     }
     else if (strcmp(interface, xdg_wm_base_interface.name) == 0)
     {
-        self->xdgWmBase = (xdg_wm_base*)wl_registry_bind(registry, name, &xdg_wm_base_interface, version);
-        xdg_wm_base_add_listener(self->xdgWmBase, &xdgWmBaseListener, self);
+        app->xdgWmBase = (xdg_wm_base*)wl_registry_bind(registry, name, &xdg_wm_base_interface, version);
+        xdg_wm_base_add_listener(app->xdgWmBase, &xdgWmBaseListener, app);
     }
     else if (strcmp(interface, zwp_pointer_constraints_v1_interface.name) == 0)
     {
-        self->pointerConstraints = (zwp_pointer_constraints_v1*)wl_registry_bind(registry, name, &zwp_pointer_constraints_v1_interface, version);
+        app->pointerConstraints = (zwp_pointer_constraints_v1*)wl_registry_bind(registry, name, &zwp_pointer_constraints_v1_interface, version);
     }
     else if (strcmp(interface, zwp_relative_pointer_manager_v1_interface.name) == 0)
     {
-        self->relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
+        app->relativePointerManager = (zwp_relative_pointer_manager_v1*)wl_registry_bind(registry, name, &zwp_relative_pointer_manager_v1_interface, version);
     }
     else if (strcmp(interface, wl_shm_interface.name) == 0)
     {
-        self->shm = (wl_shm*)wl_registry_bind(registry, name, &wl_shm_interface, version);
+        app->shm = (wl_shm*)wl_registry_bind(registry, name, &wl_shm_interface, version);
     }
     else if (strcmp(interface, wl_output_interface.name) == 0)
     {
-        self->output = (wl_output*)wl_registry_bind(registry, name, &wl_output_interface, version);
+        app->output = (wl_output*)wl_registry_bind(registry, name, &wl_output_interface, version);
     }
 }
 
@@ -298,8 +298,8 @@ WlClient::init()
     xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, surface);
     xdgToplevel = xdg_surface_get_toplevel(xdgSurface);
 
-    xdg_toplevel_set_title(xdgToplevel, appName.data());
-    xdg_toplevel_set_app_id(xdgToplevel, appName.data());
+    xdg_toplevel_set_title(xdgToplevel, name.data());
+    xdg_toplevel_set_app_id(xdgToplevel, name.data());
 
     xdg_surface_add_listener(xdgSurface, &xdgSurfaceListener, this);
     xdg_toplevel_add_listener(xdgToplevel, &xdgToplevelListener, this);
@@ -331,11 +331,11 @@ WlClient::disableRelativeMode()
     zwp_locked_pointer_v1_destroy(lockedPointer);
     zwp_relative_pointer_v1_destroy(relativePointer);
 
-    setCursor("right_ptr");
+    setCursorImage("right_ptr");
 }
 
 void
-WlClient::setCursor(std::string_view cursorType)
+WlClient::setCursorImage(std::string_view cursorType)
 {
     wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, cursorType.data());
     cursorImage = cursor->images[0];
@@ -393,4 +393,20 @@ WlClient::setSwapInterval(int interval)
 {
     swapInterval = interval;
     EGLD( eglSwapInterval(eglDisplay, interval) );
+}
+
+void
+WlClient::toggleVSync()
+{
+    swapInterval = !swapInterval;
+    EGLD( eglSwapInterval(eglDisplay, swapInterval) );
+    LOG(OK, "swapInterval: {}\n", swapInterval);
+}
+
+void
+WlClient::swapBuffers()
+{
+    EGLD( eglSwapBuffers(eglDisplay, eglSurface) );
+    if (wl_display_dispatch(display) == -1)
+        LOG(FATAL, "wl_display_dispatch error\n");
 }
