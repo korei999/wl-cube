@@ -62,4 +62,6 @@ struct WlClient : App
     virtual void setSwapInterval(int interval) override;
     virtual void toggleVSync() override;
     virtual void swapBuffers() override;
+    virtual void procEvents() override;
+    virtual void showWindow() override;
 };

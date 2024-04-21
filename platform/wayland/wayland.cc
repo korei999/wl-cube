@@ -6,6 +6,19 @@
 
 #include <cstring>
 
+EGLint eglLastErrorCode = EGL_SUCCESS;
+
+#ifdef DEBUG
+#    define EGLD(C)                                                                                                    \
+        {                                                                                                              \
+            C;                                                                                                         \
+            if ((eglLastErrorCode = eglGetError()) != EGL_SUCCESS)                                                     \
+                LOG(FATAL, "eglLastErrorCode: {:#x}\n", eglLastErrorCode);                                             \
+        }
+#else
+#    define EGLD(C) C
+#endif
+
 static const zwp_relative_pointer_v1_listener relativePointerListener {
 	.relative_motion = relativePointerMotionHandler
 };
@@ -415,4 +428,16 @@ WlClient::swapBuffers()
     EGLD( eglSwapBuffers(eglDisplay, eglSurface) );
     if (wl_display_dispatch(display) == -1)
         LOG(FATAL, "wl_display_dispatch error\n");
+}
+
+void 
+WlClient::procEvents()
+{
+    //
+}
+
+void
+WlClient::showWindow()
+{
+    //
 }

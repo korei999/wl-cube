@@ -1,6 +1,7 @@
 #include "headers/frame.hh"
 #include "headers/colors.hh"
 #include "headers/model.hh"
+#include "headers/gl.hh"
 
 #include <cmath>
 #include <thread>
@@ -90,6 +91,7 @@ void
 prepareDraw(App* app)
 {
     app->bindGlContext();
+    app->showWindow();
     app->setSwapInterval(1);
     app->toggleFullscreen();
 
@@ -157,17 +159,6 @@ renderScene(Shader* sh, bool depth)
 void
 drawFrame(App* app)
 {
-#ifdef FPS_COUNTER
-    static int _fpsCount = 0;
-    f64 _currTime = timeNow();
-    if (_currTime >= _prevTime + 1.0)
-    {
-        CERR("fps: {}, ms: {:.3f}\n", _fpsCount, player.deltaTime);
-        _fpsCount = 0;
-        _prevTime = _currTime;
-    }
-#endif
-
     player.updateDeltaTime();
     player.procMouse();
     player.procKeys(app);
@@ -234,9 +225,6 @@ drawFrame(App* app)
 
         incCounter += 1.0 * player.deltaTime;
     }
-#ifdef FPS_COUNTER
-        _fpsCount++;
-#endif
 }
 
 void
@@ -256,8 +244,24 @@ run(App* app)
 
     while (app->isRunning)
     {
+#ifdef FPS_COUNTER
+    static int _fpsCount = 0;
+    f64 _currTime = timeNow();
+    if (_currTime >= _prevTime + 1.0)
+    {
+        CERR("fps: {}, ms: {:.3f}\n", _fpsCount, player.deltaTime);
+        _fpsCount = 0;
+        _prevTime = _currTime;
+    }
+#endif
+#ifdef _WIN32
+        app->procEvents();
+#endif
         drawFrame(app);
 
         app->swapBuffers();
+#ifdef FPS_COUNTER
+        _fpsCount++;
+#endif
     }
 }

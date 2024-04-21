@@ -1,8 +1,6 @@
 #pragma once
 #include "ultratypes.h"
 
-#include <EGL/egl.h>
-#include <GLES3/gl32.h>
 #include <mutex>
 #include <string_view>
 #include <vector>
@@ -26,7 +24,7 @@ f32 rngGet(f32 min, f32 max);
 void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
 void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip);
 void flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
-std::string replaceFileSuffixInPath(std::string_view str, std::string_view suffix);
+std::string replaceFileSuffixInPath(std::string_view str, std::string* suffix);
 
 const std::string_view severityStr[FATAL + 1] {
     "",
@@ -38,9 +36,6 @@ const std::string_view severityStr[FATAL + 1] {
 
 extern std::mutex glContextMtx;
 extern std::mutex logMtx;
-
-extern GLenum glLastErrorCode;
-extern EGLint eglLastErrorCode;
 
 #define LEN(A) (sizeof(A) / sizeof(A[0]))
 #define ODD(A) (A & 1)
@@ -63,61 +58,11 @@ extern EGLint eglLastErrorCode;
 #    define LOG(severity, ...) (void)0 /* noop */
 #endif
 
-#ifdef DEBUG
-#    define D(C)                                                                                                       \
-        {                                                                                                              \
-            /* call function C and check for error, enabled if -DDEBUG and -DLOGS */                                   \
-            C;                                                                                                         \
-            while ((glLastErrorCode = glGetError()))                                                                   \
-            {                                                                                                          \
-                switch (glLastErrorCode)                                                                               \
-                {                                                                                                      \
-                    default:                                                                                           \
-                        LOG(WARNING, "unknown error: {:#x}\n", glLastErrorCode);                                       \
-                        break;                                                                                         \
-                                                                                                                       \
-                    case 0x506:                                                                                        \
-                        LOG(BAD, "GL_INVALID_FRAMEBUFFER_OPERATION\n");                                                \
-                        break;                                                                                         \
-                                                                                                                       \
-                    case GL_INVALID_ENUM:                                                                              \
-                        LOG(BAD, "GL_INVALID_ENUM\n");                                                                 \
-                        break;                                                                                         \
-                                                                                                                       \
-                    case GL_INVALID_VALUE:                                                                             \
-                        LOG(BAD, "GL_INVALID_VALUE\n");                                                                \
-                        break;                                                                                         \
-                                                                                                                       \
-                    case GL_INVALID_OPERATION:                                                                         \
-                        LOG(BAD, "GL_INVALID_OPERATION\n");                                                            \
-                        break;                                                                                         \
-                                                                                                                       \
-                    case GL_OUT_OF_MEMORY:                                                                             \
-                        LOG(BAD, "GL_OUT_OF_MEMORY\n");                                                                \
-                        break;                                                                                         \
-                }                                                                                                      \
-            }                                                                                                          \
-        }
-#else
-#    define D(C) C;
-#endif
-
-#ifdef DEBUG
-#    define EGLD(C)                                                                                                    \
-        {                                                                                                              \
-            C;                                                                                                         \
-            if ((eglLastErrorCode = eglGetError()) != EGL_SUCCESS)                                                     \
-                LOG(FATAL, "eglLastErrorCode: {:#x}\n", eglLastErrorCode);                                             \
-        }
-#else
-#    define EGLD(C) C
-#endif
-
-constexpr inline size_t
+constexpr inline u64
 hashFNV(std::string_view str)
 {
-    size_t hash = 0xCBF29CE484222325;
-    for (size_t i = 0; i < str.size(); i++)
-        hash = (hash ^ str[i]) * 0x100000001B3;
+    u64 hash = 0xCBF29CE484222325;
+    for (u64 i = 0; i < (u64)str.size(); i++)
+        hash = (hash ^ (u64)str[i]) * 0x100000001B3;
     return hash;
 }

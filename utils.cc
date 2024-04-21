@@ -11,9 +11,6 @@ std::mutex logMtx;
 
 static std::mt19937 rngCreate();
 
-GLenum glLastErrorCode = 0;
-EGLint eglLastErrorCode = EGL_SUCCESS;
-
 static std::mt19937 mt {rngCreate()};
 
 static std::mt19937
@@ -123,9 +120,9 @@ loadFileToCharArray(std::string_view path, size_t addBytes)
 
     std::ifstream file(path.data(), std::ios::in | std::ios::ate | std::ios::binary);
     if (!file.is_open())
-        LOG(FATAL, "failed to open file: {}\n", path);
+        LOG(FATAL, "failed to open file: '{}'\n", path);
 
-    size_t fileSize = file.tellg();
+    size_t fileSize = (size_t)file.tellg();
     std::vector<char> buffer(fileSize + addBytes, '\0');
 
     file.seekg(0);
@@ -146,10 +143,14 @@ timeNow()
 }
 
 std::string
-replaceFileSuffixInPath(std::string_view path, std::string_view suffix)
+replaceFileSuffixInPath(std::string_view path, std::string* suffix)
 {
+#ifdef _WIN32
+    suffix->back() = '\0';
+#endif
+
     auto lastSlash = path.find_last_of("/");
     std::string pathToMtl {path.begin(), path.begin() + lastSlash};
 
-    return {pathToMtl + "/" + std::string(suffix)};
+    return {pathToMtl + "/" + (*suffix)};
 }

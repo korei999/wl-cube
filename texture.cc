@@ -168,14 +168,14 @@ Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsize
 }
 
 CubeMapProjections::CubeMapProjections(const m4 proj, const v3 pos)
-    : tms( 
+    : tms{
         proj * m4LookAt(pos, pos + v3( 1, 0, 0), v3(0,-1, 0)),
         proj * m4LookAt(pos, pos + v3(-1, 0, 0), v3(0,-1, 0)),
         proj * m4LookAt(pos, pos + v3( 0, 1, 0), v3(0, 0, 1)),
         proj * m4LookAt(pos, pos + v3( 0,-1, 0), v3(0, 0,-1)),
         proj * m4LookAt(pos, pos + v3( 0, 0, 1), v3(0,-1, 0)),
         proj * m4LookAt(pos, pos + v3( 0, 0,-1), v3(0,-1, 0))
-    ) {}
+    } {}
 
 ShadowMap
 createShadowMap(const int width, const int height)

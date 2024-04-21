@@ -32,4 +32,6 @@ struct App
     virtual void setSwapInterval(int interval) = 0;
     virtual void toggleVSync() = 0;
     virtual void swapBuffers() = 0;
+    virtual void procEvents() = 0;
+    virtual void showWindow() = 0;
 };

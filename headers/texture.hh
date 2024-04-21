@@ -3,6 +3,7 @@
 #include "ultratypes.h"
 #include "utils.hh"
 #include "app.hh"
+#include "gl.hh"
 
 #include <string_view>
 // #include <unordered_map>

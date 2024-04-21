@@ -99,7 +99,7 @@ namespace std
     template <>
     struct hash<FacePositions>
     {
-        size_t
+        u64
         operator()(const FacePositions& p) const
         {
             return hashFaceVertex(p);

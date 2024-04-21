@@ -1,18 +1,43 @@
 #include "headers/frame.hh"
+#include "headers/utils.hh"
+
 #ifdef __linux__
 #include "platform/wayland/wayland.hh"
 #elif _WIN32
-// #include "windowsSomething.hh"
+#include "platform/windows/windows.hh"
 #endif
 
+
+#ifdef __linux__
 int
 main()
 {
-#ifdef __linux__
     WlClient app("wl-cube");
-#elif _WIN32
-    /* Win32 app {} */
-#endif
-
     run(&app);
 }
+#elif _WIN32
+int WINAPI
+WinMain(HINSTANCE instance, HINSTANCE previnstance, [[maybe_unused]] LPSTR cmdline, [[maybe_unused]] int cmdshow)
+{
+    Win32window app("wl-cube", instance);
+    try
+    {
+        run(&app);
+    }
+    catch (int e)
+    {
+        if (e != 0)
+            CERR("Unhandled exception: {}\n", e);
+
+        CERR("quit...\n");
+        return e;
+    }
+
+    return 0;
+}
+int
+main()
+{
+   return WinMain(GetModuleHandle(NULL), NULL, GetCommandLineA(), SW_SHOWNORMAL);
+}
+#endif

@@ -104,7 +104,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
     {
         objP.nextWord();
 
-        size_t wordHash = hashFNV(objP.word);
+        u64 wordHash = hashFNV(objP.word);
         v3 tv;
         FaceData tf;
 
@@ -209,7 +209,8 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
     if (!mtllibName.empty())
     {
-        std::string pathToMtl = replaceFileSuffixInPath(path, mtllibName);
+        LOG(OK, "loading mtllib: '{}'\n", mtllibName);
+        std::string pathToMtl = replaceFileSuffixInPath(path, &mtllibName);
         parseMtl(&materialsMap, pathToMtl, texMode, c);
     }
 
@@ -612,7 +613,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
     {
         p.nextWord();
 
-        size_t wordHash = hashFNV(p.word);
+        u64 wordHash = hashFNV(p.word);
 
         switch (wordHash)
         {
@@ -630,7 +631,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 /* TODO: implement thread pool for this kind of stuff */
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.diffuse,
-                                     replaceFileSuffixInPath(path, p.word),
+                                     replaceFileSuffixInPath(path, &p.word),
                                      TexType::diffuse,
                                      false,
                                      texMode,
@@ -642,7 +643,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 p.nextWord("\n");
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.normal,
-                                     replaceFileSuffixInPath(path, p.word),
+                                     replaceFileSuffixInPath(path, &p.word),
                                      TexType::normal,
                                      false,
                                      texMode,

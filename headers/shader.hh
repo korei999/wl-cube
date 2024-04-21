@@ -1,6 +1,7 @@
 #pragma once
 #include "gmath.hh"
 #include "utils.hh"
+#include "gl.hh"
 
 #include <string_view>
 
