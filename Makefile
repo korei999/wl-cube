@@ -30,7 +30,7 @@ WLPD := $(WLD)/wayland-protocols
 BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
-SRCS := $(shell find $(SRCD) -name '*.cc')
+SRCS := $(shell find $(SRCD) -name '*.cc' -not -path './platform/windows/*')
 OBJ := $(SRCS:%=$(BD)/%.o)
 
 gcc: CXX = g++ -fdiagnostics-color -flto=auto $(SAFE_STACK) -DFPS_COUNTER

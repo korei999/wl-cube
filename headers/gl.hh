@@ -2,7 +2,7 @@
 #ifdef __linux__
 #include <GLES3/gl32.h>
 #elif _WIN32
-#include "../platform/glad.h"
+#include "../platform/windows/glad.h"
 #endif
 
 #ifdef DEBUG

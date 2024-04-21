@@ -2,8 +2,7 @@
 setlocal
 
 set WindowsFiles=%CD%\platform\windows\*.cc
-set GladFiles=%CD%\platform\*.cc
-set SourceFiles=%WindowsFiles% %GladFiles% %CD%\*.cc 
+set SourceFiles=%WindowsFiles% %CD%\*.cc 
 set OutputDir=build
 
 set DBG=
