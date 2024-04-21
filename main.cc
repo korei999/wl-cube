@@ -7,7 +7,6 @@
 #include "platform/windows/windows.hh"
 #endif
 
-
 #ifdef __linux__
 int
 main()
@@ -17,7 +16,10 @@ main()
 }
 #elif _WIN32
 int WINAPI
-WinMain(HINSTANCE instance, HINSTANCE previnstance, [[maybe_unused]] LPSTR cmdline, [[maybe_unused]] int cmdshow)
+WinMain(HINSTANCE instance,
+        [[maybe_unused]] HINSTANCE previnstance,
+        [[maybe_unused]] LPSTR cmdline,
+        [[maybe_unused]] int cmdshow)
 {
     Win32window app("wl-cube", instance);
     try
