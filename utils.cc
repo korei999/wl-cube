@@ -54,16 +54,16 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     u32* d = (u32*)dest;
     u32* s = (u32*)src;
 
-    for (int r = 0; r < height; r++)
+    for (int y = 0; y < height; y++)
     {
-        for (int c = 0; c < width; c++)
+        for (int x = 0; x < width; x++)
         {
             /* take 4 bytes at once then swap red and blue bits */
-            u32 t = s[r*width + c];
+            u32 t = s[y*width + x];
             u32 R =   t & 0x00'ff'00'00;
             u32 B =   t & 0x00'00'00'ff;
             u32 tt = (t & 0xff'00'ff'00) | (R >> (4*4)) | (B << (4*4));
-            d[(r-f)*width + c] = tt;
+            d[(y-f)*width + x] = tt;
         }
         f += inc;
     }
@@ -75,14 +75,24 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    /* FIXME: this doesn't load the image */
+    constexpr int nComponents = 3;
+    width = width * nComponents;
+
+    auto at = [=](int x, int y, int z) -> int
+    {
+        return (y-f)*width + x + z;
+    };
+
     for (int y = 0; y < height; y++)
-        for (int x = 0; x <= width*3; x += 3)
+    {
+        for (int x = 0; x < width; x += nComponents)
         {
-            dest[y*height + x + 0] = src[y*height + x + 0];
-            dest[y*height + x + 1] = src[y*height + x + 1];
-            dest[y*height + x + 2] = src[y*height + x + 2];
+            dest[at(x, y-f, 0)] = src[at(x, y, 2)];
+            dest[at(x, y-f, 1)] = src[at(x, y, 1)];
+            dest[at(x, y-f, 2)] = src[at(x, y, 0)];
         }
+        f += inc;
+    }
 };
 
 void
@@ -94,19 +104,24 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     u8* d = (u8*)dest;
     u8* s = (u8*)src;
 
+    constexpr int nComponents = 3;
+    width = width * nComponents;
+
+    width = width*nComponents;
+
     auto at = [=](int x, int y, int z) -> int
     {
-        return z*width*height + y*width + x;
+        return (y-f)*width + x + z;
     };
 
-    for (int r = 0; r < height; r++)
+    for (int y = 0; y < height; y++)
     {
-        for (int c = 0; c < width; c++)
+        for (int x = 0; x < width; x += nComponents)
         {
-            d[at(r-f, c, 0)] = s[at(r, c, 2)];
-            d[at(r-f, c, 1)] = s[at(r, c, 1)];
-            d[at(r-f, c, 2)] = s[at(r, c, 0)];
-            d[at(r-f, c, 3)] = 0xff;
+            d[at(x, y-f, 0)] = s[at(x, y, 2)];
+            d[at(x, y-f, 1)] = s[at(x, y, 1)];
+            d[at(x, y-f, 2)] = s[at(x, y, 0)];
+            d[at(x, y-f, 3)] = 0xff;
         }
         f += inc;
     }
