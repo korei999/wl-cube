@@ -35,9 +35,9 @@ struct PlayerControls
     v3 right {1, 0, 0};
     const v3 up {0, 1, 0};
 
-    f64 currTime = 0;
-    f64 deltaTime = 0;
-    f64 lastFrameTime = 0;
+    f64 currTime = 0.0;
+    f64 deltaTime = 0.0;
+    f64 lastFrameTime = 0.0;
     f64 moveSpeed = 5.0;
 
     Mouse mouse {};

@@ -1,13 +1,12 @@
 #include "headers/frame.hh"
 #include "headers/colors.hh"
 #include "headers/model.hh"
-#include "headers/gl.hh"
 
 #include <cmath>
 #include <thread>
 
-#define SHADOW_WIDTH 720
-#define SHADOW_HEIGHT 720
+#define SHADOW_WIDTH 1024
+#define SHADOW_HEIGHT 1024
 
 #ifdef DEBUG
 static void
@@ -176,7 +175,7 @@ drawFrame(App* app)
         projView.bufferData(&player, 0, sizeof(m4) * 2);
 
         // v3 lightPos {x, 4, -1};
-        v3 lightPos {(f32)sin(player.currTime) * 7, 3, 0};
+        v3 lightPos {(f32)cos(player.currTime) * 6.0f, 3, (f32)sin(player.currTime) * 1.1f};
         constexpr v3 lightColor(Color::snow);
         f32 nearPlane = 0.01f, farPlane = 25.0f;
         m4 shadowProj = m4Pers(toRad(90.0f), shadowAspect, nearPlane, farPlane);

@@ -12,8 +12,8 @@ PKGS := egl glesv2 wayland-client wayland-egl wayland-cursor
 PKG := $(shell pkg-config --cflags $(PKGS))
 PKG_LIB := $(shell pkg-config --libs $(PKGS))
 
-CXXFLAGS := -std=gnu++23 $(PKG)
-CFLAGS := -std=gnu2x $(PKG)
+CXXFLAGS := -std=c++23 $(PKG)
+CFLAGS := -std=c20 $(PKG)
 LDFLAGS := $(PKG_LIB)
 
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)

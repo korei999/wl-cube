@@ -18,19 +18,19 @@ uniform float uFarPlane;
 
 out vec4 outColor;
 
-// vec3 sampleOffsetDirections[20] = vec3[](
-    // vec3( 1, 1, 1), vec3( 1,-1, 1), vec3(-1,-1, 1), vec3(-1, 1, 1),
-    // vec3( 1, 1,-1), vec3( 1,-1,-1), vec3(-1,-1,-1), vec3(-1, 1,-1),
-    // vec3( 1, 1, 0), vec3( 1,-1, 0), vec3(-1,-1, 0), vec3(-1, 1, 0),
-    // vec3( 1, 0, 1), vec3(-1, 0, 1), vec3( 1, 0,-1), vec3(-1, 0,-1),
-    // vec3( 0, 1, 1), vec3( 0,-1, 1), vec3( 0,-1,-1), vec3( 0, 1,-1)
-// );
-
-vec3 sampleOffsetDirections[9] = vec3[](
-    vec3(-1, 1, 0), vec3(0, 1, 0), vec3(1, 1, 0),
-    vec3(-1, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0),
-    vec3(-1,-1, 0), vec3(0,-1, 0), vec3(1,-1, 0)
+vec3 sampleOffsetDirections[20] = vec3[](
+    vec3( 1, 1, 1), vec3( 1,-1, 1), vec3(-1,-1, 1), vec3(-1, 1, 1),
+    vec3( 1, 1,-1), vec3( 1,-1,-1), vec3(-1,-1,-1), vec3(-1, 1,-1),
+    vec3( 1, 1, 0), vec3( 1,-1, 0), vec3(-1,-1, 0), vec3(-1, 1, 0),
+    vec3( 1, 0, 1), vec3(-1, 0, 1), vec3( 1, 0,-1), vec3(-1, 0,-1),
+    vec3( 0, 1, 1), vec3( 0,-1, 1), vec3( 0,-1,-1), vec3( 0, 1,-1)
 );
+
+// vec3 sampleOffsetDirections[9] = vec3[](
+    // vec3(-1, 1, 0), vec3(0, 1, 0), vec3(1, 1, 0),
+    // vec3(-1, 0, 0), vec3(0, 0, 0), vec3(0, 1, 0),
+    // vec3(-1,-1, 0), vec3(0,-1, 0), vec3(1,-1, 0)
+// );
 
 float
 shadowCalculation(vec3 fragPos)
@@ -43,7 +43,8 @@ shadowCalculation(vec3 fragPos)
     float offset = 0.1;
     int samples = sampleOffsetDirections.length();
     float viewDist = length(uViewPos - fragPos);
-    float diskRadius = (1.0 + (viewDist / uFarPlane)) * 0.15;
+    float diskRadius = (1.0 + (viewDist / uFarPlane)) * 0.10;
+
     for (int i = 0; i < samples; i++)
     {
         float closestDepth = texture(uDepthMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r;
