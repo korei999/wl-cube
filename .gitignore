@@ -4,3 +4,4 @@ wayland-protocols/
 build/
 compile_commands.json
 tags
+.clangd
