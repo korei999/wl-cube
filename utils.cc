@@ -101,27 +101,25 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    u8* d = (u8*)dest;
-    u8* s = (u8*)src;
+    constexpr int rgbComp = 3;
+    constexpr int rgbaComp = 4;
 
-    constexpr int nComponents = 3;
-    width = width * nComponents;
+    int rgbWidth = width * rgbComp;
+    int rgbaWidth = width * rgbaComp;
 
-    width = width*nComponents;
-
-    auto at = [=](int x, int y, int z) -> int
+    auto at = [](int width, int x, int y, int z) -> int
     {
         return y*width + x + z;
     };
 
     for (int y = 0; y < height; y++)
     {
-        for (int x = 0; x < width; x += nComponents)
+        for (int xSrc = 0, xDest = 0; xSrc < rgbWidth; xSrc += rgbComp, xDest += rgbaComp)
         {
-            d[at(x, y-f, 0)] = s[at(x, y, 2)];
-            d[at(x, y-f, 1)] = s[at(x, y, 1)];
-            d[at(x, y-f, 2)] = s[at(x, y, 0)];
-            d[at(x, y-f, 3)] = 0xff;
+            dest[at(rgbaWidth, xDest, y-f, 0)] = src[at(rgbWidth, xSrc, y, 2)];
+            dest[at(rgbaWidth, xDest, y-f, 1)] = src[at(rgbWidth, xSrc, y, 1)];
+            dest[at(rgbaWidth, xDest, y-f, 2)] = src[at(rgbWidth, xSrc, y, 0)];
+            dest[at(rgbaWidth, xDest, y-f, 3)] = 0xff;
         }
         f += inc;
     }

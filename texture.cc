@@ -108,6 +108,7 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
             break;
     }
 
+    bitDepth = 32; /* use RGBA anyway */
     nPixels = width * height;
     byteDepth = bitDepth / 8;
 #ifdef TEXTURE
@@ -124,7 +125,8 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
     {
         default:
         case GL_RGB:
-            flipCpyBGRtoRGB((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
+            flipCpyBGRtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
+            format = GL_RGBA;
             break;
 
         case GL_RGBA:
