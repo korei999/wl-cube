@@ -80,7 +80,7 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
 
     auto at = [=](int x, int y, int z) -> int
     {
-        return (y-f)*width + x + z;
+        return y*width + x + z;
     };
 
     for (int y = 0; y < height; y++)
@@ -111,7 +111,7 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
 
     auto at = [=](int x, int y, int z) -> int
     {
-        return (y-f)*width + x + z;
+        return y*width + x + z;
     };
 
     for (int y = 0; y < height; y++)
