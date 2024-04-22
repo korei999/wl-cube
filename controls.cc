@@ -6,7 +6,7 @@
 #ifdef __linux__
 #include <linux/input-event-codes.h>
 #elif _WIN32
-    /* Win32 app {} */
+
 #endif
 
 bool pressedKeys[300] {};
@@ -97,29 +97,29 @@ PlayerControls::procKeys(App* app)
 
     if (pressedKeys[KEY_I])
     {
-        fov += 100.0f * deltaTime;
+        fov += 100.0 * deltaTime;
         LOG(OK, "fov: {:.3f}\n", fov);
     }
     if (pressedKeys[KEY_O])
     {
-        fov -= 100.0f * deltaTime;
+        fov -= 100.0 * deltaTime;
         LOG(OK, "fov: {:.3f}\n", fov);
     }
     if (pressedKeys[KEY_Z])
     {
-        f32 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
+        f64 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
         x += inc * deltaTime;
         LOG(OK, "x: {:.3f}\n", x);
     }
     if (pressedKeys[KEY_X])
     {
-        f32 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
+        f64 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
         y += inc * deltaTime;
         LOG(OK, "y: {:.3f}\n", y);
     }
     if (pressedKeys[KEY_C])
     {
-        f32 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
+        f64 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
         z += inc * deltaTime;
         LOG(OK, "z: {:.3f}\n", z);
     }
@@ -164,7 +164,7 @@ procMovements(App* c)
     if (len > 0)
         combinedMove = v3Norm(combinedMove, len);
 
-    player.pos += combinedMove * moveSpeed;
+    player.pos += combinedMove * (f32)moveSpeed;
 }
 
 void

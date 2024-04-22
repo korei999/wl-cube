@@ -9,7 +9,7 @@ struct Win32window : App
     HWND window;
     HDC deviceContext;
     HGLRC glContext;
-    WNDCLASSEXW wc;
+    WNDCLASSEXW windowClass;
 
     Win32window(std::string_view name, HINSTANCE _instance);
     virtual ~Win32window() override;

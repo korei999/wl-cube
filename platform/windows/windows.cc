@@ -1,117 +1,12 @@
 #include "windows.hh"
+#include "input.hh"
 #include "../../headers/utils.hh"
 #include "../../headers/gl.hh"
 #include "wglext.h" /* https://www.khronos.org/registry/OpenGL/api/GL/wglext.h */
 
-#include <cassert>
-
-// #define GL_FUNCTIONS(X) \
-    // X(PFNGLCREATEBUFFERSPROC,            glCreateBuffers            ) \
-    // X(PFNGLNAMEDBUFFERSTORAGEPROC,       glNamedBufferStorage       ) \
-    // X(PFNGLBINDVERTEXARRAYPROC,          glBindVertexArray          ) \
-    // X(PFNGLCREATEVERTEXARRAYSPROC,       glCreateVertexArrays       ) \
-    // X(PFNGLVERTEXARRAYATTRIBBINDINGPROC, glVertexArrayAttribBinding ) \
-    // X(PFNGLVERTEXARRAYVERTEXBUFFERPROC,  glVertexArrayVertexBuffer  ) \
-    // X(PFNGLVERTEXARRAYATTRIBFORMATPROC,  glVertexArrayAttribFormat  ) \
-    // X(PFNGLENABLEVERTEXARRAYATTRIBPROC,  glEnableVertexArrayAttrib  ) \
-    // X(PFNGLCREATESHADERPROGRAMVPROC,     glCreateShaderProgramv     ) \
-    // X(PFNGLGETPROGRAMIVPROC,             glGetProgramiv             ) \
-    // X(PFNGLGETPROGRAMINFOLOGPROC,        glGetProgramInfoLog        ) \
-    // X(PFNGLGENPROGRAMPIPELINESPROC,      glGenProgramPipelines      ) \
-    // X(PFNGLUSEPROGRAMSTAGESPROC,         glUseProgramStages         ) \
-    // X(PFNGLBINDPROGRAMPIPELINEPROC,      glBindProgramPipeline      ) \
-    // X(PFNGLPROGRAMUNIFORMMATRIX2FVPROC,  glProgramUniformMatrix2fv  ) \
-    // X(PFNGLBINDTEXTUREUNITPROC,          glBindTextureUnit          ) \
-    // X(PFNGLCREATETEXTURESPROC,           glCreateTextures           ) \
-    // X(PFNGLTEXTUREPARAMETERIPROC,        glTextureParameteri        ) \
-    // X(PFNGLTEXTURESTORAGE2DPROC,         glTextureStorage2D         ) \
-    // X(PFNGLTEXTURESUBIMAGE2DPROC,        glTextureSubImage2D        ) \
-    // X(PFNGLDEBUGMESSAGECALLBACKPROC,     glDebugMessageCallback     ) \
-    // X(PFNGLGENFRAMEBUFFERSPROC,          glGenFramebuffers          ) \
-    // X(PFNGLBINDFRAMEBUFFERPROC,          glBindFramebuffer          ) \
-    // X(PFNGLACTIVETEXTUREPROC,            glActiveTexture            ) \
-    // X(PFNGLDELETEVERTEXARRAYSPROC,       glDeleteVertexArrays       ) \
-    // X(PFNGLDRAWBUFFERSPROC,              glDrawBuffers              ) \
-    // X(PFNGLGENVERTEXARRAYSPROC,          glGenVertexArrays          ) \
-    // X(PFNGLGENBUFFERSPROC,               glGenBuffers               ) \
-    // X(PFNGLBINDBUFFERPROC,               glBindBuffer               ) \
-    // X(PFNGLBUFFERDATAPROC,               glBufferData               ) \
-    // X(PFNGLENABLEVERTEXATTRIBARRAYPROC,  glEnableVertexAttribArray  ) \
-    // X(PFNGLVERTEXATTRIBPOINTERPROC,      glVertexAttribPointer      ) \
-    // X(PFNGLDRAWELEMENTSINSTANCEDPROC,    glDrawElementsInstanced    ) \
-    // X(PFNGLGENBUFFERSPROC,               glDeleteBuffers            ) \
-    // X(PFNGLGETUNIFORMBLOCKINDEXPROC,     glGetUniformBlockIndex     ) \
-    // X(PFNGLUNIFORMBLOCKBINDINGPROC,      glUniformBlockBinding      ) \
-    // X(PFNGLCREATEPROGRAMPROC,            glCreateProgram            ) \
-    // X(PFNGLATTACHSHADERPROC,             glAttachShader             ) \
-    // X(PFNGLLINKPROGRAMPROC,              glLinkProgram              ) \
-    // X(PFNGLDELETEPROGRAMPROC,            glDeleteProgram            ) \
-    // X(PFNGLVALIDATEPROGRAMPROC,          glValidateProgram          ) \
-    // X(PFNGLDELETESHADERPROC,             glDeleteShader             ) \
-    // X(PFNGLCREATESHADERPROC,             glCreateShader             ) \
-    // X(PFNGLSHADERSOURCEPROC,             glShaderSource             ) \
-    // X(PFNGLCOMPILESHADERPROC,            glCompileShader            ) \
-    // X(PFNGLGETSHADERIVPROC,              glGetShaderiv              ) \
-    // X(PFNGLGETSHADERINFOLOGPROC,         glGetShaderInfoLog         ) \
-    // X(PFNGLUSEPROGRAMPROC,               glUseProgram               ) \
-    // X(PFNGLGETACTIVEUNIFORMPROC,         glGetActiveUniform         ) \
-    // X(PFNGLBINDBUFFERBASEPROC,           glBindBufferBase           ) \
-    // X(PFNGLBUFFERSUBDATAPROC,            glBufferSubData            ) \
-    // X(PFNGLGETUNIFORMLOCATIONPROC,       glGetUniformLocation       ) \
-    // X(PFNGLUNIFORMMATRIX4FVPROC,         glUniformMatrix4fv         ) \
-    // X(PFNGLUNIFORMMATRIX3FVPROC,         glUniformMatrix3fv         ) \
-    // X(PFNGLUNIFORM3FVPROC,               glUniform3fv               ) \
-    // X(PFNGLUNIFORM1IPROC,                glUniform1i                ) \
-    // X(PFNGLUNIFORM1FPROC,                glUniform1f                ) \
-    // X(PFNGLGENERATEMIPMAPPROC,           glGenerateMipmap           ) \
-    // X(PFNGLFRAMEBUFFERTEXTURE2DPROC,     glFramebufferTexture2D     ) \
-    // X(PFNGLCHECKFRAMEBUFFERSTATUSPROC,   glCheckFramebufferStatus   ) \
-    // X(PFNGLFRAMEBUFFERTEXTUREPROC,       glFramebufferTexture       )
-
-// #define X(type, name) static type name;
-// GL_FUNCTIONS(X)
-// #undef X
-
-#define STR2(x) #x
-#define STR(x) STR2(x)
-
-static void
-FatalError(const char* message)
-{
-    MessageBoxA(nullptr, message, "Error", MB_ICONEXCLAMATION);
-    ExitProcess(0);
-}
-
-static LRESULT CALLBACK
-WindowProc(HWND wnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-    switch (msg)
-    {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
-    }
-    return DefWindowProcW(wnd, msg, wparam, lparam);
-}
-
-// compares src string with dstlen characters from dst, returns 1 if they are equal, 0 if not
-static int
-StringsAreEqual(const char* src, const char* dst, size_t dstlen)
-{
-    while (*src && dstlen-- && *dst)
-    {
-        if (*src++ != *dst++)
-        {
-            return 0;
-        }
-    }
-
-    return (dstlen && *src == *dst) || (!dstlen && *src == 0);
-}
-
-static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
-static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
-static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
+static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB {};
+static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB {};
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT {};
 
 static void
 GetWglFunctions(void)
@@ -160,7 +55,7 @@ GetWglFunctions(void)
     auto wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
     if (!wglGetExtensionsStringARB)
     {
-        FatalError("OpenGL does not support WGL_ARB_extensions_string extension!");
+        LOG(FATAL, "OpenGL does not support WGL_ARB_extensions_string extension!");
     }
 
     const char* ext = wglGetExtensionsStringARB(dc);
@@ -168,25 +63,25 @@ GetWglFunctions(void)
         LOG(FATAL, "wglGetExtensionsStringARB failed\n");
 
     const char* start = ext;
-    for (;;)
+    while (true)
     {
         while (*ext != 0 && *ext != ' ')
             ext++;
 
         size_t length = ext - start;
-        if (StringsAreEqual("WGL_ARB_pixel_format", start, length))
+        if (strncmp("WGL_ARB_pixel_format", start, length) == 0)
         {
-            // https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
+            /* https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt */
             wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
         }
-        else if (StringsAreEqual("WGL_ARB_create_context", start, length))
+        else if (strncmp("WGL_ARB_create_context", start, length) == 0)
         {
-            // https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_create_context.txt
+            /* https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_create_context.txt */
             wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
         }
-        else if (StringsAreEqual("WGL_EXT_swap_control", start, length))
+        else if (strncmp("WGL_EXT_swap_control", start, length) == 0)
         {
-            // https://www.khronos.org/registry/OpenGL/extensions/EXT/WGL_EXT_swap_control.txt
+            /* https://www.khronos.org/registry/OpenGL/extensions/EXT/WGL_EXT_swap_control.txt */
             wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
         }
 
@@ -198,9 +93,7 @@ GetWglFunctions(void)
     }
 
     if (!wglChoosePixelFormatARB || !wglCreateContextAttribsARB || !wglSwapIntervalEXT)
-    {
-        FatalError("OpenGL does not support required WGL extensions for modern context!");
-    }
+        LOG(FATAL, "OpenGL does not support required WGL extensions for modern context!");
 
     wglMakeCurrent(nullptr, nullptr);
     wglDeleteContext(rc);
@@ -224,33 +117,32 @@ Win32window::init()
 {
     GetWglFunctions();
 
-    wc = {
-        .cbSize = sizeof(wc),
-        .lpfnWndProc = WindowProc,
+    windowClass = {
+        .cbSize = sizeof(windowClass),
+        .lpfnWndProc = windowProc,
         .hInstance = instance,
         .hIcon = LoadIcon(nullptr, IDI_APPLICATION),
         .hCursor = LoadCursor(nullptr, IDC_ARROW),
         .lpszClassName = L"opengl_window_class",
     };
 
-    ATOM atom = RegisterClassExW(&wc);
+    ATOM atom = RegisterClassExW(&windowClass);
     if (!atom)
         LOG(FATAL, "RegisterClassExW failed\n");
 
-    this->wWidth = 1240;
+    this->wWidth = 1280;
     this->wHeight = 960;
     DWORD exstyle = WS_EX_APPWINDOW;
     DWORD style = WS_OVERLAPPEDWINDOW;
 
-    /* uncomment in case you want fixed size window */
-    /* style &= ~WS_THICKFRAME & ~WS_MAXIMIZEBOX; */
-    /* RECT rect = { 0, 0, 1280, 720 }; */
-    /* AdjustWindowRectEx(&rect, style, FALSE, exstyle); */
-    /* width = rect.right - rect.left; */
-    /* height = rect.bottom - rect.top; */
+    // style &= ~WS_THICKFRAME & ~WS_MAXIMIZEBOX;
+    RECT rect = { 0, 0, 1280, 960 };
+    AdjustWindowRectEx(&rect, style, false, exstyle);
+    this->wWidth = rect.right - rect.left;
+    this->wHeight = rect.bottom - rect.top;
 
     window = CreateWindowExW(exstyle,
-                             wc.lpszClassName,
+                             windowClass.lpszClassName,
                              L"OpenGL Window",
                              style,
                              CW_USEDEFAULT,
@@ -259,8 +151,8 @@ Win32window::init()
                              this->wHeight,
                              nullptr,
                              nullptr,
-                             wc.hInstance,
-                             nullptr);
+                             windowClass.hInstance,
+                             this);
     if (!window)
         LOG(FATAL, "CreateWindowExW failed\n");
 
@@ -277,15 +169,10 @@ Win32window::init()
         WGL_DEPTH_BITS_ARB,     24,
         WGL_STENCIL_BITS_ARB,   8,
 
-        // uncomment for sRGB framebuffer, from WGL_ARB_framebuffer_sRGB extension
-        // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_framebuffer_sRGB.txt
-        //WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE,
+        WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB, GL_TRUE,
 
-        // uncomment for multisampeld framebuffer, from WGL_ARB_multisample extension
-        // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_multisample.txt
-        //WGL_SAMPLE_BUFFERS_ARB, 1,
-        //WGL_SAMPLES_ARB,        4, // 4x MSAA
-
+        WGL_SAMPLE_BUFFERS_ARB, 1,
+        WGL_SAMPLES_ARB,        4,
         0,
     };
 
@@ -322,12 +209,7 @@ Win32window::init()
     if (!okContext)
         LOG(FATAL, "wglMakeCurrent failed\n");
 
-    // load OpenGL functions
-// #define X(type, name) name = (type)wglGetProcAddress(#name); assert(name);
-    // GL_FUNCTIONS(X)
-// #undef X
-    auto gladOk = gladLoadGL();
-    if (!gladOk)
+    if (!gladLoadGL())
         LOG(FATAL, "gladLoadGL failed\n");
 
     unbindGlContext();
@@ -408,7 +290,7 @@ Win32window::procEvents()
     if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))
     {
         if (msg.message == WM_QUIT)
-            throw 0;
+            this->isRunning = false;
 
         TranslateMessage(&msg);
         DispatchMessageW(&msg);

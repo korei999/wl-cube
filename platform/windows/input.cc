@@ -1,0 +1,44 @@
+#include "input.hh"
+#include "headers/utils.hh"
+#include "headers/frame.hh"
+
+#include <windowsx.h>
+
+LRESULT CALLBACK
+windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    Win32window* pWin = (Win32window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+
+    switch (msg)
+    {
+        case WM_DESTROY:
+            LOG(OK, "WM_DESTROY\n");
+            PostQuitMessage(0);
+            return 0;
+
+        case WM_SIZE:
+            pWin->wWidth = LOWORD(lParam);
+            pWin->wHeight = HIWORD(lParam);
+            break;
+
+        case WM_NCCREATE:
+            SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
+            break;
+
+        case WM_LBUTTONDOWN:
+            break;
+
+        case WM_MOUSEMOVE:
+            player.mouse.absX = GET_X_LPARAM(lParam);
+            player.mouse.absY = GET_Y_LPARAM(lParam);
+
+            player.mouse.relX = GET_X_LPARAM(lParam);
+            player.mouse.relY = GET_Y_LPARAM(lParam);
+            break;
+
+        default:
+            break;
+    }
+
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}

@@ -264,7 +264,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 setTanBitan(&verts[verts.size() - 1], &verts[verts.size() - 2], &verts[verts.size() - 3]);
             }
             setBuffers(&verts, &inds, &mesh, drawMode, c);
-            mesh.eboSize = inds.size();
+            mesh.eboSize = (GLuint)inds.size();
 
             auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
 

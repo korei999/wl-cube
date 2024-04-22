@@ -3,11 +3,11 @@
 
 #include <string_view>
 
-#define PI 3.14159265358979323846
+#define PI 3.14159265358979323846f
 
 #define sq(x) (x * x)
-#define toDeg(x) (x * 180.0 / PI)
-#define toRad(x) (x * PI / 180.0)
+#define toDeg(x) (x * 180.0f / PI)
+#define toRad(x) (x * PI / 180.0f)
 
 #define COLOR4(hex)                                                                                                    \
     {                                                                                                                  \

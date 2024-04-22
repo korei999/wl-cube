@@ -33,7 +33,9 @@ struct Parser
 };
 
 template <typename Type>
+#ifdef __linux__
 __attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
+#endif
 Type
 readTypeBytes(const std::vector<char>& vec, size_t i)
 {

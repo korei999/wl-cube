@@ -64,7 +64,7 @@ debugCallback(GLenum source,
 #endif
 
 PlayerControls player {
-    .pos {0.0, 1.0, 2.0},
+    .pos {0.0, 1.0, 1.0},
     .moveSpeed = 4.0,
     .mouse {.sens = 0.07}
 };
@@ -140,14 +140,14 @@ prepareDraw(App* app)
 
 f64 incCounter = 0;
 f64 fov = 90.0f;
-f32 x = 0, y = 0, z = 0;
+f64 x = 0.0, y = 0.0, z = 0.0;
 
 void
 renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
 
-    m = m4Scale(m, 0.01);
+    m = m4Scale(m, 0.01f);
     sh->setM4("uModel", m);
     if (!depth)
     {
@@ -170,7 +170,7 @@ drawFrame(App* app)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        player.updateProj(toRad(fov), aspect, 0.01f, 100.0f);
+        player.updateProj((f32)toRad(fov), aspect, 0.01f, 100.0f);
         player.updateView();
         /* copy both proj and view in one go */
         projView.bufferData(&player, 0, sizeof(m4) * 2);
@@ -178,8 +178,8 @@ drawFrame(App* app)
         // v3 lightPos {x, 4, -1};
         v3 lightPos {(f32)sin(player.currTime) * 7, 3, 0};
         constexpr v3 lightColor(Color::snow);
-        f32 nearPlane = 0.01, farPlane = 25.0;
-        m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);
+        f32 nearPlane = 0.01f, farPlane = 25.0f;
+        m4 shadowProj = m4Pers(toRad(90.0f), shadowAspect, nearPlane, farPlane);
         CubeMapProjections shadowTms(shadowProj, lightPos);
 
         /* render scene to depth cubemap */
@@ -217,7 +217,7 @@ drawFrame(App* app)
         /* draw light source */
         m4 cubeTm = m4Iden();
         cubeTm = m4Translate(cubeTm, lightPos);
-        cubeTm = m4Scale(cubeTm, 0.05);
+        cubeTm = m4Scale(cubeTm, 0.05f);
         colorSh.use();
         colorSh.setM4("uModel", cubeTm);
         colorSh.setV3("uColor", lightColor);

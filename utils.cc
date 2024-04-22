@@ -42,27 +42,28 @@ rngGet(f32 min, f32 max)
     return std::uniform_real_distribution {min, max}(mt);
 }
 
+#ifdef __linux__
 __attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
+#endif
 void
 flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
 {
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    /* C99 vla */
-    auto d = (u32 (*)[width])dest;
-    auto s = (u32 (*)[width])src;
+    u32* d = (u32*)dest;
+    u32* s = (u32*)src;
 
     for (int r = 0; r < height; r++)
     {
         for (int c = 0; c < width; c++)
         {
             /* take 4 bytes at once then swap red and blue bits */
-            u32 t = s[r][c];
+            u32 t = s[r*width + c];
             u32 R =   t & 0x00'ff'00'00;
             u32 B =   t & 0x00'00'00'ff;
             u32 tt = (t & 0xff'00'ff'00) | (R >> (4*4)) | (B << (4*4));
-            d[r - f][c] = tt;
+            d[(r-f)*width + c] = tt;
         }
         f += inc;
     }
@@ -74,19 +75,14 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    auto d = (u8 (*)[width][3])dest;
-    auto s = (u8 (*)[width][3])src;
-
-    for (int r = 0; r < height; r++)
-    {
-        for (int c = 0; c < width; c++)
+    /* FIXME: this doesn't load the image */
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x <= width*3; x += 3)
         {
-            d[r - f][c][0] = s[r][c][2];
-            d[r - f][c][1] = s[r][c][1];
-            d[r - f][c][2] = s[r][c][0];
+            dest[y*height + x + 0] = src[y*height + x + 0];
+            dest[y*height + x + 1] = src[y*height + x + 1];
+            dest[y*height + x + 2] = src[y*height + x + 2];
         }
-        f += inc;
-    }
 };
 
 void
@@ -95,17 +91,22 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    auto d = (u8 (*)[width][4])dest;
-    auto s = (u8 (*)[width][3])src;
+    u8* d = (u8*)dest;
+    u8* s = (u8*)src;
+
+    auto at = [=](int x, int y, int z) -> int
+    {
+        return z*width*height + y*width + x;
+    };
 
     for (int r = 0; r < height; r++)
     {
         for (int c = 0; c < width; c++)
         {
-            d[r - f][c][0] = s[r][c][2];
-            d[r - f][c][1] = s[r][c][1];
-            d[r - f][c][2] = s[r][c][0];
-            d[r - f][c][3] = 0xff;
+            d[at(r-f, c, 0)] = s[at(r, c, 2)];
+            d[at(r-f, c, 1)] = s[at(r, c, 1)];
+            d[at(r-f, c, 2)] = s[at(r, c, 0)];
+            d[at(r-f, c, 3)] = 0xff;
         }
         f += inc;
     }
