@@ -357,15 +357,24 @@ void
 WlClient::setCursorImage(std::string_view cursorType)
 {
     wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, cursorType.data());
-    cursorImage = cursor->images[0];
-    wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
+    if (!cursor)
+    {
+        LOG(WARNING, "failed to set cursor to '{}', falling back to 'default'\n", cursorType);
+        cursor = wl_cursor_theme_get_cursor(cursorTheme, "default");
+    }
 
-    cursorSurface = wl_compositor_create_surface(compositor);
-    wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
-    wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
-    wl_surface_commit(cursorSurface);
+    if (cursor)
+    {
+        cursorImage = cursor->images[0];
+        wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
 
-    wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, cursorImage->hotspot_x, cursorImage->hotspot_y);
+        cursorSurface = wl_compositor_create_surface(compositor);
+        wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
+        wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
+        wl_surface_commit(cursorSurface);
+
+        wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, cursorImage->hotspot_x, cursorImage->hotspot_y);
+    }
 }
 
 void 

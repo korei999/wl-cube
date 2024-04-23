@@ -13,7 +13,7 @@ PKG := $(shell pkg-config --cflags $(PKGS))
 PKG_LIB := $(shell pkg-config --libs $(PKGS))
 
 CXXFLAGS := -std=c++23 $(PKG)
-CFLAGS := -std=c20 $(PKG)
+CFLAGS := -std=c23 $(PKG)
 LDFLAGS := $(PKG_LIB)
 
 WAYLAND_PROTOCOLS_DIR := $(shell pkg-config wayland-protocols --variable=pkgdatadir)
