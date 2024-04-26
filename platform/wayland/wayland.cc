@@ -350,7 +350,7 @@ WlClient::disableRelativeMode()
     zwp_locked_pointer_v1_destroy(lockedPointer);
     zwp_relative_pointer_v1_destroy(relativePointer);
 
-    setCursorImage("right_ptr");
+    setCursorImage("default");
 }
 
 void

@@ -135,7 +135,8 @@ Shader::loadShader(GLenum type, std::string_view path)
         {
             std::vector<char> infoLog(infoLen + 1, {});
             glGetShaderInfoLog(shader, infoLen, nullptr, infoLog.data());
-            LOG(FATAL, "error compiling shader '{}'\n{}\n", path, infoLog.data());
+            CERR("error compiling shader '{}'\n{}\n", path, infoLog.data());
+            throw std::runtime_error("shader compilation exception");
         }
         glDeleteShader(shader);
         return 0;

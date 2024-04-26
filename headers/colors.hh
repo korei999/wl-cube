@@ -1,7 +1,7 @@
 #pragma once
 #include "gmath.hh"
 
-/* Color values found at: https://www.rapidtables.com/web/color/RGB_Color.html */
+/* https://www.rapidtables.com/web/color/RGB_Color.html */
 
 namespace Color
 {

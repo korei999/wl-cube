@@ -232,7 +232,7 @@ run(App* app)
     app->isRunning = true;
     app->isRelativeMode = true;
     app->isPaused = false;
-    app->setCursorImage("right_ptr");
+    app->setCursorImage("default");
 
 #ifdef FPS_COUNTER
     _prevTime = timeNow();

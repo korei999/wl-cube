@@ -1,17 +1,16 @@
 #pragma once
 #include "utils.hh"
 
-struct Parser
+struct ObjParser
 {
     std::string word;
-
     std::string defSeps;
     std::vector<char> file;
     size_t start;
     size_t end;
 
-    Parser(std::string_view defaultSeparators);
-    Parser(std::string_view path, std::string_view defaultSeparators, size_t addZeroBytes = 1);
+    ObjParser(std::string_view defaultSeparators);
+    ObjParser(std::string_view path, std::string_view defaultSeparators, size_t addZeroBytes = 1);
 
     char& operator[](size_t i) { return file[i]; };
 
@@ -30,6 +29,7 @@ struct Parser
     size_t size() const { return file.size(); };
     bool finished();
     bool isSeparator(char c, std::string_view separators);
+    void skipWhiteSpace();
 };
 
 template <typename Type>

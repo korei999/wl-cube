@@ -28,6 +28,7 @@ WinMain([[maybe_unused]] HINSTANCE instance,
 
     return 0;
 }
+
 int
 main()
 {

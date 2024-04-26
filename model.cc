@@ -63,7 +63,7 @@ Model::operator=(Model&& other)
 void
 Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    Parser objP(path, " /\n");
+    ObjParser objP(path, " /\n");
 
     std::vector<v3> vs {};
     std::vector<v2> vts {};
@@ -92,7 +92,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
     std::vector<Object> objects;
 
-    auto wordToInt = [](const std::string& str)
+    auto wordToInt = [](const std::string& str) -> int
     {
         if (str.size() == 0)
             return 0;
@@ -604,7 +604,7 @@ drawCube(const Model& q)
 static void
 parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c)
 {
-    Parser p(path, " \n");
+    ObjParser p(path, " \n");
     decltype(materials->insert({u64(), Materials()})) ins; /* get iterator placeholder */
 
     std::vector<std::jthread> threads;

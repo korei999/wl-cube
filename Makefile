@@ -31,7 +31,11 @@ BIN := $(shell cat name)
 EXEC := $(BD)/$(BIN)
 
 SRCS := $(shell find $(SRCD) -name '*.cc' -not -path './platform/windows/*')
-OBJ := $(SRCS:%=$(BD)/%.o)
+OBJS := $(SRCS:%=$(BD)/%.o)
+DEPS := $(OBJS:.o=.d)
+INC_DIRS := $(shell find './headers/' -type d)
+INC_FLAGS := $(addprefix -I,$(INC_DIRS))
+CPPFLAGS := $(INC_FLAGS) -MMD -MP
 
 gcc: CXX = g++ -fdiagnostics-color -flto=auto $(SAFE_STACK) -DFPS_COUNTER
 gcc: CC = gcc -fdiagnostics-color -flto=auto $(SAFE_STACK) 
@@ -51,16 +55,16 @@ debug: CXXFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: $(EXEC)
 
-$(EXEC): $(OBJ) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
+$(EXEC): $(OBJS) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
 
-$(BD)/%.cc.o: %.cc headers/* Makefile debug.mk $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
+$(BD)/%.cc.o: %.cc Makefile debug.mk $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
 	mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
 $(BD)/%.c.o: $(WLPD)/%.c $(WLD)/*
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 $(WLPD)/xdg-shell.h:
 	mkdir -p $(dir $@)
@@ -92,3 +96,5 @@ clean:
 
 tags:
 	ctags -R --language-force=C++ --extras=+q+r --c++-kinds=+p+l+x+L+A+N+U+Z
+
+-include $(DEPS)

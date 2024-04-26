@@ -62,7 +62,7 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
     u16 bitDepth;
     u8 byteDepth;
 
-    Parser p(path, "", 0);
+    ObjParser p(path, "", 0);
     auto BM = p.readString(2);
 
     if (BM != "BM")
