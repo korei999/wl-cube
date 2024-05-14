@@ -53,6 +53,7 @@ debug: CXX += $(ASAN)
 debug: CC += $(ASAN)
 debug: CXXFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
 debug: CFLAGS += -g -O0 $(DEBUG) $(WARNINGS) $(WNO)
+debug: LDFLAGS += -fuse-ld=mold # mold linker for faster debug builds
 debug: $(EXEC)
 
 $(EXEC): $(OBJS) $(BD)/xdg-shell.c.o $(BD)/pointer-constraints-unstable-v1.c.o $(BD)/relative-pointer-unstable-v1.c.o
