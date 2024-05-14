@@ -78,7 +78,7 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     constexpr int nComponents = 3;
     width = width * nComponents;
 
-    auto at = [=](int x, int y, int z) -> int
+    auto rgb = [=](int x, int y, int z) -> int
     {
         return y*width + x + z;
     };
@@ -87,9 +87,9 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     {
         for (int x = 0; x < width; x += nComponents)
         {
-            dest[at(x, y-f, 0)] = src[at(x, y, 2)];
-            dest[at(x, y-f, 1)] = src[at(x, y, 1)];
-            dest[at(x, y-f, 2)] = src[at(x, y, 0)];
+            dest[rgb(x, y-f, 0)] = src[rgb(x, y, 2)];
+            dest[rgb(x, y-f, 1)] = src[rgb(x, y, 1)];
+            dest[rgb(x, y-f, 2)] = src[rgb(x, y, 0)];
         }
         f += inc;
     }
@@ -109,7 +109,7 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
 
     width = width*nComponents;
 
-    auto at = [=](int x, int y, int z) -> int
+    auto rgb = [=](int x, int y, int z) -> int
     {
         return y*width + x + z;
     };
@@ -118,10 +118,10 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     {
         for (int x = 0; x < width; x += nComponents)
         {
-            d[at(x, y-f, 0)] = s[at(x, y, 2)];
-            d[at(x, y-f, 1)] = s[at(x, y, 1)];
-            d[at(x, y-f, 2)] = s[at(x, y, 0)];
-            d[at(x, y-f, 3)] = 0xff;
+            d[rgb(x, y-f, 0)] = s[rgb(x, y, 2)];
+            d[rgb(x, y-f, 1)] = s[rgb(x, y, 1)];
+            d[rgb(x, y-f, 2)] = s[rgb(x, y, 0)];
+            d[rgb(x, y-f, 3)] = 0xff;
         }
         f += inc;
     }

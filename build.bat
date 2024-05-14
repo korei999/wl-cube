@@ -11,10 +11,10 @@ set DBG=%DBG% -DDEBUG
 set DBG=%DBG% -DLOGS
 set DBG=%DBG% -DFPS_COUNTER
 
-set NOWARN=-Wno-vla-cxx-extension
+set NOWARN=
 
-set CC=clang-cl
-set STD=-std:c++latest
+set CC=cl
+set STD=-std:c++latest /diagnostics:color
 set CFLAGS=%STD% -W3 -Odi -Zi -EHsc -nologo %DBG% %NOWARN%
 set LDFLAGS=-opt:ref -debug:full -subsystem:console user32.lib gdi32.lib opengl32.lib
 set BIN=run.exe

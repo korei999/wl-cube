@@ -97,12 +97,12 @@ PlayerControls::procKeys(App* app)
 
     if (pressedKeys[KEY_I])
     {
-        fov += 100.0 * deltaTime;
+        fov += 100.0f * (f32)deltaTime;
         LOG(OK, "fov: {:.3f}\n", fov);
     }
     if (pressedKeys[KEY_O])
     {
-        fov -= 100.0 * deltaTime;
+        fov -= 100.0f * (f32)deltaTime;
         LOG(OK, "fov: {:.3f}\n", fov);
     }
     if (pressedKeys[KEY_Z])
@@ -170,7 +170,7 @@ procMovements(App* c)
 void
 PlayerControls::updateDeltaTime()
 {
-    currTime = timeNow();
+    currTime = (f32)timeNow();
     deltaTime = currTime - lastFrameTime;
     lastFrameTime = currTime;
 }
