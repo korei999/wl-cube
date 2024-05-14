@@ -1,20 +1,23 @@
 #!/bin/sh
 set -e
+
+cd $(dirname $0)
+
+WLP="./platform/wayland/"
+WLPD="$WLP/wayland-protocols"
+
 set -x
 
 wayland()
 {
     WAYLAND_PROTOCOLS_DIR=$(pkg-config wayland-protocols --variable=pkgdatadir)
     WAYLAND_SCANNER=$(pkg-config --variable=wayland_scanner wayland-scanner)
-
-    WLP="./platform/wayland/"
-    WLPD="$WLP/wayland-protocols"
-
     XDG_SHELL="$WAYLAND_PROTOCOLS_DIR/stable/xdg-shell/xdg-shell.xml"
     POINTER_CONSTRAINTS="$WAYLAND_PROTOCOLS_DIR/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
     RELATIVE_POINTER="$WAYLAND_PROTOCOLS_DIR/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
 
     mkdir -p $WLPD
+
     $WAYLAND_SCANNER client-header $RELATIVE_POINTER $WLPD/relative-pointer-unstable-v1.h
     $WAYLAND_SCANNER private-code $RELATIVE_POINTER $WLPD/relative-pointer-unstable-v1.c
     $WAYLAND_SCANNER client-header $POINTER_CONSTRAINTS $WLPD/pointer-constraints-unstable-v1.h
@@ -23,10 +26,16 @@ wayland()
     $WAYLAND_SCANNER private-code $XDG_SHELL $WLPD/xdg-shell.c
 }
 
+clean()
+{
+    rm -rf build $WLPD
+}
+
 debug()
 {
-    rm -rf build
+    clean
     wayland
+
     if meson setup build -Db_sanitize=address,undefined --buildtype=debug
     then
         ninja -C build/
@@ -35,8 +44,9 @@ debug()
 
 release()
 {
-    rm -rf build
+    clean
     wayland
+
     if meson setup build
     then
         ninja -C build/
@@ -57,10 +67,9 @@ run()
     fi
 }
 
-cd $(dirname $0)
-
 case "$1" in
     debug) debug ;;
     run) run "$@" ;;
+    clean) clean ;;
     *) release ;;
 esac

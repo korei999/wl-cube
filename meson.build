@@ -1,11 +1,10 @@
 project('wl-cube', 'c', 'cpp',
-  version : '0.1',
-  default_options : [
+  version: '0.1',
+  default_options: [
     'warning_level=2',
     'cpp_std=c++23',
     'buildtype=release',
-    'b_ndebug=if-release'
-    ])
+    'b_ndebug=if-release'])
 
 add_project_arguments(['-DFPS_COUNTER'], language: 'cpp')
 
@@ -49,6 +48,4 @@ if build_machine.system() == 'windows'
                  'platform/windows/windows.cc')]
 endif
 
-
-
-executable('wl-cube', sources : srcs, dependencies : deps, install : true)
+executable('wl-cube', sources: srcs, dependencies: deps, install: true)
