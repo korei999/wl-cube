@@ -3,8 +3,8 @@ project('wl-cube', 'c', 'cpp',
   default_options : [
     'warning_level=2',
     'cpp_std=c++23',
-    'optimization=3',
-    'buildtype=release'
+    'buildtype=release',
+    'b_ndebug=if-release'
     ])
 
 add_project_arguments(['-DFPS_COUNTER'], language: 'cpp')
