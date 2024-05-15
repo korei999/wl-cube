@@ -10,12 +10,12 @@ add_project_arguments(['-DFPS_COUNTER'], language: 'cpp')
 
 if get_option('buildtype') == 'debug'
   add_project_arguments([
-    '-DDEBUG', '-DLOGS',
+      '-DDEBUG', '-DLOGS',
     ], language: 'cpp')
 
   if build_machine.system() == 'linux'
     add_project_arguments([
-      '-Wno-missing-field-initializers', '-Wno-unused-parameter'
+        '-DDEBUG', '-DLOGS', '-Wno-missing-field-initializers', '-Wno-unused-parameter'
       ], language: 'cpp')
   endif
 

@@ -240,6 +240,7 @@ run(App* app)
 
     prepareDraw(app);
     player.updateDeltaTime(); /* reset delta time before drawing */
+    player.updateDeltaTime(); /* reset delta time before drawing */
 
     while (app->isRunning)
     {
