@@ -138,7 +138,7 @@ prepareDraw(App* app)
 }
 
 f64 incCounter = 0;
-f64 fov = 90.0f;
+f32 fov = 90.0f;
 f64 x = 0.0, y = 0.0, z = 0.0;
 
 void
@@ -169,7 +169,7 @@ drawFrame(App* app)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        player.updateProj((f32)toRad(fov), aspect, 0.01f, 100.0f);
+        player.updateProj(toRad(fov), aspect, 0.01f, 100.0f);
         player.updateView();
         /* copy both proj and view in one go */
         projView.bufferData(&player, 0, sizeof(m4) * 2);
@@ -253,12 +253,13 @@ run(App* app)
         _prevTime = _currTime;
     }
 #endif
-#ifdef _WIN32
+    /* drawing */
         app->procEvents();
-#endif
+
         drawFrame(app);
 
         app->swapBuffers();
+    /* drawing */
 #ifdef FPS_COUNTER
         _fpsCount++;
 #endif

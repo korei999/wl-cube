@@ -28,6 +28,43 @@ windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
         case WM_LBUTTONDOWN:
             break;
 
+        case WM_KEYUP:
+        case WM_KEYDOWN:
+            {
+                WPARAM keyCode = wParam;
+                bool isUp = !((lParam >> 31) & 1);
+                switch (keyCode)
+                {
+                    case 'W':
+                        pressedKeys[KEY_W] = isUp;
+                        break;
+
+                    case 'A':
+                        pressedKeys[KEY_A] = isUp;
+                        break;
+
+                    case 'S':
+                        pressedKeys[KEY_S] = isUp;
+                        break;
+
+                    case 'D':
+                        pressedKeys[KEY_D] = isUp;
+                        break;
+
+                    case ' ':
+                        pressedKeys[KEY_SPACE] = isUp;
+                        break;
+
+                    case VK_CONTROL:
+                        pressedKeys[KEY_LEFTCTRL] = isUp;
+                        break;
+
+                    default:
+                        break;
+                };
+            }
+            break;
+
         case WM_MOUSEMOVE:
             player.mouse.absX = GET_X_LPARAM(lParam);
             player.mouse.absY = GET_Y_LPARAM(lParam);

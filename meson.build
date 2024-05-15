@@ -2,7 +2,7 @@ project('wl-cube', 'c', 'cpp',
   version: '0.1',
   default_options: [
     'warning_level=2',
-    'cpp_std=c++23',
+    'cpp_std=c++20',
     'buildtype=release',
     'b_ndebug=if-release'])
 
@@ -11,8 +11,14 @@ add_project_arguments(['-DFPS_COUNTER'], language: 'cpp')
 if get_option('buildtype') == 'debug'
   add_project_arguments([
     '-DDEBUG', '-DLOGS',
-    '-Wno-missing-field-initializers', '-Wno-unused-parameter'
     ], language: 'cpp')
+
+  if build_machine.system() == 'linux'
+    add_project_arguments([
+      '-Wno-missing-field-initializers', '-Wno-unused-parameter'
+      ], language: 'cpp')
+  endif
+
 endif
 
 srcs = files('controls.cc',

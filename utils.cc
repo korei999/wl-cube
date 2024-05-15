@@ -78,7 +78,7 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     constexpr int nComponents = 3;
     width = width * nComponents;
 
-    auto at = [=](int x, int y, int z) -> int
+    auto rgb = [=](int x, int y, int z) -> int
     {
         return y*width + x + z;
     };
@@ -87,9 +87,9 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     {
         for (int x = 0; x < width; x += nComponents)
         {
-            dest[at(x, y-f, 0)] = src[at(x, y, 2)];
-            dest[at(x, y-f, 1)] = src[at(x, y, 1)];
-            dest[at(x, y-f, 2)] = src[at(x, y, 0)];
+            dest[rgb(x, y-f, 0)] = src[rgb(x, y, 2)];
+            dest[rgb(x, y-f, 1)] = src[rgb(x, y, 1)];
+            dest[rgb(x, y-f, 2)] = src[rgb(x, y, 0)];
         }
         f += inc;
     }
@@ -101,25 +101,27 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    constexpr int rgbComp = 3;
-    constexpr int rgbaComp = 4;
+    u8* d = (u8*)dest;
+    u8* s = (u8*)src;
 
-    int rgbWidth = width * rgbComp;
-    int rgbaWidth = width * rgbaComp;
+    constexpr int nComponents = 3;
+    width = width * nComponents;
 
-    auto at = [](int width, int x, int y, int z) -> int
+    width = width*nComponents;
+
+    auto rgb = [=](int x, int y, int z) -> int
     {
         return y*width + x + z;
     };
 
     for (int y = 0; y < height; y++)
     {
-        for (int xSrc = 0, xDest = 0; xSrc < rgbWidth; xSrc += rgbComp, xDest += rgbaComp)
+        for (int x = 0; x < width; x += nComponents)
         {
-            dest[at(rgbaWidth, xDest, y-f, 0)] = src[at(rgbWidth, xSrc, y, 2)];
-            dest[at(rgbaWidth, xDest, y-f, 1)] = src[at(rgbWidth, xSrc, y, 1)];
-            dest[at(rgbaWidth, xDest, y-f, 2)] = src[at(rgbWidth, xSrc, y, 0)];
-            dest[at(rgbaWidth, xDest, y-f, 3)] = 0xff;
+            d[rgb(x, y-f, 0)] = s[rgb(x, y, 2)];
+            d[rgb(x, y-f, 1)] = s[rgb(x, y, 1)];
+            d[rgb(x, y-f, 2)] = s[rgb(x, y, 0)];
+            d[rgb(x, y-f, 3)] = 0xff;
         }
         f += inc;
     }

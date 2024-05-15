@@ -289,8 +289,15 @@ Win32window::procEvents()
     MSG msg;
     if (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))
     {
-        if (msg.message == WM_QUIT)
-            this->isRunning = false;
+        switch(msg.message)
+        {
+            case WM_QUIT:
+                this->isRunning = false;
+                break;
+
+            default:
+                break;
+        };
 
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
