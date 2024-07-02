@@ -11,6 +11,7 @@ enum class GLTFHash : u64
     scenes = hashFNV("scenes"),
     nodes = hashFNV("nodes"),
     meshes = hashFNV("meshes"),
+    cameras = hashFNV("cameras"),
     buffers = hashFNV("buffers"),
     bufferViews = hashFNV("bufferViews"),
     accessors = hashFNV("accessors"),
@@ -46,6 +47,9 @@ Asset::Asset(std::string_view path)
                 break;
             case (u64)GLTFHash::meshes:
                 nodes.nMeshes = &node;
+                break;
+            case (u64)GLTFHash::cameras:
+                nodes.nCameras = &node;
                 break;
             case (u64)GLTFHash::buffers:
                 nodes.nBuffers = &node;

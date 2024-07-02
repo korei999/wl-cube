@@ -29,6 +29,7 @@ struct Nodes
     json::KeyVal* nScenes;
     json::KeyVal* nNodes;
     json::KeyVal* nMeshes;
+    json::KeyVal* nCameras;
     json::KeyVal* nBuffers;
     json::KeyVal* nBufferViews;
     json::KeyVal* nAccessors;
@@ -72,6 +73,42 @@ struct Accessor
     Type max;
     Type min;
     std::string_view type;
+};
+
+struct Node
+{
+    size_t camera;
+    std::vector<size_t> children;
+    m4 matrix = m4Iden();
+    size_t mesh;
+    /*v4 rotation; not implemented */
+    v3 scale = {1, 1, 1};
+    v3 translation;
+};
+
+struct CameraPersp
+{
+    f64 aspectRatio;
+    f64 yfov;
+    f64 zfar;
+    f64 znear;
+};
+
+struct CameraOrtho
+{
+    //
+};
+
+struct Camera
+{
+    union {
+        CameraPersp perspective;
+        CameraOrtho orthographic;
+    } proj;
+    enum {
+        perspective,
+        orthographic
+    } type;
 };
 
 struct BufferView
