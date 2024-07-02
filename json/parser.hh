@@ -7,6 +7,9 @@
 namespace json
 {
 
+/*using Array = std::vector<TagVal>;*/
+/*using Object = std::vector<KeyVal>;*/
+
 struct Parser
 {
     const std::string m_sName = {};
