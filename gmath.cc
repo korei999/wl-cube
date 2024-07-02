@@ -291,7 +291,7 @@ m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P)
         {0,    0,    0,    1}
     }};
 
-    return m4Iden() * (m4Translate(m0, {-P.x, -P.y, -P.z}));
+    return (m4Translate(m0, {-P.x, -P.y, -P.z}));
 }
 
 m4
