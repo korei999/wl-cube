@@ -1,10 +1,11 @@
-#include "headers/utils.hh"
-
 #include <fstream>
 #include <chrono>
 #include <random>
 #include <mutex>
 #include <climits>
+#include <immintrin.h>
+
+#include "headers/utils.hh"
 
 std::mutex glContextMtx;
 std::mutex logMtx;
@@ -42,29 +43,35 @@ rngGet(f32 min, f32 max)
     return std::uniform_real_distribution {min, max}(mt);
 }
 
-#ifdef __linux__
-__attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
-#endif
+/* complains about unaligned address */
 void
 flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
 {
     int f = vertFlip ? -(height - 1) : 0;
     int inc = vertFlip ? 2 : 0;
 
-    u32* d = (u32*)dest;
-    u32* s = (u32*)src;
+    u32* d = reinterpret_cast<u32*>(dest);
+    u32* s = reinterpret_cast<u32*>(src);
+
+    auto swapRedBlueBits = [](u32 col) -> u32
+    {
+        u32 r = col & 0x00'ff'00'00;
+        u32 b = col & 0x00'00'00'ff;
+        return (col & 0xff'00'ff'00) | (r >> (4*4)) | (b << (4*4));
+    };
 
     for (int y = 0; y < height; y++)
     {
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < width; x += 4)
         {
-            /* take 4 bytes at once then swap red and blue bits */
-            u32 t = s[y*width + x];
-            u32 R =   t & 0x00'ff'00'00;
-            u32 B =   t & 0x00'00'00'ff;
-            u32 tt = (t & 0xff'00'ff'00) | (R >> (4*4)) | (B << (4*4));
-            d[(y-f)*width + x] = tt;
+            u32 clrsPack[4];
+            for (size_t i = 0; i < std::size(clrsPack); i++)
+                clrsPack[i] = swapRedBlueBits(s[y*width + x + i]);
+
+            auto _dest = reinterpret_cast<__m128i_u*>(&d[(y-f)*width + x]);
+            _mm_storeu_si128(_dest, *reinterpret_cast<__m128i*>(clrsPack));
         }
+
         f += inc;
     }
 };

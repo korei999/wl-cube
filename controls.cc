@@ -48,9 +48,9 @@ procKeysOnce(App* app, u32 key, u32 pressed)
         case KEY_GRAVE:
             if (pressed)
             {
-                app->isPaused = !app->isPaused;
-                if (app->isPaused)
-                    LOG(WARNING, "paused: {}\n", app->isPaused);
+                app->bPaused = !app->bPaused;
+                if (app->bPaused)
+                    LOG(WARNING, "paused: {}\n", app->bPaused);
             }
             break;
 
@@ -63,7 +63,7 @@ procKeysOnce(App* app, u32 key, u32 pressed)
         case KEY_CAPSLOCK:
             if (pressed)
             {
-                app->isRunning = false;
+                app->bRunning = false;
                 LOG(OK, "quit...\n");
             }
             break;

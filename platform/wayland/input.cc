@@ -24,7 +24,7 @@ keyboardEnterHandler([[maybe_unused]] void* data,
 
     auto app = (WlClient*)data;
 
-    if (app->isRelativeMode)
+    if (app->bRelativeMode)
         app->enableRelativeMode();
 }
 
@@ -41,7 +41,7 @@ keyboardLeaveHandler([[maybe_unused]] void* data,
     for (auto& key : pressedKeys)
         key = 0;
 
-    if (app->isRelativeMode)
+    if (app->bRelativeMode)
         app->disableRelativeMode();
 }
 
@@ -102,7 +102,7 @@ pointerEnterHandler([[maybe_unused]] void* data,
     auto app = (WlClient*)data;
     app->pointerSerial = serial;
 
-    if (app->isRelativeMode)
+    if (app->bRelativeMode)
     {
         wl_pointer_set_cursor(pointer, serial, nullptr, 0, 0);
     }

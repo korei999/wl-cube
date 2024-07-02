@@ -1,13 +1,14 @@
-#include "headers/model.hh"
-#include "headers/parser.hh"
-
 #include <thread>
 #include <unordered_map>
+
+#include "headers/model.hh"
+#include "headers/parser.hh"
+#include "gltf/gltf.hh"
 
 static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c);
 static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
     /* copy buffers to the gpu */
-static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, Mesh* mesh, GLint drawMode, App* c);
+static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, MeshData* mesh, GLint drawMode, App* c);
 
 enum Hash : u64
 {
@@ -199,7 +200,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
         }
     }
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
-#ifdef Model
+#ifdef MODEL
     for (auto& i : objects)
         LOG(OK, "o: '{}', usemtl: '{}'\n", i.o, i.usemtl);
 #endif
@@ -233,7 +234,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
         for (auto& faces : materials.mds)
         {
-            Mesh mesh {
+            MeshData mesh {
                 .name = materials.o
             };
             GLuint faceIdx = 0;
@@ -271,7 +272,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             this->objects.back().push_back(std::move(mesh));
             this->objects.back().back().materials = std::move(foundTex->second);
 
-            /* do not forget to clear buffers */
+            /* TODO: these will be needed later */
             verts.clear();
             inds.clear();
         }
@@ -288,8 +289,15 @@ Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
     this->savedPath = path;
 }
 
+void
+Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
+{
+    gltf::Model m(path);
+    m.printJSON();
+}
+
 static void
-setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, Mesh* m, GLint drawMode, App* c)
+setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, GLint drawMode, App* c)
 {
     std::lock_guard lock(glContextMtx);
 
@@ -667,7 +675,6 @@ setTanBitan(Vertex* ver0, Vertex* ver1, Vertex* ver2)
 
     f32 invDet = 1.0f / (deltaUV0.x * deltaUV1.y - deltaUV1.x * deltaUV0.y);
 
-    /* TODO: figure out how to do this correctly */
     ver0->tan = ver1->tan = ver2->tan = v3(
         invDet * (deltaUV1.y * edge0.x - deltaUV0.y * edge1.x),
         invDet * (deltaUV1.y * edge0.y - deltaUV0.y * edge1.y),

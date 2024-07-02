@@ -121,6 +121,8 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
 #endif
 
+    /*std::vector<u8> aRGBA(nPixels * byteDepth);*/
+
     switch (format)
     {
         default:

@@ -77,6 +77,7 @@ Model sphere;
 Model plane;
 Model teaPot;
 Model sponza;
+Model duck;
 Texture boxTex;
 Texture dirtTex;
 Ubo projView;
@@ -129,9 +130,13 @@ prepareDraw(App* app)
     /* models */
     {
         std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        /*std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
+        std::jthread m2([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m3([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        /*std::jthread m3([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
     }
+
 
     /* restore context after assets are loaded */
     app->bindGlContext();
@@ -165,7 +170,7 @@ drawFrame(App* app)
     f32 aspect = (f32)app->wWidth / (f32)app->wHeight;
     constexpr f32 shadowAspect = (f32)SHADOW_WIDTH / (f32)SHADOW_HEIGHT;
 
-    if (!app->isPaused)
+    if (!app->bPaused)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -229,9 +234,9 @@ drawFrame(App* app)
 void
 run(App* app)
 {
-    app->isRunning = true;
-    app->isRelativeMode = true;
-    app->isPaused = false;
+    app->bRunning = true;
+    app->bRelativeMode = true;
+    app->bPaused = false;
     app->setCursorImage("default");
 
 #ifdef FPS_COUNTER
@@ -240,9 +245,9 @@ run(App* app)
 
     prepareDraw(app);
     player.updateDeltaTime(); /* reset delta time before drawing */
-    player.updateDeltaTime(); /* reset delta time before drawing */
+    player.updateDeltaTime();
 
-    while (app->isRunning)
+    while (app->bRunning)
     {
 #ifdef FPS_COUNTER
     static int _fpsCount = 0;

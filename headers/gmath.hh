@@ -2,12 +2,11 @@
 #include "ultratypes.h"
 
 #include <string_view>
+#include <cmath>
 
-#define PI 3.14159265358979323846f
-
-#define sq(x) (x * x)
-#define toDeg(x) (x * 180.0f / PI)
-#define toRad(x) (x * PI / 180.0f)
+template<typename T> T sq(T x) { return x * x; }
+constexpr f64 toDeg(f64 x) { return x * 180.0 / M_PI; }
+constexpr f64 toRad(f64 x) { return x * M_PI / 180.0; }
 
 #define COLOR4(hex)                                                                                                    \
     {                                                                                                                  \

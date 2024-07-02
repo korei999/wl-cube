@@ -47,7 +47,7 @@ struct Materials
     Texture normal;
 };
 
-struct Mesh
+struct MeshData
 {
     GLuint vao;
     GLuint vbo;
@@ -61,7 +61,7 @@ struct Mesh
 
 struct Model
 {
-    std::vector<std::vector<Mesh>> objects;
+    std::vector<std::vector<MeshData>> objects;
     std::string_view savedPath;
 
     Model() = default;
@@ -74,6 +74,7 @@ struct Model
     Model& operator=(Model&& other);
 
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
+    void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void draw();
     void drawInstanced(GLsizei count);
     /* bind texture for each drawcall */

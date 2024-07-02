@@ -1,11 +1,10 @@
 #pragma once
 #include "gmath.hh"
 #include "ultratypes.h"
-#include "utils.hh"
 #include "app.hh"
 #include "gl.hh"
 
-#include <string_view>
+#include <string>
 // #include <unordered_map>
 
 enum TexType : int

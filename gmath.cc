@@ -1,8 +1,6 @@
 #include "headers/gmath.hh"
 #include "headers/utils.hh"
 
-#include <cmath>
-
 static m4 m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P);
 
 v2::v2(const v3& v)

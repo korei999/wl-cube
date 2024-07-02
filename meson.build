@@ -4,7 +4,25 @@ project('wl-cube', 'c', 'cpp',
     'warning_level=2',
     'cpp_std=c++20',
     'buildtype=release',
-    'b_ndebug=if-release'])
+    'b_ndebug=if-release'
+    ]
+  )
+
+compiler = meson.get_compiler('cpp')
+if compiler.get_id() == 'clang'
+  add_global_arguments(
+    ['-fcolor-diagnostics', '-fansi-escape-codes', '-fdiagnostics-format=msvc'],
+    language: ['cpp', 'c']
+    )
+endif
+
+if get_option('MODEL') == true
+  add_project_arguments('-DMODEL', language: 'cpp')
+endif
+
+if get_option('GLTF') == true
+  add_project_arguments('-DGLTF', language: 'cpp')
+endif
 
 add_project_arguments(['-DFPS_COUNTER'], language: 'cpp')
 
@@ -15,43 +33,62 @@ if get_option('buildtype') == 'debug'
 
   if build_machine.system() == 'linux'
     add_project_arguments([
-        '-DDEBUG', '-DLOGS', '-Wno-missing-field-initializers', '-Wno-unused-parameter'
+      '-DDEBUG', '-DLOGS', '-Wno-missing-field-initializers', '-Wno-unused-parameter'
       ], language: 'cpp')
   endif
 
 endif
 
-srcs = files('controls.cc',
-             'frame.cc',
-             'gl.cc',
-             'gmath.cc',
-             'main.cc',
-             'model.cc',
-             'parser.cc',
-             'shader.cc',
-             'texture.cc',
-             'utils.cc')
+jsonsrc = files(
+  'json/lex.cc',
+  'json/parser.cc'
+  )
+
+gltfsrc = files('gltf/gltf.cc')
+
+srcs = jsonsrc + gltfsrc + files(
+  'controls.cc',
+  'frame.cc',
+  'gl.cc',
+  'gmath.cc',
+  'main.cc',
+  'model.cc',
+  'parser.cc',
+  'shader.cc',
+  'texture.cc',
+  'utils.cc'
+  )
 
 deps = [dependency('gl')]
 
 if build_machine.system() == 'linux'
-  deps += [dependency('egl'),
-           dependency('glesv2'),
-           dependency('wayland-client'),
-           dependency('wayland-egl'),
-           dependency('wayland-cursor')]
+  deps += [
+    dependency('egl'),
+    dependency('glesv2'),
+    dependency('wayland-client'),
+    dependency('wayland-egl'),
+    dependency('wayland-cursor')
+    ]
 
-  srcs += [files('platform/wayland/wayland.cc',
-                 'platform/wayland/input.cc',
-                 'platform/wayland/wayland-protocols/pointer-constraints-unstable-v1.c',
-                 'platform/wayland/wayland-protocols/relative-pointer-unstable-v1.c',
-                 'platform/wayland/wayland-protocols/xdg-shell.c')]
+  srcs += [
+    files(
+      'platform/wayland/wayland.cc',
+      'platform/wayland/input.cc',
+      'platform/wayland/wayland-protocols/pointer-constraints-unstable-v1.c',
+      'platform/wayland/wayland-protocols/relative-pointer-unstable-v1.c',
+      'platform/wayland/wayland-protocols/xdg-shell.c'
+      )
+    ]
 endif
 
 if build_machine.system() == 'windows'
-  srcs += [files('platform/windows/glad.cc',
-                 'platform/windows/input.cc',
-                 'platform/windows/windows.cc')]
+  srcs += [
+    files(
+      'platform/windows/glad.cc',
+      'platform/windows/input.cc',
+      'platform/windows/windows.cc'
+      )
+    ]
 endif
 
-executable('wl-cube', sources: srcs, dependencies: deps, install: true)
+executable('wl-cube', sources: srcs, dependencies: deps, install: false)

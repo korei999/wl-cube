@@ -7,13 +7,13 @@ struct App
     int wWidth = 1920;
     int wHeight = 1080;
 
-    bool isRunning = false;
-    bool isConfigured = false;
+    bool bRunning = false;
+    bool bConfigured = false;
     int swapInterval = 1;
 
-    bool isPaused = false;
-    bool isRelativeMode = false;
-    bool isFullscreen = false;
+    bool bPaused = false;
+    bool bRelativeMode = false;
+    bool bFullscreen = false;
 
     std::string_view name;
 

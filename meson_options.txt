@@ -1,0 +1,2 @@
+option('MODEL', type: 'boolean', value: 'false')
+option('GLTF', type: 'boolean', value: 'false')

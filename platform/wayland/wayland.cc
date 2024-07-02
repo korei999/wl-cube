@@ -88,7 +88,7 @@ xdgSurfaceConfigureHandler([[maybe_unused]] void* data,
 {
     auto app = (WlClient*)data;
     xdg_surface_ack_configure(xdgSurface, serial);
-    app->isConfigured = true;
+    app->bConfigured = true;
 }
 
 static void
@@ -116,7 +116,7 @@ xdgToplevelCloseHandler([[maybe_unused]] void* data,
 		                [[maybe_unused]] xdg_toplevel* xdgToplevel)
 {
     auto app = (WlClient*)data;
-    app->isRunning = false;
+    app->bRunning = false;
     LOG(OK, "closing...\n");
 }
 
@@ -217,7 +217,7 @@ WlClient::WlClient(std::string_view name)
 WlClient::~WlClient()
 {
     LOG(OK, "cleanup ...\n");
-    if (isRelativeMode)
+    if (bRelativeMode)
         disableRelativeMode();
     if (pointer)
         wl_pointer_destroy(pointer);
@@ -392,16 +392,16 @@ WlClient::unsetFullscreen()
 void
 WlClient::togglePointerRelativeMode()
 {
-    isRelativeMode = !isRelativeMode;
-    isRelativeMode ? enableRelativeMode() : disableRelativeMode();
-    LOG(OK, "relative mode: {}\n", isRelativeMode);
+    bRelativeMode = !bRelativeMode;
+    bRelativeMode ? enableRelativeMode() : disableRelativeMode();
+    LOG(OK, "relative mode: {}\n", bRelativeMode);
 }
 
 void
 WlClient::toggleFullscreen()
 {
-    isFullscreen = !isFullscreen;
-    isFullscreen ? setFullscreen() : unsetFullscreen();
+    bFullscreen = !bFullscreen;
+    bFullscreen ? setFullscreen() : unsetFullscreen();
 }
 
 void 
