@@ -79,7 +79,7 @@ Asset::Asset(std::string_view path)
 
 #ifdef GLTF
     LOG(OK, "GLTF: '{}'\n", path);
-    auto check = [](std::string_view sv, json::Node* p) -> void {
+    auto check = [](std::string_view sv, json::KeyVal* p) -> void {
         CERR("\t{}: '{}'\n", sv, p ? p->svKey : "(null)");
     };
 
@@ -120,12 +120,6 @@ Asset::Asset(std::string_view path)
 #ifdef GLTF
         LOG(OK, "first scene idx: '{}'\n", this->aScenes.front().nodeIdx);
 #endif
-}
-
-void
-Asset::printJSON()
-{
-    p.print();
 }
 
 } /* namespace gltf */

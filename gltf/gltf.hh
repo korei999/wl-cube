@@ -25,19 +25,19 @@ enum class TARGET
 
 struct Nodes
 {
-    json::Node* nScene;
-    json::Node* nScenes;
-    json::Node* nNodes;
-    json::Node* nMeshes;
-    json::Node* nBuffers;
-    json::Node* nBufferViews;
-    json::Node* nAccessors;
-    json::Node* nMaterials;
-    json::Node* nTextures;
-    json::Node* nImages;
-    json::Node* nSamplers;
-    json::Node* nSkins;
-    json::Node* nAnimations;
+    json::KeyVal* nScene;
+    json::KeyVal* nScenes;
+    json::KeyVal* nNodes;
+    json::KeyVal* nMeshes;
+    json::KeyVal* nBuffers;
+    json::KeyVal* nBufferViews;
+    json::KeyVal* nAccessors;
+    json::KeyVal* nMaterials;
+    json::KeyVal* nTextures;
+    json::KeyVal* nImages;
+    json::KeyVal* nSamplers;
+    json::KeyVal* nSkins;
+    json::KeyVal* nAnimations;
 };
 
 struct Scene
@@ -100,8 +100,6 @@ struct Asset
     std::vector<Image> aImages;
 
     Asset(std::string_view path);
-
-    void printJSON();
 };
 
 } /* namespace gltf */

@@ -16,7 +16,7 @@ Parser::Parser(std::string_view path)
         exit(2);
     }
 
-    m_upHead = std::make_unique<Node>();
+    m_upHead = std::make_unique<KeyVal>();
 }
 
 void
@@ -44,7 +44,7 @@ Parser::next()
 }
 
 void
-Parser::parseNode(Node* pNode)
+Parser::parseNode(KeyVal* pNode)
 {
     switch (m_tCurr.type)
     {
@@ -102,11 +102,11 @@ Parser::parseNumber(TagVal* pTV)
 }
 
 void
-Parser::parseObject(Node* pNode)
+Parser::parseObject(KeyVal* pNode)
 {
     pNode->tagVal.tag = TAG::OBJECT;
-    pNode->tagVal.val = std::vector<Node>{};
-    auto& aObjs = std::get<std::vector<Node>>(pNode->tagVal.val);
+    pNode->tagVal.val = std::vector<KeyVal>{};
+    auto& aObjs = std::get<std::vector<KeyVal>>(pNode->tagVal.val);
 
     for (; m_tCurr.type != Token::RBRACE; next())
     {
@@ -132,7 +132,7 @@ Parser::parseObject(Node* pNode)
 }
 
 void
-Parser::parseArray(Node* pNode)
+Parser::parseArray(KeyVal* pNode)
 {
     pNode->tagVal.tag = TAG::ARRAY;
     pNode->tagVal.val = std::vector<TagVal>{};
@@ -166,8 +166,8 @@ Parser::parseArray(Node* pNode)
             case Token::LBRACE:
                 next();
                 aTVs.back().tag = TAG::OBJECT;
-                aTVs.back().val = std::vector<Node>(1);
-                auto& obj = std::get<std::vector<Node>>(aTVs.back().val).back();
+                aTVs.back().val = std::vector<KeyVal>(1);
+                auto& obj = std::get<std::vector<KeyVal>>(aTVs.back().val).back();
                 parseObject(&obj);
                 break;
         }
@@ -206,7 +206,7 @@ Parser::print()
 }
 
 void
-Parser::printNode(Node* pNode, std::string_view svEnd)
+Parser::printNode(KeyVal* pNode, std::string_view svEnd)
 {
     std::string_view key = pNode->svKey;
 
@@ -298,7 +298,7 @@ Parser::printNode(Node* pNode, std::string_view svEnd)
                             break;
 
                         case TAG::OBJECT:
-                                printNode(&std::get<std::vector<Node>>(arr[i].val).back(), slE);
+                                printNode(&std::get<std::vector<KeyVal>>(arr[i].val).back(), slE);
                             break;
                     }
                 }
@@ -339,6 +339,18 @@ Parser::printNode(Node* pNode, std::string_view svEnd)
             }
             break;
     }
+}
+
+KeyVal*
+Parser::searchObject(std::vector<KeyVal>& aObj, std::string_view svKey)
+{
+    for (auto& node : aObj)
+    {
+        if (node.svKey == svKey)
+            return &node;
+    }
+
+    return nullptr;
 }
 
 } /* namespace json */

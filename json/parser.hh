@@ -10,13 +10,13 @@ namespace json
 struct Parser
 {
     const std::string m_sName = {};
-    std::unique_ptr<Node> m_upHead = {};
+    std::unique_ptr<KeyVal> m_upHead = {};
 
     Parser(std::string_view path);
 
     void parse();
     void print();
-    void printNode(Node* pNode, std::string_view svEnd);
+    void printNode(KeyVal* pNode, std::string_view svEnd);
 
 private:
     Lexer m_l;
@@ -25,19 +25,20 @@ private:
 
     void expect(enum Token::TYPE t);
     void next();
-    void parseNode(Node* pNode);
+    void parseNode(KeyVal* pNode);
     void parseIdent(TagVal* pTV);
     void parseNumber(TagVal* pTV);
-    void parseObject(Node* pNode);
-    void parseArray(Node* pNode);
+    void parseObject(KeyVal* pNode);
+    void parseArray(KeyVal* pNode);
     void parseNull(TagVal* pTV);
     void parseBool(TagVal* pTV);
+    KeyVal* searchObject(std::vector<KeyVal>& aObj, std::string_view svKey);
 };
 
-static inline std::vector<Node>&
+static inline std::vector<KeyVal>&
 getObject(decltype(TagVal::val)& val)
 {
-    return std::get<std::vector<Node>>(val);
+    return std::get<std::vector<KeyVal>>(val);
 }
 
 static inline std::vector<TagVal>&
