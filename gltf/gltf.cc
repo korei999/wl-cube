@@ -98,7 +98,7 @@ Model::Model(std::string_view path)
     check("animations", this->nodes.nAnimations);
 #endif
 
-    this->defaultSceneIdx = std::get<long>(this->nodes.nScene->tagVal.val);
+    this->defaultSceneIdx = json::getInteger(this->nodes.nScene->tagVal.val);
 
 #ifdef GLTF
     LOG(OK, "defaultSceneIdx: {}\n", this->defaultSceneIdx);
@@ -108,6 +108,7 @@ Model::Model(std::string_view path)
         LOG(OK, "processing '{}'...\n", this->nodes.nScenes->svKey);
 #endif
     {
+        /* TODO: push each index (not used much) */
         auto scenes = this->nodes.nScenes;
         auto& arr = json::getArray(scenes->tagVal.val);
         auto& obj = json::getObject(arr.front().val);
