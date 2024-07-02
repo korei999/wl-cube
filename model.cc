@@ -292,7 +292,7 @@ Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 void
 Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    gltf::Model m(path);
+    gltf::Asset m(path);
     m.printJSON();
 }
 

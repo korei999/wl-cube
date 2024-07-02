@@ -22,7 +22,7 @@ enum class GLTFHash : u64
     animations = hashFNV("animations")
 };
 
-Model::Model(std::string_view path)
+Asset::Asset(std::string_view path)
     : p(path)
 {
     p.parse();
@@ -123,7 +123,7 @@ Model::Model(std::string_view path)
 }
 
 void
-Model::printJSON()
+Asset::printJSON()
 {
     p.print();
 }
