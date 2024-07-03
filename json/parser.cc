@@ -16,7 +16,7 @@ Parser::Parser(std::string_view path)
         exit(2);
     }
 
-    m_upHead = std::make_unique<KeyVal>();
+    m_upHead = std::make_unique<Object>();
 }
 
 void
@@ -44,7 +44,7 @@ Parser::next()
 }
 
 void
-Parser::parseNode(KeyVal* pNode)
+Parser::parseNode(Object* pNode)
 {
     switch (m_tCurr.type)
     {
@@ -102,11 +102,11 @@ Parser::parseNumber(TagVal* pTV)
 }
 
 void
-Parser::parseObject(KeyVal* pNode)
+Parser::parseObject(Object* pNode)
 {
     pNode->tagVal.tag = TAG::OBJECT;
-    pNode->tagVal.val = std::vector<KeyVal>{};
-    auto& aObjs = std::get<std::vector<KeyVal>>(pNode->tagVal.val);
+    pNode->tagVal.val = std::vector<Object>{};
+    auto& aObjs = std::get<std::vector<Object>>(pNode->tagVal.val);
 
     for (; m_tCurr.type != Token::RBRACE; next())
     {
@@ -132,11 +132,11 @@ Parser::parseObject(KeyVal* pNode)
 }
 
 void
-Parser::parseArray(KeyVal* pNode)
+Parser::parseArray(Object* pNode)
 {
     pNode->tagVal.tag = TAG::ARRAY;
-    pNode->tagVal.val = std::vector<TagVal>{};
-    auto& aTVs = std::get<std::vector<TagVal>>(pNode->tagVal.val);
+    pNode->tagVal.val = std::vector<Object>{};
+    auto& aTVs = getArray(*pNode);
 
     /* collect each key/value pair inside array */
     for (; m_tCurr.type != Token::RBRACKET; next())
@@ -147,29 +147,25 @@ Parser::parseArray(KeyVal* pNode)
         {
             default:
             case Token::IDENT:
-                parseIdent(&aTVs.back());
+                parseIdent(&aTVs.back().tagVal);
                 break;
 
             case Token::NULL_:
-                parseNull(&aTVs.back());
+                parseNull(&aTVs.back().tagVal);
                 break;
 
             case Token::TRUE:
             case Token::FALSE:
-                parseBool(&aTVs.back());
+                parseBool(&aTVs.back().tagVal);
                 break;
 
             case Token::NUMBER:
-                parseNumber(&aTVs.back());
+                parseNumber(&aTVs.back().tagVal);
                 break;
 
             case Token::LBRACE:
                 next();
-                /* TODO: It's much easier to parse if objects and arrays are the same structure, so no need to access object twice */
-                aTVs.back().tag = TAG::OBJECT;
-                aTVs.back().val = std::vector<KeyVal>(1);
-                auto& obj = std::get<std::vector<KeyVal>>(aTVs.back().val).back();
-                parseObject(&obj);
+                parseObject(&aTVs.back());
                 break;
         }
 
@@ -207,7 +203,7 @@ Parser::print()
 }
 
 void
-Parser::printNode(KeyVal* pNode, std::string_view svEnd)
+Parser::printNode(Object* pNode, std::string_view svEnd)
 {
     std::string_view key = pNode->svKey;
 
@@ -218,7 +214,7 @@ Parser::printNode(KeyVal* pNode, std::string_view svEnd)
 
         case TAG::OBJECT:
             {
-                auto& obj = getObject(pNode->tagVal.val);
+                auto& obj = getObject(*pNode);
                 std::string q0, q1, objName0, objName1;
 
                 if (key.size() == 0)
@@ -244,7 +240,7 @@ Parser::printNode(KeyVal* pNode, std::string_view svEnd)
 
         case TAG::ARRAY:
             {
-                auto& arr = getArray(pNode->tagVal.val);
+                auto& arr = getArray(*pNode);
                 std::string q0, q1, arrName0, arrName1;
 
                 if (key.size() == 0)
@@ -263,12 +259,12 @@ Parser::printNode(KeyVal* pNode, std::string_view svEnd)
                 {
                     std::string slE = (i == arr.size() - 1) ? "\n" : ",\n";
 
-                    switch (arr[i].tag)
+                    switch (arr[i].tagVal.tag)
                     {
                         default:
                         case TAG::STRING:
                             {
-                                std::string_view sl = std::get<std::string_view>(arr[i].val);
+                                std::string_view sl = std::get<std::string_view>(arr[i].tagVal.val);
                                 COUT("\"{}\"{}", sl, slE);
                             }
                             break;
@@ -279,27 +275,27 @@ Parser::printNode(KeyVal* pNode, std::string_view svEnd)
 
                         case TAG::LONG:
                             {
-                                long num = std::get<long>(arr[i].val);
+                                long num = std::get<long>(arr[i].tagVal.val);
                                 COUT("{}{}", num, slE);
                             }
                             break;
 
                         case TAG::DOUBLE:
                             {
-                                double dnum = std::get<double>(arr[i].val);
+                                double dnum = std::get<double>(arr[i].tagVal.val);
                                 COUT("{}{}", dnum, slE);
                             }
                             break;
 
                         case TAG::BOOL:
                             {
-                                bool b = std::get<bool>(arr[i].val);
+                                bool b = std::get<bool>(arr[i].tagVal.val);
                                 COUT("{}{}", b, slE);
                             }
                             break;
 
                         case TAG::OBJECT:
-                                printNode(&std::get<std::vector<KeyVal>>(arr[i].val).back(), slE);
+                                printNode(&arr[i], slE);
                             break;
                     }
                 }

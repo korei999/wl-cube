@@ -26,20 +26,20 @@ enum class TARGET
 
 struct Nodes
 {
-    json::KeyVal* scene;
-    json::KeyVal* scenes;
-    json::KeyVal* nodes;
-    json::KeyVal* meshes;
-    json::KeyVal* cameras;
-    json::KeyVal* buffers;
-    json::KeyVal* bufferViews;
-    json::KeyVal* accessors;
-    json::KeyVal* materials;
-    json::KeyVal* textures;
-    json::KeyVal* images;
-    json::KeyVal* samplers;
-    json::KeyVal* skins;
-    json::KeyVal* animations;
+    json::Object* scene;
+    json::Object* scenes;
+    json::Object* nodes;
+    json::Object* meshes;
+    json::Object* cameras;
+    json::Object* buffers;
+    json::Object* bufferViews;
+    json::Object* accessors;
+    json::Object* materials;
+    json::Object* textures;
+    json::Object* images;
+    json::Object* samplers;
+    json::Object* skins;
+    json::Object* animations;
 };
 
 struct Scene

@@ -28,7 +28,7 @@ getTAGString(enum TAG t)
     return TAGStrings[(int)t];
 }
 
-struct KeyVal;
+struct Object;
 
 struct TagVal
 {
@@ -36,13 +36,12 @@ struct TagVal
     std::variant<std::string_view,
                  long,
                  double,
-                 std::vector<TagVal>, /* aka JSON array */
-                 std::vector<KeyVal>, /* aka JSON object */
+                 std::vector<Object>, /* aka JSON object */
                  bool,
                  std::nullptr_t> val;
 };
 
-struct KeyVal
+struct Object
 {
     std::string_view svKey;
     TagVal tagVal;
