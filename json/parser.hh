@@ -37,9 +37,6 @@ private:
     void parseBool(TagVal* pTV);
 };
 
-/* Interface for getting values from pObject->tagVal.val */
-/* maybe extracting values from pObject directly is sufficient idk... */
-
 static inline std::vector<Object>&
 getObject(Object& obj)
 {
