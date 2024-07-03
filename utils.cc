@@ -164,7 +164,7 @@ timeNow()
 }
 
 std::string
-replaceFileSuffixInPath(std::string_view path, std::string* suffix)
+replaceFileSuffixInPath(std::string_view path, std::string_view suffix)
 {
 #ifdef _WIN32
     suffix->back() = '\0';
@@ -173,5 +173,5 @@ replaceFileSuffixInPath(std::string_view path, std::string* suffix)
     auto lastSlash = path.find_last_of("/");
     std::string pathToMtl {path.begin(), path.begin() + lastSlash};
 
-    return {pathToMtl + "/" + (*suffix)};
+    return {pathToMtl + "/" + std::string(suffix)};
 }

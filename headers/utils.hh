@@ -24,7 +24,7 @@ f32 rngGet(f32 min, f32 max);
 void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
 void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip);
 void flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
-std::string replaceFileSuffixInPath(std::string_view str, std::string* suffix);
+std::string replaceFileSuffixInPath(std::string_view path, std::string_view suffix);
 
 const std::string_view severityStr[FATAL + 1] {
     "",

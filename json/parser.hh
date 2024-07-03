@@ -35,7 +35,6 @@ private:
     void parseArray(KeyVal* pNode);
     void parseNull(TagVal* pTV);
     void parseBool(TagVal* pTV);
-    KeyVal* searchObject(std::vector<KeyVal>& aObj, std::string_view svKey);
 };
 
 static inline std::vector<KeyVal>&
@@ -66,6 +65,16 @@ static inline std::string_view
 getStringView(decltype(TagVal::val)& val)
 {
     return std::get<std::string_view>(val);
+}
+
+static inline KeyVal*
+searchObject(std::vector<KeyVal>& aObj, std::string_view svKey)
+{
+    for (auto& node : aObj)
+        if (node.svKey == svKey)
+            return &node;
+
+    return nullptr;
 }
 
 } /* namespace json */

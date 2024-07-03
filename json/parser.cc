@@ -341,16 +341,4 @@ Parser::printNode(KeyVal* pNode, std::string_view svEnd)
     }
 }
 
-KeyVal*
-Parser::searchObject(std::vector<KeyVal>& aObj, std::string_view svKey)
-{
-    for (auto& node : aObj)
-    {
-        if (node.svKey == svKey)
-            return &node;
-    }
-
-    return nullptr;
-}
-
 } /* namespace json */

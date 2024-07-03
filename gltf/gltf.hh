@@ -19,26 +19,27 @@ enum class COMPONENT_TYPE
 
 enum class TARGET
 {
+    NONE = 0,
     ARRAY_BUFFER = 34962,
     ELEMENT_ARRAY_BUFFER = 34963
 };
 
 struct Nodes
 {
-    json::KeyVal* nScene;
-    json::KeyVal* nScenes;
-    json::KeyVal* nNodes;
-    json::KeyVal* nMeshes;
-    json::KeyVal* nCameras;
-    json::KeyVal* nBuffers;
-    json::KeyVal* nBufferViews;
-    json::KeyVal* nAccessors;
-    json::KeyVal* nMaterials;
-    json::KeyVal* nTextures;
-    json::KeyVal* nImages;
-    json::KeyVal* nSamplers;
-    json::KeyVal* nSkins;
-    json::KeyVal* nAnimations;
+    json::KeyVal* scene;
+    json::KeyVal* scenes;
+    json::KeyVal* nodes;
+    json::KeyVal* meshes;
+    json::KeyVal* cameras;
+    json::KeyVal* buffers;
+    json::KeyVal* bufferViews;
+    json::KeyVal* accessors;
+    json::KeyVal* materials;
+    json::KeyVal* textures;
+    json::KeyVal* images;
+    json::KeyVal* samplers;
+    json::KeyVal* skins;
+    json::KeyVal* animations;
 };
 
 struct Scene
@@ -134,6 +135,7 @@ struct Asset
     size_t defaultSceneIdx;
     std::vector<Scene> aScenes;
     std::vector<Buffer> aBuffers;
+    std::vector<BufferView> aBufferViews;
     std::vector<Image> aImages;
 
     Asset(std::string_view path);
