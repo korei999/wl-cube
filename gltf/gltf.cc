@@ -1,27 +1,72 @@
 #include "gltf.hh"
 
-#include "../headers/utils.hh"
-
 namespace gltf
 {
 
-enum class GLTFHash : u64
+static inline enum ACCESSOR_TYPE
+stringToAccessorType(std::string_view sv)
 {
-    scene = hashFNV("scene"),
-    scenes = hashFNV("scenes"),
-    nodes = hashFNV("nodes"),
-    meshes = hashFNV("meshes"),
-    cameras = hashFNV("cameras"),
-    buffers = hashFNV("buffers"),
-    bufferViews = hashFNV("bufferViews"),
-    accessors = hashFNV("accessors"),
-    materials = hashFNV("materials"),
-    textures = hashFNV("textures"),
-    images = hashFNV("images"),
-    samplers = hashFNV("samplers"),
-    skins = hashFNV("skins"),
-    animations = hashFNV("animations")
-};
+    switch (hashFNV(sv))
+    {
+        default:
+        case (u64)HASH_CODES::SCALAR:
+            return ACCESSOR_TYPE::SCALAR;
+        case (u64)HASH_CODES::VEC2:
+            return ACCESSOR_TYPE::VEC2;
+        case (u64)HASH_CODES::VEC3:
+            return ACCESSOR_TYPE::VEC3;
+        case (u64)HASH_CODES::VEC4:
+            return ACCESSOR_TYPE::VEC4;
+        case (u64)HASH_CODES::MAT3:
+            return ACCESSOR_TYPE::MAT3;
+        case (u64)HASH_CODES::MAT4:
+            return ACCESSOR_TYPE::MAT4;
+    }
+}
+
+static inline union Type
+accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
+{
+    union Type type;
+
+    auto assignUnionType = [](json::Object* obj, size_t n) -> union Type {
+        auto& arr = json::getArray(*obj);
+        union Type type;
+
+        for (size_t i = 0; i < n; i++)
+            type.MAT4.p[i] = json::getReal(arr[i]);
+
+        return type;
+    };
+
+    switch (t)
+    {
+        default:
+        case ACCESSOR_TYPE::SCALAR:
+            {
+                auto& arr = json::getArray(*obj);
+                type.SCALAR = static_cast<size_t>(json::getInteger(arr[0]));
+            }
+            break;
+        case ACCESSOR_TYPE::VEC2:
+            type = assignUnionType(obj, 2);
+            break;
+        case ACCESSOR_TYPE::VEC3:
+            type = assignUnionType(obj, 3);
+            break;
+        case ACCESSOR_TYPE::VEC4:
+            type = assignUnionType(obj, 4);
+            break;
+        case ACCESSOR_TYPE::MAT3:
+            type = assignUnionType(obj, 3*3);
+            break;
+        case ACCESSOR_TYPE::MAT4:
+            type = assignUnionType(obj, 4*4);
+            break;
+    }
+
+    return type;
+}
 
 Asset::Asset(std::string_view path)
     : p(path)
@@ -29,53 +74,52 @@ Asset::Asset(std::string_view path)
     p.parse();
 
     /* collect all the top level objects */
-    /*for (auto& node : getNodes(this->p.m_upHead.get()))*/
     for (auto& node : json::getObject(*this->p.m_upHead))
     {
         switch (hashFNV(node.svKey))
         {
             default:
                 break;
-            case (u64)GLTFHash::scene:
+            case (u64)HASH_CODES::scene:
                 nodes.scene = &node;
                 break;
-            case (u64)GLTFHash::scenes:
+            case (u64)HASH_CODES::scenes:
                 nodes.scenes = &node;
                 break;
-            case (u64)GLTFHash::nodes:
+            case (u64)HASH_CODES::nodes:
                 nodes.nodes = &node;
                 break;
-            case (u64)GLTFHash::meshes:
+            case (u64)HASH_CODES::meshes:
                 nodes.meshes = &node;
                 break;
-            case (u64)GLTFHash::cameras:
+            case (u64)HASH_CODES::cameras:
                 nodes.cameras = &node;
                 break;
-            case (u64)GLTFHash::buffers:
+            case (u64)HASH_CODES::buffers:
                 nodes.buffers = &node;
                 break;
-            case (u64)GLTFHash::bufferViews:
+            case (u64)HASH_CODES::bufferViews:
                 nodes.bufferViews = &node;
                 break;
-            case (u64)GLTFHash::accessors:
+            case (u64)HASH_CODES::accessors:
                 nodes.accessors = &node;
                 break;
-            case (u64)GLTFHash::materials:
+            case (u64)HASH_CODES::materials:
                 nodes.materials = &node;
                 break;
-            case (u64)GLTFHash::textures:
+            case (u64)HASH_CODES::textures:
                 nodes.textures = &node;
                 break;
-            case (u64)GLTFHash::images:
+            case (u64)HASH_CODES::images:
                 nodes.images = &node;
                 break;
-            case (u64)GLTFHash::samplers:
+            case (u64)HASH_CODES::samplers:
                 nodes.samplers = &node;
                 break;
-            case (u64)GLTFHash::skins:
+            case (u64)HASH_CODES::skins:
                 nodes.skins = &node;
                 break;
-            case (u64)GLTFHash::animations:
+            case (u64)HASH_CODES::animations:
                 nodes.animations = &node;
                 break;
         }
@@ -109,7 +153,6 @@ Asset::Asset(std::string_view path)
     LOG(OK, "processing '{}'...\n", this->nodes.scenes->svKey);
 #endif
     {
-        /* TODO: push each index (not used much) */
         auto scenes = this->nodes.scenes;
         auto& arr = json::getArray(*scenes);
         for (auto& e : arr)
@@ -129,12 +172,12 @@ Asset::Asset(std::string_view path)
             }
         }
     }
-
 #ifdef GLTF
     LOG(OK, "scene nodes: ");
     for (auto& n : this->aScenes)
-        CERR("{}, \n", n.nodeIdx);
+        CERR("{}, ", n.nodeIdx);
     CERR("\n");
+
     LOG(OK, "processing '{}'...\n", this->nodes.buffers->svKey);
 #endif
     {
@@ -145,7 +188,7 @@ Asset::Asset(std::string_view path)
             auto& obj = json::getObject(e);
             auto pByteLength = json::searchObject(obj, "byteLength");
             auto pUri = json::searchObject(obj, "uri");
-            if (!pByteLength) LOG(FATAL, "byteLength field is required\n");
+            if (!pByteLength) LOG(FATAL, "'byteLength' field is required\n");
 
             std::string_view svUri;
             std::vector<char> aBin;
@@ -158,9 +201,79 @@ Asset::Asset(std::string_view path)
             }
 
             this->aBuffers.push_back({
-                .byteLength = (size_t)json::getInteger(*pByteLength),
+                .byteLength = static_cast<size_t>(json::getInteger(*pByteLength)),
                 .uri = svUri,
                 .aBin = aBin
+            });
+        }
+    }
+#ifdef GLTF
+    LOG(OK, "buffers:\n");
+    for (auto& b : this->aBuffers)
+        CERR("\tbyteLength: '{}', uri: '{}'\n", b.byteLength, b.uri);
+
+    LOG(OK, "processing '{}'...\n", this->nodes.bufferViews->svKey);
+#endif
+    {
+        auto bufferViews = this->nodes.bufferViews;
+        auto& arr = json::getArray(*bufferViews);
+        for (auto& e : arr)
+        {
+            auto& obj = json::getObject(e);
+
+            auto pBuffer = json::searchObject(obj, "buffer");
+            if (!pBuffer) LOG(FATAL, "'buffer' field is required\n");
+            auto pByteOffset = json::searchObject(obj, "byteOffset");
+            auto pByteLength = json::searchObject(obj, "byteLength");
+            if (!pByteLength) LOG(FATAL, "'byteLength' field is required\n");
+            auto pByteStride = json::searchObject(obj, "byteStride");
+            auto pTarget = json::searchObject(obj, "target");
+
+            this->aBufferViews.push_back({
+                .buffer = static_cast<size_t>(json::getInteger(*pBuffer)),
+                .byteOffset = pByteOffset ? static_cast<size_t>(json::getInteger(*pByteOffset)) : 0,
+                .byteLength = static_cast<size_t>(json::getInteger(*pByteLength)),
+                .byteStride = pByteStride ? static_cast<size_t>(json::getInteger(*pByteStride)) : 0,
+                .target = pTarget ? static_cast<enum TARGET>(json::getInteger(*pTarget)) : TARGET::NONE
+            });
+        }
+    }
+#ifdef GLTF
+    LOG(OK, "bufferViews:\n");
+    for (auto& bv : this->aBufferViews)
+        CERR("\tbuffer: '{}'\n\tbyteOffset: '{}'\n\tbyteLength: '{}'\n\tbyteStride: '{}'\n\ttarget: '{}'\n\n",
+             bv.buffer, bv.byteOffset, bv.byteLength, bv.byteStride, getTARGETString(bv.target));
+
+    LOG(OK, "processing '{}'...\n", this->nodes.accessors->svKey);
+#endif
+    {
+        auto accessors = this->nodes.accessors;
+        auto& arr = json::getArray(*accessors);
+        for (auto& e : arr)
+        {
+            auto& obj = json::getObject(e);
+
+            auto pBufferView = json::searchObject(obj, "bufferView");
+            auto pByteOffset = json::searchObject(obj, "byteOffset");
+            auto pComponentType = json::searchObject(obj, "componentType");
+            if (!pComponentType) LOG(FATAL, "'componentType' filed is required\n");
+            auto pCount = json::searchObject(obj, "count");
+            if (!pCount) LOG(FATAL, "'count' field is required\n");
+            auto pMax = json::searchObject(obj, "max");
+            auto pMin = json::searchObject(obj, "min");
+            auto pType = json::searchObject(obj, "type");
+            if (!pType) LOG(FATAL, "'type' field is required\n");
+
+            enum ACCESSOR_TYPE type = stringToAccessorType(json::getStringView(*pType));
+
+            this->aAccessors.push_back({
+                .bufferView = pBufferView ? static_cast<size_t>(json::getInteger(*pBufferView)) : 0,
+                .byteOffset = pByteOffset ? static_cast<size_t>(json::getInteger(*pByteOffset)) : 0,
+                .componentType = static_cast<enum COMPONENT_TYPE>(json::getInteger(*pComponentType)),
+                .count = static_cast<size_t>(json::getInteger(*pCount)),
+                .max = pMax ? accessorTypeToUnionType(type, pMax) : Type{},
+                .min = pMin ? accessorTypeToUnionType(type, pMin) : Type{},
+                .type = type
             });
         }
     }

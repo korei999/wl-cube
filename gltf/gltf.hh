@@ -3,9 +3,34 @@
 
 #include "../json/parser.hh"
 #include "headers/gmath.hh"
+#include "headers/utils.hh"
 
 namespace gltf
 {
+
+enum class HASH_CODES : u64
+{
+    scene = hashFNV("scene"),
+    scenes = hashFNV("scenes"),
+    nodes = hashFNV("nodes"),
+    meshes = hashFNV("meshes"),
+    cameras = hashFNV("cameras"),
+    buffers = hashFNV("buffers"),
+    bufferViews = hashFNV("bufferViews"),
+    accessors = hashFNV("accessors"),
+    materials = hashFNV("materials"),
+    textures = hashFNV("textures"),
+    images = hashFNV("images"),
+    samplers = hashFNV("samplers"),
+    skins = hashFNV("skins"),
+    animations = hashFNV("animations"),
+    SCALAR = hashFNV("SCALAR"),
+    VEC2 = hashFNV("VEC2"),
+    VEC3 = hashFNV("VEC3"),
+    VEC4 = hashFNV("VEC4"),
+    MAT3 = hashFNV("MAT3"),
+    MAT4 = hashFNV("MAT4")
+};
 
 enum class COMPONENT_TYPE
 {
@@ -23,6 +48,21 @@ enum class TARGET
     ARRAY_BUFFER = 34962,
     ELEMENT_ARRAY_BUFFER = 34963
 };
+
+constexpr std::string_view
+getTARGETString(enum TARGET t)
+{
+    switch (t)
+    {
+        default:
+        case TARGET::NONE:
+            return "NONE";
+        case TARGET::ARRAY_BUFFER:
+            return "ARRAY_BUFFER";
+        case TARGET::ELEMENT_ARRAY_BUFFER:
+            return "ELEMENT_ARRAY_BUFFER";
+    }
+}
 
 struct Nodes
 {
@@ -54,6 +94,17 @@ struct Buffer
     std::vector<char> aBin;
 };
 
+enum class ACCESSOR_TYPE
+{
+    SCALAR,
+    VEC2,
+    VEC3,
+    VEC4,
+    /*MAT2, Unused*/
+    MAT3,
+    MAT4
+};
+
 union Type
 {
     size_t SCALAR;
@@ -67,13 +118,13 @@ union Type
 
 struct Accessor
 {
-    size_t buffView;
+    size_t bufferView;
     size_t byteOffset;
-    enum COMPONENT_TYPE componentType;
-    size_t count;
-    Type max;
-    Type min;
-    std::string_view type;
+    enum COMPONENT_TYPE componentType; /* REQUIRED */
+    size_t count; /* REQUIRED */
+    union Type max;
+    union Type min;
+    enum ACCESSOR_TYPE type; /* REQUIRED */
 };
 
 struct Node
@@ -137,6 +188,7 @@ struct Asset
     std::vector<Buffer> aBuffers;
     std::vector<BufferView> aBufferViews;
     std::vector<Image> aImages;
+    std::vector<Accessor> aAccessors;
 
     Asset(std::string_view path);
 };
