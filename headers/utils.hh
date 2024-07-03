@@ -41,8 +41,9 @@ extern std::mutex logMtx;
 #define ODD(A) (A & 1)
 #define EVEN(A) (!ODD(A))
 
-#define COUT std::cout << std::format
-#define CERR std::cerr << std::format
+#define FMT std::format
+#define COUT std::cout << FMT
+#define CERR std::cerr << FMT
 
 #ifdef LOGS
 #    define LOG(severity, ...)                                                                                         \

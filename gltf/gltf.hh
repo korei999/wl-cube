@@ -42,6 +42,27 @@ enum class COMPONENT_TYPE
     FLOAT = 5126
 };
 
+constexpr std::string_view
+getComponentTypeString(enum COMPONENT_TYPE t)
+{
+    switch (t)
+    {
+        default:
+        case COMPONENT_TYPE::BYTE:
+            return "BYTE";
+        case COMPONENT_TYPE::UNSIGNED_BYTE:
+            return "UNSIGNED_BYTE";
+        case COMPONENT_TYPE::SHORT:
+            return "SHORT";
+        case COMPONENT_TYPE::UNSIGNED_SHORT:
+            return "UNSIGNED_SHORT";
+        case COMPONENT_TYPE::UNSIGNED_INT:
+            return "UNSIGNED_INT";
+        case COMPONENT_TYPE::FLOAT:
+            return "FLOAT";
+    }
+}
+
 enum class TARGET
 {
     NONE = 0,
@@ -50,7 +71,7 @@ enum class TARGET
 };
 
 constexpr std::string_view
-getTARGETString(enum TARGET t)
+getTargetString(enum TARGET t)
 {
     switch (t)
     {
@@ -108,8 +129,8 @@ enum class ACCESSOR_TYPE
 union Type
 {
     size_t SCALAR;
-    v3 VEC3;
     v2 VEC2;
+    v3 VEC3;
     v4 VEC4;
     /*m2 MAT2; Unused */
     m3 MAT3;

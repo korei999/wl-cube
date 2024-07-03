@@ -68,6 +68,39 @@ accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
     return type;
 }
 
+static inline std::string
+getUnionTypeString(enum ACCESSOR_TYPE type, const union Type& t, std::string_view prefix)
+{
+    switch (type)
+    {
+        default:
+            return "unknown";
+        case ACCESSOR_TYPE::SCALAR:
+            return FMT("{}({})", prefix, t.SCALAR);
+        case ACCESSOR_TYPE::VEC2:
+            return FMT("{}({}, {})", prefix, t.VEC2.x, t.VEC2.y);
+        case ACCESSOR_TYPE::VEC3:
+            return FMT("{}({}, {}, {})", prefix, t.VEC3.x, t.VEC3.y, t.VEC3.z);
+        case ACCESSOR_TYPE::VEC4:
+            return FMT("{}({}, {}, {}, {})", prefix, t.VEC4.x, t.VEC4.y, t.VEC4.z, t.VEC4.w);
+        case ACCESSOR_TYPE::MAT3:
+            return FMT("{}({}, {}, {}\n"
+                       "{} {}, {}, {}\n"
+                       "{} {}, {}, {})\n", prefix, t.MAT3.e[0][0], t.MAT3.e[0][1], t.MAT3.e[0][2],
+                                           prefix, t.MAT3.e[1][0], t.MAT3.e[1][1], t.MAT3.e[1][2],
+                                           prefix, t.MAT3.e[2][0], t.MAT3.e[2][1], t.MAT3.e[2][2]);
+        case ACCESSOR_TYPE::MAT4:
+            return FMT("{}({}, {}, {}, {}\n"
+                       "{} {}, {}, {}, {}\n"
+                       "{} {}, {}, {}, {}\n"
+                       "{} {}, {}, {}, {})\n", prefix, t.MAT4.e[0][0], t.MAT4.e[0][1], t.MAT4.e[0][2], t.MAT4.e[0][3],
+                                               prefix, t.MAT4.e[1][0], t.MAT4.e[1][1], t.MAT4.e[1][2], t.MAT4.e[1][3],
+                                               prefix, t.MAT4.e[2][0], t.MAT4.e[2][1], t.MAT4.e[2][2], t.MAT4.e[2][3],
+                                               prefix, t.MAT4.e[3][0], t.MAT4.e[3][1], t.MAT4.e[3][2], t.MAT4.e[3][3]);
+
+    }
+}
+
 Asset::Asset(std::string_view path)
     : p(path)
 {
@@ -242,7 +275,7 @@ Asset::Asset(std::string_view path)
     LOG(OK, "bufferViews:\n");
     for (auto& bv : this->aBufferViews)
         CERR("\tbuffer: '{}'\n\tbyteOffset: '{}'\n\tbyteLength: '{}'\n\tbyteStride: '{}'\n\ttarget: '{}'\n\n",
-             bv.buffer, bv.byteOffset, bv.byteLength, bv.byteStride, getTARGETString(bv.target));
+             bv.buffer, bv.byteOffset, bv.byteLength, bv.byteStride, getTargetString(bv.target));
 
     LOG(OK, "processing '{}'...\n", this->nodes.accessors->svKey);
 #endif
@@ -277,6 +310,17 @@ Asset::Asset(std::string_view path)
             });
         }
     }
+
+#ifdef GLTF
+    LOG(OK, "accessors:\n");
+    for (auto& a : this->aAccessors)
+    {
+        CERR("\tbufferView: '{}'\n\tbyteOffset: '{}'\n\tcomponentType: '{}'\n\tcount: '{}'\n",
+             a.bufferView, a.byteOffset, getComponentTypeString(a.componentType), a.count);
+        CERR("\tmax:\n{}\n", getUnionTypeString(a.type, a.max, "\t"));
+        CERR("\tmin:\n{}\n", getUnionTypeString(a.type, a.min, "\t"));
+    }
+#endif
 }
 
 } /* namespace gltf */
