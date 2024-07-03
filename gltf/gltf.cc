@@ -1,7 +1,78 @@
 #include "gltf.hh"
+#include "headers/utils.hh"
 
 namespace gltf
 {
+
+enum class HASH_CODES : u64
+{
+    scene = hashFNV("scene"),
+    scenes = hashFNV("scenes"),
+    nodes = hashFNV("nodes"),
+    meshes = hashFNV("meshes"),
+    cameras = hashFNV("cameras"),
+    buffers = hashFNV("buffers"),
+    bufferViews = hashFNV("bufferViews"),
+    accessors = hashFNV("accessors"),
+    materials = hashFNV("materials"),
+    textures = hashFNV("textures"),
+    images = hashFNV("images"),
+    samplers = hashFNV("samplers"),
+    skins = hashFNV("skins"),
+    animations = hashFNV("animations"),
+    SCALAR = hashFNV("SCALAR"),
+    VEC2 = hashFNV("VEC2"),
+    VEC3 = hashFNV("VEC3"),
+    VEC4 = hashFNV("VEC4"),
+    MAT3 = hashFNV("MAT3"),
+    MAT4 = hashFNV("MAT4")
+};
+
+static inline std::string_view
+getComponentTypeString(enum COMPONENT_TYPE t)
+{
+    switch (t)
+    {
+        default:
+        case COMPONENT_TYPE::BYTE:
+            return "BYTE";
+        case COMPONENT_TYPE::UNSIGNED_BYTE:
+            return "UNSIGNED_BYTE";
+        case COMPONENT_TYPE::SHORT:
+            return "SHORT";
+        case COMPONENT_TYPE::UNSIGNED_SHORT:
+            return "UNSIGNED_SHORT";
+        case COMPONENT_TYPE::UNSIGNED_INT:
+            return "UNSIGNED_INT";
+        case COMPONENT_TYPE::FLOAT:
+            return "FLOAT";
+    }
+}
+
+static inline std::string_view
+getTargetString(enum TARGET t)
+{
+    switch (t)
+    {
+        default:
+        case TARGET::NONE:
+            return "NONE";
+        case TARGET::ARRAY_BUFFER:
+            return "ARRAY_BUFFER";
+        case TARGET::ELEMENT_ARRAY_BUFFER:
+            return "ELEMENT_ARRAY_BUFFER";
+    }
+}
+
+static inline std::string_view
+getPrimitiveModeString(enum PRIMITIVE_MODE pm)
+{
+    constexpr std::string_view ss[] {
+        "POINTS", "LINES", "LINE_LOOP", "LINE_STRIP", "TRIANGLES", "TRIANGLE_STRIP", "TRIANGLE_FAN"
+    };
+
+    return ss[static_cast<int>(pm)];
+}
 
 static inline enum ACCESSOR_TYPE
 stringToAccessorType(std::string_view sv)
@@ -341,8 +412,58 @@ Asset::Asset(std::string_view path)
             auto& obj = json::getObject(e);
 
             auto pPrimitives = json::searchObject(obj, "primitives");
+            if (!pPrimitives) LOG(FATAL, "'primitives' field is required\n");
+
+            std::vector<Primitive> aPrimitives;
+            auto pName = json::searchObject(obj, "name");
+            auto name = pName ? json::getStringView(*pName) : "";
+
+            auto& aPrim = json::getArray(*pPrimitives);
+            for (auto& p : aPrim)
+            {
+                auto& op = json::getObject(p);
+
+                auto pAttributes = json::searchObject(op, "attributes");
+                auto& oAttr = json::getObject(*pAttributes);
+                auto pNORMAL = json::searchObject(oAttr, "NORMAL");
+                auto pTANGENT = json::searchObject(oAttr, "TANGENT");
+                auto pPOSITION = json::searchObject(oAttr, "POSITION");
+                auto pTEXCOORD_0 = json::searchObject(oAttr, "TEXCOORD_0");
+
+                auto pIndices = json::searchObject(op, "indices");
+                auto pMode = json::searchObject(op, "mode");
+                auto pMaterial = json::searchObject(op, "material");
+
+                aPrimitives.push_back({
+                    .attributes {
+                        .NORMAL = pNORMAL ? static_cast<decltype(Primitive::attributes.NORMAL)>(json::getInteger(*pNORMAL)) : 0,
+                        .POSITION = pPOSITION ? static_cast<decltype(Primitive::attributes.POSITION)>(json::getInteger(*pPOSITION)) : 0,
+                        .TEXCOORD_0 = pTEXCOORD_0 ? static_cast<decltype(Primitive::attributes.TEXCOORD_0)>(json::getInteger(*pTEXCOORD_0)) : 0,
+                        .TANGENT = pTANGENT ? static_cast<decltype(Primitive::attributes.TANGENT)>(json::getInteger(*pTANGENT)) : 0,
+                    },
+                    .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getInteger(*pIndices)) : 0,
+                    .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getInteger(*pMaterial)) : 0,
+                    .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getInteger(*pMode)) : PRIMITIVE_MODE::TRIANGLES,
+                });
+            }
+
+            this->aMeshes.push_back({.aPrimitives = aPrimitives, .svName = name});
         }
     }
+#ifdef GLTF
+    LOG(OK, "meshes:\n");
+    for (auto& m : this->aMeshes)
+    {
+        CERR("\tname: '{}'\n", m.svName);
+        for (auto& p : m.aPrimitives)
+        {
+            CERR("\tattributes:\n");
+            CERR("\t\tNORMAL: '{}', POSITION: '{}', TEXCOORD_0: '{}', TANGENT: '{}'\n",
+                 p.attributes.NORMAL, p.attributes.POSITION, p.attributes.TEXCOORD_0, p.attributes.TANGENT);
+            CERR("\tindices: '{}', material: '{}, mode: '{}''\n\n", p.indices, p.material, getPrimitiveModeString(p.mode));
+        }
+    }
+#endif
 }
 
 } /* namespace gltf */

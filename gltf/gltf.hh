@@ -3,34 +3,9 @@
 
 #include "../json/parser.hh"
 #include "headers/gmath.hh"
-#include "headers/utils.hh"
 
 namespace gltf
 {
-
-enum class HASH_CODES : u64
-{
-    scene = hashFNV("scene"),
-    scenes = hashFNV("scenes"),
-    nodes = hashFNV("nodes"),
-    meshes = hashFNV("meshes"),
-    cameras = hashFNV("cameras"),
-    buffers = hashFNV("buffers"),
-    bufferViews = hashFNV("bufferViews"),
-    accessors = hashFNV("accessors"),
-    materials = hashFNV("materials"),
-    textures = hashFNV("textures"),
-    images = hashFNV("images"),
-    samplers = hashFNV("samplers"),
-    skins = hashFNV("skins"),
-    animations = hashFNV("animations"),
-    SCALAR = hashFNV("SCALAR"),
-    VEC2 = hashFNV("VEC2"),
-    VEC3 = hashFNV("VEC3"),
-    VEC4 = hashFNV("VEC4"),
-    MAT3 = hashFNV("MAT3"),
-    MAT4 = hashFNV("MAT4")
-};
 
 enum class COMPONENT_TYPE
 {
@@ -42,48 +17,12 @@ enum class COMPONENT_TYPE
     FLOAT = 5126
 };
 
-constexpr std::string_view
-getComponentTypeString(enum COMPONENT_TYPE t)
-{
-    switch (t)
-    {
-        default:
-        case COMPONENT_TYPE::BYTE:
-            return "BYTE";
-        case COMPONENT_TYPE::UNSIGNED_BYTE:
-            return "UNSIGNED_BYTE";
-        case COMPONENT_TYPE::SHORT:
-            return "SHORT";
-        case COMPONENT_TYPE::UNSIGNED_SHORT:
-            return "UNSIGNED_SHORT";
-        case COMPONENT_TYPE::UNSIGNED_INT:
-            return "UNSIGNED_INT";
-        case COMPONENT_TYPE::FLOAT:
-            return "FLOAT";
-    }
-}
-
 enum class TARGET
 {
     NONE = 0,
     ARRAY_BUFFER = 34962,
     ELEMENT_ARRAY_BUFFER = 34963
 };
-
-constexpr std::string_view
-getTargetString(enum TARGET t)
-{
-    switch (t)
-    {
-        default:
-        case TARGET::NONE:
-            return "NONE";
-        case TARGET::ARRAY_BUFFER:
-            return "ARRAY_BUFFER";
-        case TARGET::ELEMENT_ARRAY_BUFFER:
-            return "ELEMENT_ARRAY_BUFFER";
-    }
-}
 
 struct Nodes
 {
@@ -198,13 +137,34 @@ struct Image
     std::string_view svUri;
 };
 
+enum class PRIMITIVE_MODE
+{
+    POINTS = 0,
+    LINES = 1,
+    LINE_LOOP = 2,
+    LINE_STRIP = 3,
+    TRIANGLES = 4,
+    TRIANGLE_STRIP = 5,
+    TRIANGLE_FAN = 6
+};
+
 struct Primitive
 {
+    struct {
+        int NORMAL;
+        int POSITION;
+        int TEXCOORD_0;
+        int TANGENT;
+    } attributes;
+    size_t indices; /* The index of the accessor that contains the vertex indices */
+    size_t material; /* The index of the material to apply to this primitive when rendering */
+    enum PRIMITIVE_MODE mode = PRIMITIVE_MODE::TRIANGLES;
 };
 
 struct Mesh
 {
     std::vector<Primitive> aPrimitives; /* REQUIRED */
+    std::string_view svName;
 };
 
 struct Asset
@@ -219,6 +179,7 @@ struct Asset
     std::vector<BufferView> aBufferViews;
     std::vector<Image> aImages;
     std::vector<Accessor> aAccessors;
+    std::vector<Mesh> aMeshes;
 
     Asset(std::string_view path);
 };
