@@ -198,6 +198,15 @@ struct Image
     std::string_view svUri;
 };
 
+struct Primitive
+{
+};
+
+struct Mesh
+{
+    std::vector<Primitive> aPrimitives; /* REQUIRED */
+};
+
 struct Asset
 {
     json::Parser p;

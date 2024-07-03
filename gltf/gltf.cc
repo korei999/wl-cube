@@ -9,19 +9,28 @@ stringToAccessorType(std::string_view sv)
     switch (hashFNV(sv))
     {
         default:
-        case (u64)HASH_CODES::SCALAR:
+        case static_cast<u64>(HASH_CODES::SCALAR):
             return ACCESSOR_TYPE::SCALAR;
-        case (u64)HASH_CODES::VEC2:
+        case static_cast<u64>(HASH_CODES::VEC2):
             return ACCESSOR_TYPE::VEC2;
-        case (u64)HASH_CODES::VEC3:
+        case static_cast<u64>(HASH_CODES::VEC3):
             return ACCESSOR_TYPE::VEC3;
-        case (u64)HASH_CODES::VEC4:
+        case static_cast<u64>(HASH_CODES::VEC4):
             return ACCESSOR_TYPE::VEC4;
-        case (u64)HASH_CODES::MAT3:
+        case static_cast<u64>(HASH_CODES::MAT3):
             return ACCESSOR_TYPE::MAT3;
-        case (u64)HASH_CODES::MAT4:
+        case static_cast<u64>(HASH_CODES::MAT4):
             return ACCESSOR_TYPE::MAT4;
     }
+}
+
+static inline std::string_view
+accessorTypeToString(enum ACCESSOR_TYPE t)
+{
+    constexpr std::string_view ss[] {
+        "SCALAR", "VEC2", "VEC3", "VEC4", /*MAT2, Unused*/ "MAT3", "MAT4"
+    };
+    return ss[static_cast<int>(t)];
 }
 
 static inline union Type
@@ -113,46 +122,46 @@ Asset::Asset(std::string_view path)
         {
             default:
                 break;
-            case (u64)HASH_CODES::scene:
+            case static_cast<u64>(HASH_CODES::scene):
                 nodes.scene = &node;
                 break;
-            case (u64)HASH_CODES::scenes:
+            case static_cast<u64>(HASH_CODES::scenes):
                 nodes.scenes = &node;
                 break;
-            case (u64)HASH_CODES::nodes:
+            case static_cast<u64>(HASH_CODES::nodes):
                 nodes.nodes = &node;
                 break;
-            case (u64)HASH_CODES::meshes:
+            case static_cast<u64>(HASH_CODES::meshes):
                 nodes.meshes = &node;
                 break;
-            case (u64)HASH_CODES::cameras:
+            case static_cast<u64>(HASH_CODES::cameras):
                 nodes.cameras = &node;
                 break;
-            case (u64)HASH_CODES::buffers:
+            case static_cast<u64>(HASH_CODES::buffers):
                 nodes.buffers = &node;
                 break;
-            case (u64)HASH_CODES::bufferViews:
+            case static_cast<u64>(HASH_CODES::bufferViews):
                 nodes.bufferViews = &node;
                 break;
-            case (u64)HASH_CODES::accessors:
+            case static_cast<u64>(HASH_CODES::accessors):
                 nodes.accessors = &node;
                 break;
-            case (u64)HASH_CODES::materials:
+            case static_cast<u64>(HASH_CODES::materials):
                 nodes.materials = &node;
                 break;
-            case (u64)HASH_CODES::textures:
+            case static_cast<u64>(HASH_CODES::textures):
                 nodes.textures = &node;
                 break;
-            case (u64)HASH_CODES::images:
+            case static_cast<u64>(HASH_CODES::images):
                 nodes.images = &node;
                 break;
-            case (u64)HASH_CODES::samplers:
+            case static_cast<u64>(HASH_CODES::samplers):
                 nodes.samplers = &node;
                 break;
-            case (u64)HASH_CODES::skins:
+            case static_cast<u64>(HASH_CODES::skins):
                 nodes.skins = &node;
                 break;
-            case (u64)HASH_CODES::animations:
+            case static_cast<u64>(HASH_CODES::animations):
                 nodes.animations = &node;
                 break;
         }
@@ -319,8 +328,21 @@ Asset::Asset(std::string_view path)
              a.bufferView, a.byteOffset, getComponentTypeString(a.componentType), a.count);
         CERR("\tmax:\n{}\n", getUnionTypeString(a.type, a.max, "\t"));
         CERR("\tmin:\n{}\n", getUnionTypeString(a.type, a.min, "\t"));
+        CERR("\ttype: '{}'\n\n", accessorTypeToString(a.type));
     }
+
+    LOG(OK, "processing '{}'...\n", this->nodes.meshes->svKey);
 #endif
+    {
+        auto meshes = this->nodes.meshes;
+        auto& arr = json::getArray(*meshes);
+        for (auto& e : arr)
+        {
+            auto& obj = json::getObject(e);
+
+            auto pPrimitives = json::searchObject(obj, "primitives");
+        }
+    }
 }
 
 } /* namespace gltf */

@@ -130,10 +130,11 @@ prepareDraw(App* app)
     /* models */
     {
         std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        /*std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
+        std::jthread m2(&Model::loadOBJ, &teaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
         /*std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
-        std::jthread m2([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m3([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m3([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m4([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         /*std::jthread m3([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
     }
 
@@ -199,7 +200,7 @@ drawFrame(App* app)
         cubeDepthSh.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
         glCullFace(GL_FRONT);
-        renderScene(&cubeDepthSh, true);
+        /*renderScene(&cubeDepthSh, true);*/
         glCullFace(GL_BACK);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -216,7 +217,7 @@ drawFrame(App* app)
         omniDirShadowSh.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
-        renderScene(&omniDirShadowSh, false);
+        /*renderScene(&omniDirShadowSh, false);*/
 
         /* draw light source */
         m4 cubeTm = m4Iden();
@@ -226,6 +227,10 @@ drawFrame(App* app)
         colorSh.setM4("uModel", cubeTm);
         colorSh.setV3("uColor", lightColor);
         sphere.drawTex();
+
+        colorSh.setM4("uModel", m4Scale(m4Iden(), 0.5));
+        colorSh.setV3("uColor", Color::mediumSlateBlue);
+        teaPot.draw();
 
         incCounter += 1.0 * player.deltaTime;
     }
