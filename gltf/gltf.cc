@@ -159,6 +159,7 @@ Asset::Asset(std::string_view path)
         for (auto& e : arr)
         {
             auto& obj = json::getObject(e.val);
+            LOG(WARNING, "obj.size: {}\n", obj.size());
             for (auto& ob : obj)
             {
                 auto& o = json::getObject(ob.tagVal.val);

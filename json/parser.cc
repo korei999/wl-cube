@@ -165,6 +165,7 @@ Parser::parseArray(KeyVal* pNode)
 
             case Token::LBRACE:
                 next();
+                /* TODO: It's much easier to parse if objects and arrays are the same structure, so no need to access object twice */
                 aTVs.back().tag = TAG::OBJECT;
                 aTVs.back().val = std::vector<KeyVal>(1);
                 auto& obj = std::get<std::vector<KeyVal>>(aTVs.back().val).back();
