@@ -1,6 +1,8 @@
 #include "gltf.hh"
 #include "headers/utils.hh"
 
+#include <thread>
+
 namespace gltf
 {
 
@@ -187,40 +189,15 @@ Asset::Asset(std::string_view path)
     parser.parse();
 
     processJSONObjs();
-
     this->defaultSceneIdx = json::getInteger(*this->jsonObjs.scene);
 
-#ifdef GLTF
-    LOG(OK, "defaultSceneIdx: {}\n", this->defaultSceneIdx);
-
-    LOG(OK, "processing '{}'...\n", this->jsonObjs.scenes->svKey);
-#endif
-
-    processScenes();
-
-#ifdef GLTF
-    LOG(OK, "processing '{}'...\n", this->jsonObjs.buffers->svKey);
-#endif
-
-    processBuffers();
-
-#ifdef GLTF
-    LOG(OK, "processing '{}'...\n", this->jsonObjs.bufferViews->svKey);
-#endif
-
-    processBufferViews();
-
-#ifdef GLTF
-    LOG(OK, "processing '{}'...\n", this->jsonObjs.accessors->svKey);
-#endif
-
-    processAccessors();
-
-#ifdef GLTF
-    LOG(OK, "processing '{}'...\n", this->jsonObjs.meshes->svKey);
-#endif
-
-    processMeshes();
+    {
+        std::jthread t0([this]{ processScenes(); });
+        std::jthread t1([this]{ processBuffers(); });
+        std::jthread t2([this]{ processBufferViews(); });
+        std::jthread t3([this]{ processAccessors(); });
+        std::jthread t4([this]{ processMeshes(); });
+    }
 }
 
 void

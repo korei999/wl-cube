@@ -63,7 +63,7 @@ constexpr inline u64
 hashFNV(std::string_view str)
 {
     u64 hash = 0xCBF29CE484222325;
-    for (u64 i = 0; i < (u64)str.size(); i++)
-        hash = (hash ^ (u64)str[i]) * 0x100000001B3;
+    for (size_t i = 0; i < str.size(); i++)
+        hash = (hash ^ static_cast<u64>(str[i])) * 0x100000001B3;
     return hash;
 }
