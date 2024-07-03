@@ -293,7 +293,7 @@ void
 Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     gltf::Asset m(path);
-    m.p.print();
+    m.parser.print();
 }
 
 static void

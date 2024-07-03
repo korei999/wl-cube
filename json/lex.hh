@@ -33,6 +33,7 @@ struct Lexer
     std::string m_sFile {};
     size_t m_pos = 0;
 
+    Lexer() = default;
     Lexer(std::string_view path) { loadFile(path); }
 
     void loadFile(std::string_view path);

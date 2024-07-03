@@ -15,6 +15,7 @@ struct Parser
     const std::string m_sName {};
     std::unique_ptr<Object> m_upHead {};
 
+    Parser() = default;
     Parser(std::string_view path);
 
     void parse();
