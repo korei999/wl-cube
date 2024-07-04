@@ -7,8 +7,8 @@
 
 #include "headers/utils.hh"
 
-std::mutex glContextMtx;
-std::mutex logMtx;
+std::mutex g_glContextMtx;
+std::mutex g_logMtx;
 
 static std::mt19937 rngCreate();
 

@@ -8,6 +8,7 @@
 namespace gltf
 {
 
+/* match gl macros */
 enum class COMPONENT_TYPE
 {
     BYTE = 5120,
@@ -18,29 +19,12 @@ enum class COMPONENT_TYPE
     FLOAT = 5126
 };
 
+/* match gl macros */
 enum class TARGET
 {
     NONE = 0,
     ARRAY_BUFFER = 34962,
     ELEMENT_ARRAY_BUFFER = 34963
-};
-
-struct JSONObjects
-{
-    json::Object* scene;
-    json::Object* scenes;
-    json::Object* nodes;
-    json::Object* meshes;
-    json::Object* cameras;
-    json::Object* buffers;
-    json::Object* bufferViews;
-    json::Object* accessors;
-    json::Object* materials;
-    json::Object* textures;
-    json::Object* images;
-    json::Object* samplers;
-    json::Object* skins;
-    json::Object* animations;
 };
 
 struct Scene
@@ -85,9 +69,9 @@ union Type
 struct Accessor
 {
     size_t bufferView;
-    size_t byteOffset;
+    size_t byteOffset; /* The offset relative to the start of the buffer view in bytes. This MUST be a multiple of the size of the component datatype. */
     enum COMPONENT_TYPE componentType; /* REQUIRED */
-    size_t count; /* REQUIRED */
+    size_t count; /* (REQUIRED) The number of elements referenced by this accessor, not to be confused with the number of bytes or number of components. */
     union Type max;
     union Type min;
     enum ACCESSOR_TYPE type; /* REQUIRED */
@@ -102,7 +86,7 @@ struct Node
     size_t camera;
     std::vector<size_t> children;
     m4 matrix = m4Iden();
-    size_t mesh;
+    size_t mesh; /* The index of the mesh in this node. */
     v4 rotation;
     v3 translation;
     v3 scale = {1, 1, 1};
@@ -138,19 +122,20 @@ struct Camera
 struct BufferView
 {
     size_t buffer;
-    size_t byteOffset;
+    size_t byteOffset = 0; /* The offset into the buffer in bytes. */
     size_t byteLength;
-    size_t byteStride;
+    size_t byteStride = 0; /* The stride, in bytes, between vertex attributes. When this is not defined, data is tightly packed. */
     enum TARGET target;
 };
 
 struct Image
 {
     std::string_view svUri;
+    std::vector<char> aBin;
 };
 
 /* match real gl macros */
-enum class PRIMITIVE_MODE
+enum class PRIMITIVES_MODE
 {
     POINTS = 0,
     LINES = 1,
@@ -164,14 +149,14 @@ enum class PRIMITIVE_MODE
 struct Primitive
 {
     struct {
-        int NORMAL;
-        int POSITION;
-        int TEXCOORD_0;
-        int TANGENT;
-    } attributes;
+        size_t NORMAL = NPOS;
+        size_t POSITION = NPOS;
+        size_t TEXCOORD_0 = NPOS;
+        size_t TANGENT = NPOS;
+    } attributes; /* each value is the index of the accessor containing attribute’s data. */
     size_t indices = NPOS; /* The index of the accessor that contains the vertex indices */
     size_t material = NPOS; /* The index of the material to apply to this primitive when rendering */
-    enum PRIMITIVE_MODE mode = PRIMITIVE_MODE::TRIANGLES;
+    enum PRIMITIVES_MODE mode = PRIMITIVES_MODE::TRIANGLES;
 };
 
 /* A mesh primitive defines the geometry data of the object using its attributes dictionary.
@@ -200,7 +185,22 @@ struct Asset
     Asset(std::string_view path);
 
 private:
-    JSONObjects jsonObjs {};
+    struct {
+        json::Object* scene;
+        json::Object* scenes;
+        json::Object* nodes;
+        json::Object* meshes;
+        json::Object* cameras;
+        json::Object* buffers;
+        json::Object* bufferViews;
+        json::Object* accessors;
+        json::Object* materials;
+        json::Object* textures;
+        json::Object* images;
+        json::Object* samplers;
+        json::Object* skins;
+        json::Object* animations;
+    } jsonObjs {};
 
     void processJSONObjs();
     void processScenes();

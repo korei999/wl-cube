@@ -304,21 +304,126 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             break;
         }
     }
-    COUT("meshIdx: '{}'\n", meshIdx);
+    /* get mesh */
+    auto& mesh = a.aMeshes[meshIdx];
+    auto& primitive = mesh.aPrimitives.front();
+    
+    size_t indicesAccIdx = primitive.indices;
+    size_t positionsAccIdx = primitive.attributes.POSITION;
+    size_t normalsAccIdx = primitive.attributes.NORMAL;
+    size_t texcoordsAccIdx = primitive.attributes.TEXCOORD_0;
+    size_t tangentsAccIdx = primitive.attributes.TANGENT;
+    enum gltf::PRIMITIVES_MODE mode = primitive.mode;
 
-    size_t bufferViewIdx = a.aAccessors[meshIdx].bufferView;
-    COUT("bufferViewIdx: '{}'\n", bufferViewIdx);
+    /* indices */
+    auto& indAcc = a.aAccessors[indicesAccIdx];
+    size_t indBufferView = indAcc.bufferView;
+    size_t indByteOffset = indAcc.byteOffset;
+    size_t indCount = indAcc.count;
+    /* positions (should be VEC3 for 3d model) */
+    auto& posAcc = a.aAccessors[positionsAccIdx];
+    size_t posBufferView = posAcc.bufferView;
+    size_t posByteOffset = posAcc.byteOffset;
+    size_t posCount = posAcc.count;
+    /* normals */
+    auto& normAcc = a.aAccessors[normalsAccIdx];
+    size_t normBufferView = normAcc.bufferView;
+    size_t normByteOffset = normAcc.byteOffset;
+    size_t normCount = normAcc.count;
+    /* textures */
+    auto& texAcc = a.aAccessors[texcoordsAccIdx];
+    size_t texBufferView = texAcc.bufferView;
+    size_t texByteOffset = texAcc.byteOffset;
+    size_t texCount = texAcc.count;
+    /* tangents */
+    auto& tanAcc = a.aAccessors[tangentsAccIdx];
+    size_t tanBufferView = tanAcc.bufferView;
+    size_t tanByteOffset = tanAcc.byteOffset;
+    size_t tanCount = tanAcc.count;
 
-    size_t bufferIdx = a.aBufferViews[bufferViewIdx].buffer;
-    COUT("bufferIdx: '{}'\n", bufferIdx);
+    /* indices data */
+    auto& bvInd = a.aBufferViews[indBufferView];
+    size_t bvIndBufferIdx = bvInd.buffer;
+    size_t bvIndByteOffset = bvInd.byteOffset;
+    size_t bvIndByteLength = bvInd.byteLength;
+    size_t bvIndByteStride = bvInd.byteStride;
+    enum gltf::TARGET bvIndTarget = bvInd.target;
+    /* positions data */
+    auto& bvPos = a.aBufferViews[posBufferView];
+    size_t bvPosBufferIdx = bvPos.buffer;
+    size_t bvPosByteOffset = bvPos.byteOffset;
+    size_t bvPosByteLength = bvPos.byteLength;
+    size_t bvPosByteStride = bvPos.byteStride;
+    enum gltf::TARGET bvPosTarget = bvPos.target;
+    /* texture coords data */
+    auto& bvTex = a.aBufferViews[texBufferView];
+    size_t bvTexBufferIdx = bvTex.buffer;
+    size_t bvTexByteOffset = bvTex.byteOffset;
+    size_t bvTexByteLength = bvTex.byteLength;
+    size_t bvTexByteStride = bvTex.byteStride;
+    enum gltf::TARGET bvTexTarget = bvTex.target;
+    /* normals data */
+    auto& bvNorm = a.aBufferViews[normBufferView];
+    size_t bvNormBufferIdx = bvNorm.buffer;
+    size_t bvNormByteOffset = bvNorm.byteOffset;
+    size_t bvNormByteLength = bvNorm.byteLength;
+    size_t bvNormByteStride = bvNorm.byteStride;
+    enum gltf::TARGET bvNormTarget = bvNorm.target;
+    /* tangents data */
+    auto& bvTan = a.aBufferViews[tanBufferView];
+    size_t bvTanBufferIdx = bvTan.buffer;
+    size_t bvTanByteOffset = bvTan.byteOffset;
+    size_t bvTanByteLength = bvTan.byteLength;
+    size_t bvTanByteStride = bvTan.byteStride;
+    enum gltf::TARGET bvTanTarget = bvTan.target;
 
-    void* pBuffer = a.aBuffers[bufferIdx].aBin.data();
+    std::lock_guard lock(g_glContextMtx);
+    c->bindGlContext();
+
+    glGenVertexArrays(1, &this->obj.vao);
+    glBindVertexArray(this->obj.vao);
+
+    auto bufferData = [](GLuint* pBO, GLint target, size_t byteLength, void* pData, GLint usage) -> void {
+        glGenBuffers(1, pBO);
+        glBindBuffer(target, *pBO);
+        glBufferData(target, byteLength, pData, usage);
+    };
+
+    bufferData(&this->obj.vbo,
+               static_cast<int>(bvPosTarget),
+               bvPosByteLength,
+               a.aBuffers[bvPosBufferIdx].aBin.data() + posByteOffset,
+               drawMode);
+
+    this->obj.eboSize = indCount;
+
+    bufferData(&this->obj.ebo,
+               static_cast<int>(bvIndTarget),
+               bvIndByteLength,
+               a.aBuffers[bvIndBufferIdx].aBin.data() + indByteOffset,
+               drawMode);
+
+    constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
+    constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+    /* positions */
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, bvPosByteStride, reinterpret_cast<void*>(bvPosByteOffset));
+    /* texture coords */
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, bvTexByteStride, reinterpret_cast<void*>(bvTexByteOffset));
+    /* normals */
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, bvNormByteStride, reinterpret_cast<void*>(bvNormByteOffset));
+
+    glBindVertexArray(0);
+
+    c->unbindGlContext();
 }
 
 static void
 setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, GLint drawMode, App* c)
 {
-    std::lock_guard lock(glContextMtx);
+    std::lock_guard lock(g_glContextMtx);
 
     c->bindGlContext();
 

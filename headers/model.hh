@@ -64,6 +64,8 @@ struct Model
     std::vector<std::vector<MeshData>> objects;
     std::string_view savedPath;
 
+    MeshData obj;
+
     Model() = default;
     Model(const Model& other) = delete;
     Model(Model&& other);

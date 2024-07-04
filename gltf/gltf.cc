@@ -31,7 +31,7 @@ enum class HASH_CODES : u64
 
 #ifdef GLTF
 
-static inline std::string_view
+static std::string_view
 getComponentTypeString(enum COMPONENT_TYPE t)
 {
     switch (t)
@@ -52,7 +52,7 @@ getComponentTypeString(enum COMPONENT_TYPE t)
     }
 }
 
-static inline std::string_view
+static std::string_view
 getTargetString(enum TARGET t)
 {
     switch (t)
@@ -67,7 +67,7 @@ getTargetString(enum TARGET t)
     }
 }
 
-static inline std::string_view
+static std::string_view
 getPrimitiveModeString(enum PRIMITIVE_MODE pm)
 {
     constexpr std::string_view ss[] {
@@ -77,7 +77,7 @@ getPrimitiveModeString(enum PRIMITIVE_MODE pm)
     return ss[static_cast<int>(pm)];
 }
 
-static inline std::string
+static std::string
 getUnionTypeString(enum ACCESSOR_TYPE type, const union Type& t, std::string_view prefix)
 {
     switch (type)
@@ -110,7 +110,7 @@ getUnionTypeString(enum ACCESSOR_TYPE type, const union Type& t, std::string_vie
     }
 }
 
-static inline std::string_view
+static std::string_view
 accessorTypeToString(enum ACCESSOR_TYPE t)
 {
     constexpr std::string_view ss[] {
@@ -154,7 +154,7 @@ assignUnionType(json::Object* obj, size_t n)
     return type;
 }
 
-static inline union Type
+static union Type
 accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
 {
     union Type type;
@@ -479,7 +479,7 @@ Asset::processMeshes()
                 },
                 .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getLong(pIndices)) : 0,
                 .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getLong(pMaterial)) : 0,
-                .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getLong(pMode)) : PRIMITIVE_MODE::TRIANGLES,
+                .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getLong(pMode)) : PRIMITIVES_MODE::TRIANGLES,
             });
         }
  
