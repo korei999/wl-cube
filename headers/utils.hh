@@ -45,6 +45,8 @@ extern std::mutex logMtx;
 #define COUT std::cout << FMT
 #define CERR std::cerr << FMT
 
+#define NPOS static_cast<size_t>(-1UL)
+
 #ifdef LOGS
 #    define LOG(severity, ...)                                                                                         \
         do                                                                                                             \

@@ -3,6 +3,7 @@
 
 #include "../json/parser.hh"
 #include "headers/gmath.hh"
+#include "headers/utils.hh"
 
 namespace gltf
 {
@@ -102,9 +103,9 @@ struct Node
     std::vector<size_t> children;
     m4 matrix = m4Iden();
     size_t mesh;
-    /*v4 rotation; not implemented */
-    v3 scale = {1, 1, 1};
+    v4 rotation;
     v3 translation;
+    v3 scale = {1, 1, 1};
 };
 
 struct CameraPersp
@@ -132,8 +133,7 @@ struct Camera
     } type;
 };
 
-/* The first step of structuring the data from a buffer is with bufferView objects.
- * A bufferView represents a “slice” of the data of one buffer.
+/* A bufferView represents a “slice” of the data of one buffer.
  * This slice is defined using an offset and a length, in bytes. */
 struct BufferView
 {
@@ -149,6 +149,7 @@ struct Image
     std::string_view svUri;
 };
 
+/* match real gl macros */
 enum class PRIMITIVE_MODE
 {
     POINTS = 0,
@@ -168,8 +169,8 @@ struct Primitive
         int TEXCOORD_0;
         int TANGENT;
     } attributes;
-    size_t indices; /* The index of the accessor that contains the vertex indices */
-    size_t material; /* The index of the material to apply to this primitive when rendering */
+    size_t indices = NPOS; /* The index of the accessor that contains the vertex indices */
+    size_t material = NPOS; /* The index of the material to apply to this primitive when rendering */
     enum PRIMITIVE_MODE mode = PRIMITIVE_MODE::TRIANGLES;
 };
 

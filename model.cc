@@ -292,8 +292,27 @@ Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 void
 Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    gltf::Asset m(path);
-    m.parser.print();
+    gltf::SceneGraph sg(path);
+    auto& a = sg.asset;
+
+    size_t meshIdx = NPOS;
+    for (auto& node : a.aNodes)
+    {
+        if (node.mesh != NPOS)
+        {
+            meshIdx = node.mesh;
+            break;
+        }
+    }
+    COUT("meshIdx: '{}'\n", meshIdx);
+
+    size_t bufferViewIdx = a.aAccessors[meshIdx].bufferView;
+    COUT("bufferViewIdx: '{}'\n", bufferViewIdx);
+
+    size_t bufferIdx = a.aBufferViews[bufferViewIdx].buffer;
+    COUT("bufferIdx: '{}'\n", bufferIdx);
+
+    void* pBuffer = a.aBuffers[bufferIdx].aBin.data();
 }
 
 static void

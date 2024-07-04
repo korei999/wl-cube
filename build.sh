@@ -48,7 +48,7 @@ debug()
     clean
     wayland
 
-    if CC=clang CXX=clang++ CC_LD=mold CXX_LD=mold meson setup build --buildtype=debug "$@"
+    if CC=clang CXX=clang++ CXXFLAGS="-stdlib=libc++" CC_LD=mold CXX_LD=mold meson setup build --buildtype=debug "$@"
     then
         ninja -C build/ -j$(nproc) -v
     fi

@@ -38,6 +38,7 @@ private:
     void parseBool(TagVal* pTV);
 };
 
+/* Linear search inside JSON object. Returns nullptr if not found */
 static inline Object*
 searchObject(std::vector<Object>& aObj, std::string_view svKey)
 {
@@ -62,13 +63,13 @@ getArray(Object* obj)
 }
 
 static inline long
-getInteger(Object* obj)
+getLong(Object* obj)
 {
     return std::get<long>(obj->tagVal.val);
 }
 
 static inline double
-getReal(Object* obj)
+getDouble(Object* obj)
 {
     return std::get<double>(obj->tagVal.val);
 }

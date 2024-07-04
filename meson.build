@@ -2,7 +2,7 @@ project('wl-cube', 'c', 'cpp',
   version: '0.1',
   default_options: [
     'warning_level=2',
-    'cpp_std=c++20',
+    'cpp_std=c++23',
     'buildtype=release',
     'b_ndebug=if-release'
     ]
@@ -10,8 +10,13 @@ project('wl-cube', 'c', 'cpp',
 
 compiler = meson.get_compiler('cpp')
 if compiler.get_id() == 'clang'
-  add_global_arguments(
-    ['-fcolor-diagnostics', '-fansi-escape-codes', '-fdiagnostics-format=msvc'],
+  add_global_arguments([
+    '-fcolor-diagnostics',
+    '-fansi-escape-codes',
+    '-fdiagnostics-format=msvc',
+    '-fexperimental-library',
+    '-D_LIBCPP_REMOVE_TRANSITIVE_INCLUDES'
+    ],
     language: ['cpp', 'c']
     )
 endif
