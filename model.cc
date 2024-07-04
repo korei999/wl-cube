@@ -320,6 +320,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     size_t indBufferView = indAcc.bufferView;
     size_t indByteOffset = indAcc.byteOffset;
     size_t indCount = indAcc.count;
+    gltf::COMPONENT_TYPE indComponentType = indAcc.componentType;
     /* positions (should be VEC3 for 3d model) */
     auto& posAcc = a.aAccessors[positionsAccIdx];
     size_t posBufferView = posAcc.bufferView;

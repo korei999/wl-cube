@@ -228,12 +228,12 @@ drawFrame(App* app)
         colorSh.setV3("uColor", lightColor);
         sphere.drawTex();
 
-        colorSh.setM4("uModel", m4Scale(m4Iden(), 1.5));
+        colorSh.setM4("uModel", m4Scale(m4Iden(), 0.5));
         colorSh.setV3("uColor", Color::mediumSlateBlue);
         /*teaPot.draw();*/
 
         glBindVertexArray(duck.obj.vao);
-        glDrawElements(GL_TRIANGLES, duck.obj.eboSize, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, duck.obj.eboSize, GL_UNSIGNED_SHORT, nullptr);
 
         incCounter += 1.0 * player.deltaTime;
     }
