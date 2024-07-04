@@ -38,37 +38,6 @@ private:
     void parseBool(TagVal* pTV);
 };
 
-static inline std::vector<Object>&
-getObject(Object& obj)
-{
-    return std::get<std::vector<Object>>(obj.tagVal.val);
-}
-
-/* arrays are axactly like objects but keys are always empty */
-static inline std::vector<Object>&
-getArray(Object& obj)
-{
-    return getObject(obj);
-}
-
-static inline long
-getInteger(Object& obj)
-{
-    return std::get<long>(obj.tagVal.val);
-}
-
-static inline double
-getReal(Object& obj)
-{
-    return std::get<double>(obj.tagVal.val);
-}
-
-static inline std::string_view
-getStringView(Object& obj)
-{
-    return std::get<std::string_view>(obj.tagVal.val);
-}
-
 static inline Object*
 searchObject(std::vector<Object>& aObj, std::string_view svKey)
 {
@@ -77,6 +46,37 @@ searchObject(std::vector<Object>& aObj, std::string_view svKey)
             return &node;
 
     return nullptr;
+}
+
+static inline std::vector<Object>&
+getObject(Object* obj)
+{
+    return std::get<std::vector<Object>>(obj->tagVal.val);
+}
+
+/* arrays are axactly like objects but keys are always empty */
+static inline std::vector<Object>&
+getArray(Object* obj)
+{
+    return getObject(obj);
+}
+
+static inline long
+getInteger(Object* obj)
+{
+    return std::get<long>(obj->tagVal.val);
+}
+
+static inline double
+getReal(Object* obj)
+{
+    return std::get<double>(obj->tagVal.val);
+}
+
+static inline std::string_view
+getStringView(Object* obj)
+{
+    return std::get<std::string_view>(obj->tagVal.val);
 }
 
 } /* namespace json */

@@ -136,7 +136,7 @@ Parser::parseArray(Object* pNode)
 {
     pNode->tagVal.tag = TAG::ARRAY;
     pNode->tagVal.val = std::vector<Object>{};
-    auto& aTVs = getArray(*pNode);
+    auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
     for (; m_tCurr.type != Token::RBRACKET; next())
@@ -214,7 +214,7 @@ Parser::printNode(Object* pNode, std::string_view svEnd)
 
         case TAG::OBJECT:
             {
-                auto& obj = getObject(*pNode);
+                auto& obj = getObject(pNode);
                 std::string q0, q1, objName0, objName1;
 
                 if (key.size() == 0)
@@ -240,7 +240,7 @@ Parser::printNode(Object* pNode, std::string_view svEnd)
 
         case TAG::ARRAY:
             {
-                auto& arr = getArray(*pNode);
+                auto& arr = getArray(pNode);
                 std::string q0, q1, arrName0, arrName1;
 
                 if (key.size() == 0)

@@ -112,11 +112,11 @@ accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
     union Type type;
 
     auto assignUnionType = [](json::Object* obj, size_t n) -> union Type {
-        auto& arr = json::getArray(*obj);
+        auto& arr = json::getArray(obj);
         union Type type;
 
         for (size_t i = 0; i < n; i++)
-            type.MAT4.p[i] = json::getReal(arr[i]);
+            type.MAT4.p[i] = json::getReal(&arr[i]);
 
         return type;
     };
@@ -126,8 +126,8 @@ accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
         default:
         case ACCESSOR_TYPE::SCALAR:
             {
-                auto& arr = json::getArray(*obj);
-                type.SCALAR = static_cast<size_t>(json::getInteger(arr[0]));
+                auto& arr = json::getArray(obj);
+                type.SCALAR = static_cast<size_t>(json::getInteger(&arr[0]));
             }
             break;
         case ACCESSOR_TYPE::VEC2:
@@ -186,17 +186,17 @@ getUnionTypeString(enum ACCESSOR_TYPE type, const union Type& t, std::string_vie
 Asset::Asset(std::string_view path)
     : parser(path)
 {
-    parser.parse();
+    this->parser.parse();
 
     processJSONObjs();
-    this->defaultSceneIdx = json::getInteger(*this->jsonObjs.scene);
+    this->defaultSceneIdx = json::getInteger(this->jsonObjs.scene);
 
     {
-        std::jthread t0([this]{ processScenes(); });
-        std::jthread t1([this]{ processBuffers(); });
-        std::jthread t2([this]{ processBufferViews(); });
-        std::jthread t3([this]{ processAccessors(); });
-        std::jthread t4([this]{ processMeshes(); });
+        std::jthread t0([this]{ this->processScenes(); });
+        std::jthread t1([this]{ this->processBuffers(); });
+        std::jthread t2([this]{ this->processBufferViews(); });
+        std::jthread t3([this]{ this->processAccessors(); });
+        std::jthread t4([this]{ this->processMeshes(); });
     }
 }
 
@@ -204,7 +204,7 @@ void
 Asset::processJSONObjs()
 {
     /* collect all the top level objects */
-    for (auto& node : json::getObject(*this->parser.m_upHead))
+    for (auto& node : json::getObject(this->parser.m_upHead.get()))
     {
         switch (hashFNV(node.svKey))
         {
@@ -281,16 +281,16 @@ void
 Asset::processScenes()
 {
     auto scenes = this->jsonObjs.scenes;
-    auto& arr = json::getArray(*scenes);
+    auto& arr = json::getArray(scenes);
     for (auto& e : arr)
     {
-        auto& obj = json::getObject(e);
+        auto& obj = json::getObject(&e);
         auto pNodes = json::searchObject(obj, "nodes");
         if (pNodes)
         {
-            auto& a = json::getArray(*pNodes);
+            auto& a = json::getArray(pNodes);
             for (auto& el : a)
-                this->aScenes.push_back({(size_t)json::getInteger(el)});
+                this->aScenes.push_back({(size_t)json::getInteger(&el)});
         }
         else
         {
@@ -311,10 +311,10 @@ void
 Asset::processBuffers()
 {
     auto buffers = this->jsonObjs.buffers;
-    auto& arr = json::getArray(*buffers);
+    auto& arr = json::getArray(buffers);
     for (auto& e : arr)
     {
-        auto& obj = json::getObject(e);
+        auto& obj = json::getObject(&e);
         auto pByteLength = json::searchObject(obj, "byteLength");
         auto pUri = json::searchObject(obj, "uri");
         if (!pByteLength) LOG(FATAL, "'byteLength' field is required\n");
@@ -324,13 +324,13 @@ Asset::processBuffers()
 
         if (pUri)
         {
-            svUri = json::getStringView(*pUri);
+            svUri = json::getStringView(pUri);
             auto sNewPath = replaceFileSuffixInPath(this->parser.m_sName, svUri);
             aBin = loadFileToCharArray(sNewPath);
         }
 
         this->aBuffers.push_back({
-            .byteLength = static_cast<size_t>(json::getInteger(*pByteLength)),
+            .byteLength = static_cast<size_t>(json::getInteger(pByteLength)),
             .uri = svUri,
             .aBin = aBin
         });
@@ -347,10 +347,10 @@ void
 Asset::processBufferViews()
 {
     auto bufferViews = this->jsonObjs.bufferViews;
-    auto& arr = json::getArray(*bufferViews);
+    auto& arr = json::getArray(bufferViews);
     for (auto& e : arr)
     {
-        auto& obj = json::getObject(e);
+        auto& obj = json::getObject(&e);
 
         auto pBuffer = json::searchObject(obj, "buffer");
         if (!pBuffer) LOG(FATAL, "'buffer' field is required\n");
@@ -361,11 +361,11 @@ Asset::processBufferViews()
         auto pTarget = json::searchObject(obj, "target");
 
         this->aBufferViews.push_back({
-            .buffer = static_cast<size_t>(json::getInteger(*pBuffer)),
-            .byteOffset = pByteOffset ? static_cast<size_t>(json::getInteger(*pByteOffset)) : 0,
-            .byteLength = static_cast<size_t>(json::getInteger(*pByteLength)),
-            .byteStride = pByteStride ? static_cast<size_t>(json::getInteger(*pByteStride)) : 0,
-            .target = pTarget ? static_cast<enum TARGET>(json::getInteger(*pTarget)) : TARGET::NONE
+            .buffer = static_cast<size_t>(json::getInteger(pBuffer)),
+            .byteOffset = pByteOffset ? static_cast<size_t>(json::getInteger(pByteOffset)) : 0,
+            .byteLength = static_cast<size_t>(json::getInteger(pByteLength)),
+            .byteStride = pByteStride ? static_cast<size_t>(json::getInteger(pByteStride)) : 0,
+            .target = pTarget ? static_cast<enum TARGET>(json::getInteger(pTarget)) : TARGET::NONE
         });
     }
 
@@ -381,10 +381,10 @@ void
 Asset::processAccessors()
 {
     auto accessors = this->jsonObjs.accessors;
-    auto& arr = json::getArray(*accessors);
+    auto& arr = json::getArray(accessors);
     for (auto& e : arr)
     {
-        auto& obj = json::getObject(e);
+        auto& obj = json::getObject(&e);
  
         auto pBufferView = json::searchObject(obj, "bufferView");
         auto pByteOffset = json::searchObject(obj, "byteOffset");
@@ -397,13 +397,13 @@ Asset::processAccessors()
         auto pType = json::searchObject(obj, "type");
         if (!pType) LOG(FATAL, "'type' field is required\n");
  
-        enum ACCESSOR_TYPE type = stringToAccessorType(json::getStringView(*pType));
+        enum ACCESSOR_TYPE type = stringToAccessorType(json::getStringView(pType));
  
         this->aAccessors.push_back({
-            .bufferView = pBufferView ? static_cast<size_t>(json::getInteger(*pBufferView)) : 0,
-            .byteOffset = pByteOffset ? static_cast<size_t>(json::getInteger(*pByteOffset)) : 0,
-            .componentType = static_cast<enum COMPONENT_TYPE>(json::getInteger(*pComponentType)),
-            .count = static_cast<size_t>(json::getInteger(*pCount)),
+            .bufferView = pBufferView ? static_cast<size_t>(json::getInteger(pBufferView)) : 0,
+            .byteOffset = pByteOffset ? static_cast<size_t>(json::getInteger(pByteOffset)) : 0,
+            .componentType = static_cast<enum COMPONENT_TYPE>(json::getInteger(pComponentType)),
+            .count = static_cast<size_t>(json::getInteger(pCount)),
             .max = pMax ? accessorTypeToUnionType(type, pMax) : Type{},
             .min = pMin ? accessorTypeToUnionType(type, pMin) : Type{},
             .type = type
@@ -427,25 +427,25 @@ void
 Asset::processMeshes()
 {
     auto meshes = this->jsonObjs.meshes;
-    auto& arr = json::getArray(*meshes);
+    auto& arr = json::getArray(meshes);
     for (auto& e : arr)
     {
-        auto& obj = json::getObject(e);
+        auto& obj = json::getObject(&e);
  
         auto pPrimitives = json::searchObject(obj, "primitives");
         if (!pPrimitives) LOG(FATAL, "'primitives' field is required\n");
  
         std::vector<Primitive> aPrimitives;
         auto pName = json::searchObject(obj, "name");
-        auto name = pName ? json::getStringView(*pName) : "";
+        auto name = pName ? json::getStringView(pName) : "";
  
-        auto& aPrim = json::getArray(*pPrimitives);
+        auto& aPrim = json::getArray(pPrimitives);
         for (auto& p : aPrim)
         {
-            auto& op = json::getObject(p);
+            auto& op = json::getObject(&p);
  
             auto pAttributes = json::searchObject(op, "attributes");
-            auto& oAttr = json::getObject(*pAttributes);
+            auto& oAttr = json::getObject(pAttributes);
             auto pNORMAL = json::searchObject(oAttr, "NORMAL");
             auto pTANGENT = json::searchObject(oAttr, "TANGENT");
             auto pPOSITION = json::searchObject(oAttr, "POSITION");
@@ -457,14 +457,14 @@ Asset::processMeshes()
  
             aPrimitives.push_back({
                 .attributes {
-                    .NORMAL = pNORMAL ? static_cast<decltype(Primitive::attributes.NORMAL)>(json::getInteger(*pNORMAL)) : 0,
-                    .POSITION = pPOSITION ? static_cast<decltype(Primitive::attributes.POSITION)>(json::getInteger(*pPOSITION)) : 0,
-                    .TEXCOORD_0 = pTEXCOORD_0 ? static_cast<decltype(Primitive::attributes.TEXCOORD_0)>(json::getInteger(*pTEXCOORD_0)) : 0,
-                    .TANGENT = pTANGENT ? static_cast<decltype(Primitive::attributes.TANGENT)>(json::getInteger(*pTANGENT)) : 0,
+                    .NORMAL = pNORMAL ? static_cast<decltype(Primitive::attributes.NORMAL)>(json::getInteger(pNORMAL)) : 0,
+                    .POSITION = pPOSITION ? static_cast<decltype(Primitive::attributes.POSITION)>(json::getInteger(pPOSITION)) : 0,
+                    .TEXCOORD_0 = pTEXCOORD_0 ? static_cast<decltype(Primitive::attributes.TEXCOORD_0)>(json::getInteger(pTEXCOORD_0)) : 0,
+                    .TANGENT = pTANGENT ? static_cast<decltype(Primitive::attributes.TANGENT)>(json::getInteger(pTANGENT)) : 0,
                 },
-                .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getInteger(*pIndices)) : 0,
-                .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getInteger(*pMaterial)) : 0,
-                .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getInteger(*pMode)) : PRIMITIVE_MODE::TRIANGLES,
+                .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getInteger(pIndices)) : 0,
+                .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getInteger(pMaterial)) : 0,
+                .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getInteger(pMode)) : PRIMITIVE_MODE::TRIANGLES,
             });
         }
  
@@ -485,6 +485,17 @@ Asset::processMeshes()
         }
     }
 #endif
+}
+
+void
+Asset::processNodes()
+{
+
+}
+
+SceneGraph::SceneGraph(std::string_view path)
+    : asset(path)
+{
 }
 
 } /* namespace gltf */

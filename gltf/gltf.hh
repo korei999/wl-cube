@@ -193,6 +193,7 @@ struct Asset
     std::vector<Image> aImages;
     std::vector<Accessor> aAccessors;
     std::vector<Mesh> aMeshes;
+    std::vector<Node> aNodes;
 
     Asset() = default;
     Asset(std::string_view path);
@@ -206,11 +207,15 @@ private:
     void processBufferViews();
     void processAccessors();
     void processMeshes();
+    void processNodes();
 };
 
 struct SceneGraph
 {
     Asset asset;
+
+    SceneGraph() = default;
+    SceneGraph(std::string_view path);
 };
 
 } /* namespace gltf */
