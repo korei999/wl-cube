@@ -27,14 +27,6 @@ enum HASH : u64
     norm = hashFNV("norm")
 };
 
-static inline void
-bufferData(GLuint* pBO, GLint target, size_t byteLength, void* pData, GLint usage)
-{
-    glGenBuffers(1, pBO);
-    glBindBuffer(target, *pBO);
-    glBufferData(target, byteLength, pData, usage);
-};
-
 Model::Model(Model&& other)
 {
     this->objects = std::move(other.objects);
@@ -401,11 +393,9 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     glGenVertexArrays(1, &this->obj.vao);
     glBindVertexArray(this->obj.vao);
 
-    bufferData(&this->obj.ebo,
-               static_cast<int>(bvIndTarget),
-               bvIndByteLength,
-               &a.aBuffers[bvIndBufferIdx].aBin.data()[bvIndByteOffset],
-               drawMode);
+    glGenBuffers(1, &this->obj.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->obj.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvIndByteLength, &a.aBuffers[bvIndBufferIdx].aBin.data()[bvIndByteOffset], drawMode);
 
     glGenBuffers(1, &this->obj.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, this->obj.vbo);
