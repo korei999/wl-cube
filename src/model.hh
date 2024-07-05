@@ -93,8 +93,7 @@ private:
 inline u64
 hashFaceVertex(const FacePositions& p)
 {
-    auto cantorPair = [](u64 a, u64 b) -> u64
-    {
+    auto cantorPair = [](u64 a, u64 b) -> u64 {
         return ((a + b + 1) * ((a + b) / 2) + b);
     };
 
@@ -103,7 +102,7 @@ hashFaceVertex(const FacePositions& p)
 
 namespace std
 {
-    template <>
+    template<>
     struct hash<FacePositions>
     {
         u64

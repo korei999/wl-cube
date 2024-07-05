@@ -19,9 +19,9 @@ out vec4 fragColor;
 void
 main()
 {
-    // vec3 col = texture(tex0, vsTex).rgb;
-    // fragColor = vec4(col, 1.0);
+    vec3 col = texture(tex0, vsTex).rgb;
+    fragColor = vec4(col, 1.0);
 
-    float depthVal = texture(tex0, vsTex).r;
-    fragColor = vec4(vec3(depthVal), 1.0);
+    // float depthVal = texture(tex0, vsTex).r;
+    // fragColor = vec4(vec3(depthVal), 1.0);
 }
