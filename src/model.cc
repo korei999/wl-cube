@@ -9,7 +9,7 @@ static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
     /* copy buffers to the gpu */
 static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, MeshData* mesh, GLint drawMode, App* c);
 
-enum Hash : u64
+enum HASH : u64
 {
     comment = hashFNV("#"),
     v = hashFNV("v"),
@@ -118,22 +118,22 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
         switch (wordHash)
         {
-            case Hash::comment:
+            case HASH::comment:
                 objP.skipWord("\n");
                 break;
 
-            case Hash::mtllib:
+            case HASH::mtllib:
                 objP.nextWord("\n");
                 mtllibName = objP.word;
                 break;
 
-            case Hash::usemtl:
+            case HASH::usemtl:
                 objP.nextWord("\n");
                 objects.back().mds.push_back({});
                 objects.back().mds.back().usemtl = objP.word;
                 break;
 
-            case Hash::o:
+            case HASH::o:
                 /* give space for new object */
                 objects.push_back({});
                 objP.nextWord("\n");
@@ -141,7 +141,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 objects.back().o = objP.word;
                 break;
 
-            case Hash::v:
+            case HASH::v:
                 /* get 3 floats */
                 objP.nextWord();
                 tv.x = std::stof(objP.word);
@@ -153,7 +153,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 vs.push_back(tv);
                 break;
 
-            case Hash::vt:
+            case HASH::vt:
                 /* get 2 floats */
                 objP.nextWord();
                 tv.x = std::stof(objP.word);
@@ -163,7 +163,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 vts.push_back(v2(tv));
                 break;
 
-            case Hash::vn:
+            case HASH::vn:
                 /* get 3 floats */
                 objP.nextWord();
                 tv.x = std::stof(objP.word);
@@ -175,7 +175,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 vns.push_back(tv);
                 break;
 
-            case Hash::f:
+            case HASH::f:
                 /* get 9 ints */
                 objP.nextWord();
                 tf[0] = wordToInt(objP.word) - 1; /* obj faces count from 1 */
@@ -241,9 +241,8 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
         for (auto& faces : materials.mds)
         {
-            MeshData mesh {
-                .name = materials.o
-            };
+            MeshData mesh {};
+            mesh.name = materials.o;
             GLuint faceIdx = 0;
 
             for (auto& face : faces.fs)
@@ -260,7 +259,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                     if (insTry.second) /* false if we tried to insert duplicate */
                     {
                         /* first v3 positions, second v2 textures, last v3 normals */
-                        verts.push_back({vs[p.x], vts[p.y], vns[p.z]});
+                        verts.push_back({vs[p.x], vts[p.y], vns[p.z], {}, {}});
                         inds.push_back(faceIdx++);
                     }
                     else
@@ -402,17 +401,15 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     glGenVertexArrays(1, &this->obj.vao);
     glBindVertexArray(this->obj.vao);
 
-    bufferData(&this->obj.vbo,
-               static_cast<int>(bvPosTarget),
-               bvPosByteLength,
-               &a.aBuffers[bvPosBufferIdx].aBin.data()[bvPosByteOffset],
-               drawMode);
-
     bufferData(&this->obj.ebo,
                static_cast<int>(bvIndTarget),
                bvIndByteLength,
                &a.aBuffers[bvIndBufferIdx].aBin.data()[bvIndByteOffset],
                drawMode);
+
+    glGenBuffers(1, &this->obj.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, this->obj.vbo);
+    glBufferData(GL_ARRAY_BUFFER, a.aBuffers[bvPosBufferIdx].byteLength, a.aBuffers[bvPosBufferIdx].aBin.data(), drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
@@ -432,23 +429,23 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                           static_cast<GLenum>(attrTexComponentType),
                           GL_FALSE,
                           bvAttrTexByteStride,
-                          reinterpret_cast<void*>(attrTexByteOffset));
-    /* normals */
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2,
-                          v3Size,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          bvAttrNormByteStride,
-                          reinterpret_cast<void*>(attrNormByteOffset));
-    /* tangents */
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3,
-                          v3Size,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          bvAttrTanByteStride,
-                          reinterpret_cast<void*>(attrTanByteOffset));
+                          reinterpret_cast<void*>(bvTexByteOffset));
+    // /* normals */
+    // glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(2,
+    //                       v3Size,
+    //                       GL_FLOAT,
+    //                       GL_FALSE,
+    //                       bvAttrNormByteStride,
+    //                       reinterpret_cast<void*>(attrNormByteOffset));
+    // /* tangents */
+    // glEnableVertexAttribArray(3);
+    // glVertexAttribPointer(3,
+    //                       v3Size,
+    //                       GL_FLOAT,
+    //                       GL_FALSE,
+    //                       bvAttrTanByteStride,
+    //                       reinterpret_cast<void*>(attrTanByteOffset));
 
     glBindVertexArray(0);
     c->unbindGlContext();
@@ -790,34 +787,34 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
 
         switch (wordHash)
         {
-            case Hash::comment:
+            case HASH::comment:
                 p.skipWord("\n");
                 break;
 
-            case Hash::newmtl:
+            case HASH::newmtl:
                 p.nextWord("\n");
                 ins = materials->insert({hashFNV(p.word), {}});
                 break;
 
-            case Hash::diff:
+            case HASH::diff:
                 p.nextWord("\n");
                 /* TODO: implement thread pool for this kind of stuff */
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.diffuse,
                                      replaceFileSuffixInPath(path, p.word),
-                                     TEX_TYPE::diffuse,
+                                     TEX_TYPE::DIFFUSE,
                                      false,
                                      texMode,
                                      c);
                 break;
 
-            case Hash::bump:
-            case Hash::norm:
+            case HASH::bump:
+            case HASH::norm:
                 p.nextWord("\n");
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.normal,
                                      replaceFileSuffixInPath(path, p.word),
-                                     TEX_TYPE::normal,
+                                     TEX_TYPE::NORMAL,
                                      false,
                                      texMode,
                                      c);

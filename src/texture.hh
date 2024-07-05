@@ -9,8 +9,8 @@
 
 enum TEX_TYPE : int
 {
-    diffuse = 0,
-    normal
+    DIFFUSE = 0,
+    NORMAL
 };
 
 struct Texture
