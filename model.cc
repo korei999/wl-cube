@@ -27,6 +27,14 @@ enum Hash : u64
     norm = hashFNV("norm")
 };
 
+static inline void
+bufferData(GLuint* pBO, GLint target, size_t byteLength, void* pData, GLint usage)
+{
+    glGenBuffers(1, pBO);
+    glBindBuffer(target, *pBO);
+    glBufferData(target, byteLength, pData, usage);
+};
+
 Model::Model(Model&& other)
 {
     this->objects = std::move(other.objects);
@@ -327,19 +335,19 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     /* positions (should be VEC3 for 3d model) */
     auto& posAcc = a.aAccessors[positionsAccIdx];
     size_t posBufferView = posAcc.bufferView;
-    size_t posByteOffset = posAcc.byteOffset;
+    size_t attrPosByteOffset = posAcc.byteOffset;
     size_t posCount = posAcc.count;
 
     /* normals */
     auto& normAcc = a.aAccessors[normalsAccIdx];
     size_t normBufferView = normAcc.bufferView;
-    size_t normByteOffset = normAcc.byteOffset;
+    size_t attrNormByteOffset = normAcc.byteOffset;
     size_t normCount = normAcc.count;
 
     /* textures */
     auto& texAcc = a.aAccessors[texcoordsAccIdx];
     size_t texBufferView = texAcc.bufferView;
-    size_t texByteOffset = texAcc.byteOffset;
+    size_t attrTexByteOffset = texAcc.byteOffset;
     size_t texCount = texAcc.count;
 
     /* tangents */
@@ -361,7 +369,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     size_t bvPosBufferIdx = bvPos.buffer;
     size_t bvPosByteOffset = bvPos.byteOffset;
     size_t bvPosByteLength = bvPos.byteLength;
-    size_t bvPosByteStride = bvPos.byteStride;
+    size_t bvAttrPosByteStride = bvPos.byteStride;
     enum gltf::TARGET bvPosTarget = bvPos.target;
 
     /* texture coords data */
@@ -369,7 +377,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     size_t bvTexBufferIdx = bvTex.buffer;
     size_t bvTexByteOffset = bvTex.byteOffset;
     size_t bvTexByteLength = bvTex.byteLength;
-    size_t bvTexByteStride = bvTex.byteStride;
+    size_t bvAttrTexByteStride = bvTex.byteStride;
     enum gltf::TARGET bvTexTarget = bvTex.target;
 
     /* normals data */
@@ -377,7 +385,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     size_t bvNormBufferIdx = bvNorm.buffer;
     size_t bvNormByteOffset = bvNorm.byteOffset;
     size_t bvNormByteLength = bvNorm.byteLength;
-    size_t bvNormByteStride = bvNorm.byteStride;
+    size_t bvAttrNormByteStride = bvNorm.byteStride;
     enum gltf::TARGET bvNormTarget = bvNorm.target;
 
     /* tangents data */
@@ -393,12 +401,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
     glGenVertexArrays(1, &this->obj.vao);
     glBindVertexArray(this->obj.vao);
-
-    auto bufferData = [](GLuint* pBO, GLint target, size_t byteLength, void* pData, GLint usage) -> void {
-        glGenBuffers(1, pBO);
-        glBindBuffer(target, *pBO);
-        glBufferData(target, byteLength, pData, usage);
-    };
 
     bufferData(&this->obj.vbo,
                static_cast<int>(bvPosTarget),
@@ -416,16 +418,30 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
     /* positions */
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, v3Size, GL_FLOAT, GL_FALSE, bvPosByteStride, reinterpret_cast<void*>(posByteOffset));
+    glVertexAttribPointer(0,
+                          v3Size,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          bvAttrPosByteStride,
+                          reinterpret_cast<void*>(attrPosByteOffset));
     /* texture coords */
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, v2Size, GL_FLOAT, GL_FALSE, bvTexByteStride, reinterpret_cast<void*>(texByteOffset));
+    glVertexAttribPointer(1,
+                          v2Size,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          bvAttrTexByteStride,
+                          reinterpret_cast<void*>(attrTexByteOffset));
     /* normals */
     glEnableVertexAttribArray(2);
-    /*glVertexAttribPointer(2, v3Size, GL_FLOAT, GL_FALSE, bvNormByteStride, reinterpret_cast<void*>(bvNormByteOffset));*/
+    glVertexAttribPointer(2,
+                          v3Size,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          bvAttrNormByteStride,
+                          reinterpret_cast<void*>(attrNormByteOffset));
 
     glBindVertexArray(0);
-
     c->unbindGlContext();
 }
 
