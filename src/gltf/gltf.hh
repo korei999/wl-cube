@@ -212,12 +212,4 @@ private:
     void processNodes();
 };
 
-struct SceneGraph
-{
-    Asset asset;
-
-    SceneGraph() = default;
-    SceneGraph(std::string_view path);
-};
-
 } /* namespace gltf */

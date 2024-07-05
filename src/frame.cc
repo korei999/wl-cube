@@ -72,6 +72,7 @@ Shader debugDepthQuadSh;
 Shader cubeDepthSh;
 Shader omniDirShadowSh;
 Shader colorSh;
+Shader texSh;
 Model cube;
 Model sphere;
 Model plane;
@@ -80,6 +81,7 @@ Model sponza;
 Model duck;
 Texture boxTex;
 Texture dirtTex;
+Texture duckTex;
 Ubo projView;
 CubeMap cubeMap;
 
@@ -111,6 +113,9 @@ prepareDraw(App* app)
     cubeDepthSh.loadShaders("shaders/shadows/cubeMap/cubeMapDepth.vert", "shaders/shadows/cubeMap/cubeMapDepth.geom", "shaders/shadows/cubeMap/cubeMapDepth.frag");
     omniDirShadowSh.loadShaders("shaders/shadows/cubeMap/omniDirShadow.vert", "shaders/shadows/cubeMap/omniDirShadow.frag");
     colorSh.loadShaders("shaders/simple.vert", "shaders/simple.frag");
+    texSh.loadShaders("shaders/simpleTex.vert", "shaders/simpleTex.frag");
+
+    duckTex.loadBMP("test-assets/models/duck/DuckCM.bmp");
 
     omniDirShadowSh.use();
     omniDirShadowSh.setI("uDiffuseTexture", 0);
@@ -124,6 +129,7 @@ prepareDraw(App* app)
     projView.createBuffer(sizeof(m4) * 2, GL_DYNAMIC_DRAW);
     projView.bindBlock(&omniDirShadowSh, "ubProjView", 0);
     projView.bindBlock(&colorSh, "ubProjView", 0);
+    projView.bindBlock(&texSh, "ubProjView", 0);
 
     /* unbind before creating threads */
     app->unbindGlContext();
@@ -228,9 +234,9 @@ drawFrame(App* app)
         colorSh.setV3("uColor", lightColor);
         sphere.drawTex();
 
-        colorSh.setM4("uModel", m4Scale(m4Iden(), 0.01));
-        colorSh.setV3("uColor", Color::mediumSlateBlue);
-        /*teaPot.draw();*/
+        texSh.use();
+        texSh.setM4("uModel", m4Scale(m4Iden(), 0.01));
+        texSh.setV3("uColor", Color::mediumSlateBlue);
 
         duck.drawGLTF();
 

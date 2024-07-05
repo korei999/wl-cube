@@ -4,8 +4,8 @@ precision highp float;
 in vec2 vsTex;
 
 uniform sampler2D tex0;
-uniform float nearPlane;
-uniform float farPlane;
+// uniform float nearPlane;
+// uniform float farPlane;
 
 out vec4 fragColor;
 

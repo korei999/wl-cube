@@ -299,8 +299,7 @@ Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 void
 Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    gltf::SceneGraph sg(path);
-    auto& a = sg.asset;
+    gltf::Asset a(path);
 
     size_t meshIdx = NPOS;
     for (auto& node : a.aNodes)

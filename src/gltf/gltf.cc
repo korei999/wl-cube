@@ -581,9 +581,4 @@ Asset::processNodes()
 #endif
 }
 
-SceneGraph::SceneGraph(std::string_view path)
-    : asset(path)
-{
-}
-
 } /* namespace gltf */
