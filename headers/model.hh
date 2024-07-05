@@ -1,4 +1,5 @@
 #pragma once
+#include "gltf/gltf.hh"
 #include "gmath.hh"
 #include "shader.hh"
 #include "texture.hh"
@@ -65,6 +66,8 @@ struct Model
     std::string_view savedPath;
 
     MeshData obj;
+    enum gltf::COMPONENT_TYPE indType;
+    enum gltf::PRIMITIVES mode;
 
     Model() = default;
     Model(const Model& other) = delete;

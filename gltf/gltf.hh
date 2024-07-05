@@ -65,7 +65,8 @@ union Type
 };
 
 /* An accessor object refers to a bufferView and contains properties 
- * that define the type and layout of the data of this bufferView. */
+ * that define the type and layout of the data of the bufferView.
+ * The raw data of a buffer is structured using bufferView objects and is augmented with data type information using accessor objects.*/
 struct Accessor
 {
     size_t bufferView;
@@ -135,7 +136,7 @@ struct Image
 };
 
 /* match real gl macros */
-enum class PRIMITIVES_MODE
+enum class PRIMITIVES
 {
     POINTS = 0,
     LINES = 1,
@@ -156,7 +157,7 @@ struct Primitive
     } attributes; /* each value is the index of the accessor containing attribute’s data. */
     size_t indices = NPOS; /* The index of the accessor that contains the vertex indices */
     size_t material = NPOS; /* The index of the material to apply to this primitive when rendering */
-    enum PRIMITIVES_MODE mode = PRIMITIVES_MODE::TRIANGLES;
+    enum PRIMITIVES mode = PRIMITIVES::TRIANGLES;
 };
 
 /* A mesh primitive defines the geometry data of the object using its attributes dictionary.

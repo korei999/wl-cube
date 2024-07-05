@@ -68,7 +68,7 @@ getTargetString(enum TARGET t)
 }
 
 static std::string_view
-getPrimitiveModeString(enum PRIMITIVE_MODE pm)
+getPrimitiveModeString(enum PRIMITIVES_MODE pm)
 {
     constexpr std::string_view ss[] {
         "POINTS", "LINES", "LINE_LOOP", "LINE_STRIP", "TRIANGLES", "TRIANGLE_STRIP", "TRIANGLE_FAN"
@@ -479,7 +479,7 @@ Asset::processMeshes()
                 },
                 .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getLong(pIndices)) : 0,
                 .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getLong(pMaterial)) : 0,
-                .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getLong(pMode)) : PRIMITIVES_MODE::TRIANGLES,
+                .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getLong(pMode)) : PRIMITIVES::TRIANGLES,
             });
         }
  
