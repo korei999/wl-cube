@@ -71,7 +71,7 @@ Model::operator=(Model&& other)
 void
 Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    ObjParser objP(path, " /\n");
+    GenParser objP(path, " /\n");
 
     std::vector<v3> vs {};
     std::vector<v2> vts {};
@@ -347,6 +347,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     auto& texAcc = a.aAccessors[texcoordsAccIdx];
     size_t texBufferView = texAcc.bufferView;
     size_t attrTexByteOffset = texAcc.byteOffset;
+    enum gltf::COMPONENT_TYPE attrTexComponentType = texAcc.componentType;
     [[maybe_unused]] size_t texCount = texAcc.count;
 
     /* tangents */
@@ -428,7 +429,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1,
                           v2Size,
-                          GL_FLOAT,
+                          static_cast<GLenum>(attrTexComponentType),
                           GL_FALSE,
                           bvAttrTexByteStride,
                           reinterpret_cast<void*>(attrTexByteOffset));
@@ -466,13 +467,13 @@ setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, G
     glGenVertexArrays(1, &m->vao);
     glBindVertexArray(m->vao);
 
-    glGenBuffers(1, &m->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-    glBufferData(GL_ARRAY_BUFFER, verts->size() * sizeof(*vsData), vsData, drawMode);
-
     glGenBuffers(1, &m->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds->size() * sizeof(*inData), inData, drawMode);
+
+    glGenBuffers(1, &m->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+    glBufferData(GL_ARRAY_BUFFER, verts->size() * sizeof(*vsData), vsData, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
@@ -512,7 +513,7 @@ void
 Model::drawGLTF()
 {
     glBindVertexArray(this->obj.vao);
-    glDrawElements(static_cast<int>(this->mode), this->obj.eboSize, static_cast<int>(this->indType), nullptr);
+    glDrawElements(static_cast<GLenum>(this->mode), this->obj.eboSize, static_cast<GLenum>(this->indType), nullptr);
 }
 
 void
@@ -776,7 +777,7 @@ drawCube(const Model& q)
 static void
 parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c)
 {
-    ObjParser p(path, " \n");
+    GenParser p(path, " \n");
     decltype(materials->insert({u64(), Materials()})) ins; /* get iterator placeholder */
 
     std::vector<std::jthread> threads;
@@ -804,7 +805,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.diffuse,
                                      replaceFileSuffixInPath(path, p.word),
-                                     TexType::diffuse,
+                                     TEX_TYPE::diffuse,
                                      false,
                                      texMode,
                                      c);
@@ -816,7 +817,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.normal,
                                      replaceFileSuffixInPath(path, p.word),
-                                     TexType::normal,
+                                     TEX_TYPE::normal,
                                      false,
                                      texMode,
                                      c);

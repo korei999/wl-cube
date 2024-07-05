@@ -1,7 +1,7 @@
 #pragma once
 #include "utils.hh"
 
-struct ObjParser
+struct GenParser
 {
     std::string word;
     std::string defSeps;
@@ -9,8 +9,8 @@ struct ObjParser
     size_t start;
     size_t end;
 
-    ObjParser(std::string_view defaultSeparators);
-    ObjParser(std::string_view path, std::string_view defaultSeparators, size_t addZeroBytes = 1);
+    GenParser(std::string_view defaultSeparators);
+    GenParser(std::string_view path, std::string_view defaultSeparators, size_t addZeroBytes = 1);
 
     char& operator[](size_t i) { return file[i]; };
 

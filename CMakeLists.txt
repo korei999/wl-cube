@@ -45,6 +45,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function)
     add_definitions("-DLOGS") # used for LOG_* macros
     add_definitions("-DDEBUG")
+    add_definitions("-DFPS_COUNTER")
 endif()
 
 set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)

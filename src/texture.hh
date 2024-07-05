@@ -7,7 +7,7 @@
 #include <string>
 // #include <unordered_map>
 
-enum TexType : int
+enum TEX_TYPE : int
 {
     diffuse = 0,
     normal
@@ -16,16 +16,16 @@ enum TexType : int
 struct Texture
 {
     GLuint id = 0;
-    TexType type;
+    TEX_TYPE type;
 
     /* TODO: make some sort of shared ownership for same assets */
     std::string texPath;
 
     Texture() = default;
-    Texture(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
+    Texture(std::string_view path, TEX_TYPE type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
     ~Texture();
 
-    void loadBMP(std::string_view path, TexType type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, App* c = nullptr);
+    void loadBMP(std::string_view path, TEX_TYPE type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, App* c = nullptr);
     void bind(GLint glTexture);
 
 private:

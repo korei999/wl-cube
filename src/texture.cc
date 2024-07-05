@@ -4,7 +4,7 @@
 /* create with new, because it's must not be automatically destroyed prior to texture destruction */
 // std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
 
-Texture::Texture(std::string_view path, TexType type, bool flip, GLint texMode)
+Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode)
 {
     loadBMP(path, type, flip, texMode);
 }
@@ -39,7 +39,7 @@ Texture::~Texture()
 // static std::mutex insMtx;
 
 void
-Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, App* c)
+Texture::loadBMP(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c)
 {
     LOG(OK, "loading '{}' texture...\n", path);
 
@@ -62,7 +62,7 @@ Texture::loadBMP(std::string_view path, TexType type, bool flip, GLint texMode, 
     u16 bitDepth;
     u8 byteDepth;
 
-    ObjParser p(path, "", 0);
+    GenParser p(path, "", 0);
     auto BM = p.readString(2);
 
     if (BM != "BM")

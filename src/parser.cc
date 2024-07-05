@@ -1,23 +1,23 @@
 #include "parser.hh"
 
-ObjParser::ObjParser(std::string_view defaultSeparators)
+GenParser::GenParser(std::string_view defaultSeparators)
     : defSeps(defaultSeparators) {}
 
-ObjParser::ObjParser(std::string_view path, std::string_view defaultSeparators, size_t addZeroBytes)
+GenParser::GenParser(std::string_view path, std::string_view defaultSeparators, size_t addZeroBytes)
     : defSeps(defaultSeparators)
 {
     loadFile(path, addZeroBytes);
 }
 
 void 
-ObjParser::loadFile(std::string_view path, size_t addZeroBytes)
+GenParser::loadFile(std::string_view path, size_t addZeroBytes)
 {
     start = end = 0;
     file = loadFileToCharArray(path, addZeroBytes);
 }
 
 void
-ObjParser::nextWord(std::string_view separators)
+GenParser::nextWord(std::string_view separators)
 {
     while (file[end] && !isSeparator(file[end], separators))
         end++;
@@ -27,13 +27,13 @@ ObjParser::nextWord(std::string_view separators)
 }
 
 void
-ObjParser::nextWord()
+GenParser::nextWord()
 {
     nextWord(defSeps);
 }
 
 void
-ObjParser::skipWord(std::string_view separators)
+GenParser::skipWord(std::string_view separators)
 {
     while (file[end] && !isSeparator(file[end], separators))
         end++;
@@ -42,19 +42,19 @@ ObjParser::skipWord(std::string_view separators)
 }
 
 void
-ObjParser::skipWord()
+GenParser::skipWord()
 {
     skipWord(defSeps);
 }
 
 void 
-ObjParser::skipBytes(size_t n)
+GenParser::skipBytes(size_t n)
 {
     start = end = end + n;
 }
 
 std::string
-ObjParser::readString(size_t size)
+GenParser::readString(size_t size)
 {
     std::string ret(file.begin() + start, file.begin() + start + size);
     start = end = end + size;
@@ -62,7 +62,7 @@ ObjParser::readString(size_t size)
 }
 
 u8
-ObjParser::read8()
+GenParser::read8()
 {
     auto ret = readTypeBytes<u8>(file, start);
     start = end = end + 1;
@@ -70,7 +70,7 @@ ObjParser::read8()
 }
 
 u16
-ObjParser::read16()
+GenParser::read16()
 {
     auto ret = readTypeBytes<u16>(file, start);
     start = end = end + 2;
@@ -78,7 +78,7 @@ ObjParser::read16()
 }
 
 u32
-ObjParser::read32()
+GenParser::read32()
 {
     auto ret = readTypeBytes<u32>(file, start);
     start = end = end + 4;
@@ -86,7 +86,7 @@ ObjParser::read32()
 }
 
 u64
-ObjParser::read64()
+GenParser::read64()
 {
     auto ret = readTypeBytes<u64>(file, start);
     start = end = end + 8;
@@ -94,19 +94,19 @@ ObjParser::read64()
 }
 
 void
-ObjParser::setPos(size_t p)
+GenParser::setPos(size_t p)
 {
     start = end = p;
 }
 
 bool
-ObjParser::finished()
+GenParser::finished()
 {
     return start >= size();
 }
 
 bool
-ObjParser::isSeparator(char c, std::string_view separotors)
+GenParser::isSeparator(char c, std::string_view separotors)
 {
     if (!file[c])
         return false;
@@ -119,7 +119,7 @@ ObjParser::isSeparator(char c, std::string_view separotors)
 }
 
 void
-ObjParser::skipWhiteSpace()
+GenParser::skipWhiteSpace()
 {
     while (file[end] && (file[end] == ' ' || file[end] == '\n'))
         end++;
