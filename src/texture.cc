@@ -1,5 +1,5 @@
-#include "headers/texture.hh"
-#include "headers/parser.hh"
+#include "texture.hh"
+#include "parser.hh"
 
 /* create with new, because it's must not be automatically destroyed prior to texture destruction */
 // std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;

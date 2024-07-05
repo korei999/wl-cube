@@ -1,12 +1,11 @@
-#!/usr/bin/bash
+#!/bin/bash
 set -e
-
-cd $(dirname $0)
-
-WLP="./platform/wayland/"
-WLPD="$WLP/wayland-protocols"
-
 set -x
+
+BIN=$(cat name)
+
+WLP="./src/platform/wayland/"
+WLPD="$WLP/wayland-protocols"
 
 wayland()
 {
@@ -27,68 +26,97 @@ wayland()
     $WAYLAND_SCANNER private-code $XDG_SHELL $WLPD/xdg-shell.c
 }
 
-clean()
+_clean()
 {
     rm -rf build $WLPD
 }
 
-asan()
+release()
 {
-    clean
+    _clean
     wayland
 
-    if CC=clang CXX=clang++ CC_LD=mold CXX_LD=mold meson setup build -Db_sanitize=address,undefined --buildtype=debug "$@"
+    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
     then
-        ninja -C build/ -j$(nproc) -v
+        cmake --build build/ -j -v
+    fi
+}
+
+default()
+{
+    _clean
+    wayland
+
+    if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
+    then
+        cmake --build build/ -j -v
     fi
 }
 
 debug()
 {
-    clean
+    _clean
     wayland
 
-    if CC_LD=mold CXX_LD=mold meson setup build --buildtype=debug "$@"
+    if CC_LD=mold CXX_LD=mold cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug "$@"
     then
-        ninja -C build/ -j$(nproc) -v
+        cmake --build build/ -j -v
     fi
 }
 
-release()
+asan()
 {
-    clean
+    _clean
     wayland
 
-    if meson setup build "$@"
+    if CC_LD=mold CXX_LD=mold cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan "$@"
     then
-        ninja -C build/ -j$(nproc) -v
+        cmake --build build/ -j -v
     fi
 }
 
 build()
 {
-    ninja -C build/ -j$(nproc) -v
+    cmake --build build/ -j -v
 }
 
 run()
 {
-    BIN=wl-cube
-
-    if ninja -C build/ -j$(nproc) -v
+    if cmake --build build/ -j -v
     then
         echo ""
         # ASAN_OPTIONS=detect_leaks=1 LSAN_OPTIONS=suppressions=leaks.txt ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
         # ASAN_OPTIONS=halt_on_error=0 ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
-        # ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
-        ./build/$BIN "$@" 2> /tmp/$BIN-dbg.txt
+        ./build/$BIN "$@" # 2> /tmp/$BIN-dbg.txt
     fi
 }
 
+_install()
+{
+    cmake --install build/
+}
+
+_uninstall()
+{
+    sudo xargs rm < ./build/install_manifest.txt
+}
+
+_test()
+{
+    ./tests/test.sh
+}
+
+cd $(dirname $0)
+
 case "$1" in
+    default) default "${@:2}" ;;
+    run) run "${@:2}" ;;
     debug) debug "${@:2}" ;;
     asan) asan "${@:2}" ;;
-    run) run "${@:2}" ;;
-    clean) clean ;;
-    release) release "${@:2}" ;;
+    release) release "${@:2}";;
+    install) _install ;;
+    uninstall) _uninstall ;;
+    clean) _clean ;;
+    test) _test ;;
     *) build ;;
 esac

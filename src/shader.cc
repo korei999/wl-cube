@@ -1,5 +1,5 @@
-#include "headers/shader.hh"
-#include "headers/utils.hh"
+#include "shader.hh"
+#include "utils.hh"
 
 Shader::Shader(std::string_view vertexPath, std::string_view fragmentPath)
 {

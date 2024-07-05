@@ -2,8 +2,8 @@
 #include <string_view>
 
 #include "../json/parser.hh"
-#include "headers/gmath.hh"
-#include "headers/utils.hh"
+#include "../gmath.hh"
+#include "../utils.hh"
 
 namespace gltf
 {

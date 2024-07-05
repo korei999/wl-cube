@@ -2,8 +2,8 @@
 #include "wayland-protocols/xdg-shell.h"
 #include "wayland-protocols/pointer-constraints-unstable-v1.h"
 #include "wayland-protocols/relative-pointer-unstable-v1.h"
-#include "../../headers/app.hh"
-#include "../../headers/ultratypes.h"
+#include "../../app.hh"
+#include "ultratypes.h"
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>

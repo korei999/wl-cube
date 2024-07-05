@@ -1,11 +1,12 @@
 #pragma once
-#include "ultratypes.h"
 
 #include <mutex>
 #include <string_view>
 #include <vector>
 #include <iostream>
 #include <format>
+
+#include "ultratypes.h"
 
 enum LogSeverity : int
 {

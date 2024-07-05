@@ -1,6 +1,6 @@
-#include "headers/frame.hh"
-#include "headers/colors.hh"
-#include "headers/model.hh"
+#include "frame.hh"
+#include "colors.hh"
+#include "model.hh"
 
 #include <cmath>
 #include <thread>
@@ -228,12 +228,11 @@ drawFrame(App* app)
         colorSh.setV3("uColor", lightColor);
         sphere.drawTex();
 
-        colorSh.setM4("uModel", m4Scale(m4Iden(), 0.05));
+        colorSh.setM4("uModel", m4Scale(m4Iden(), 0.01));
         colorSh.setV3("uColor", Color::mediumSlateBlue);
         /*teaPot.draw();*/
 
-        glBindVertexArray(duck.obj.vao);
-        glDrawElements(static_cast<int>(duck.mode), duck.obj.eboSize, static_cast<int>(duck.indType), nullptr);
+        duck.drawGLTF();
 
         incCounter += 1.0 * player.deltaTime;
     }

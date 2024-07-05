@@ -1,4 +1,4 @@
-#include "headers/frame.hh"
+#include "frame.hh"
 
 #ifdef __linux__
 #    include "platform/wayland/wayland.hh"

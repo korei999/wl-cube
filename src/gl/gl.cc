@@ -1,3 +1,3 @@
-#include "headers/gl.hh"
+#include "gl.hh"
 
 GLenum glLastErrorCode = 0;

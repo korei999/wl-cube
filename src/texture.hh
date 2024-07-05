@@ -2,7 +2,7 @@
 #include "gmath.hh"
 #include "ultratypes.h"
 #include "app.hh"
-#include "gl.hh"
+#include "gl/gl.hh"
 
 #include <string>
 // #include <unordered_map>

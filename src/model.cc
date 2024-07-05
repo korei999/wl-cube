@@ -1,8 +1,8 @@
 #include <thread>
 #include <unordered_map>
 
-#include "headers/model.hh"
-#include "headers/parser.hh"
+#include "model.hh"
+#include "parser.hh"
 
 static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c);
 static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
@@ -326,7 +326,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     /* indices */
     auto& indAcc = a.aAccessors[indicesAccIdx];
     size_t indBufferView = indAcc.bufferView;
-    size_t indByteOffset = indAcc.byteOffset;
+    [[maybe_unused]] size_t indByteOffset = indAcc.byteOffset;
     size_t indCount = indAcc.count;
     gltf::COMPONENT_TYPE indComponentType = indAcc.componentType;
     this->indType = indComponentType;
@@ -336,32 +336,32 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     auto& posAcc = a.aAccessors[positionsAccIdx];
     size_t posBufferView = posAcc.bufferView;
     size_t attrPosByteOffset = posAcc.byteOffset;
-    size_t posCount = posAcc.count;
+    [[maybe_unused]] size_t posCount = posAcc.count;
 
     /* normals */
     auto& normAcc = a.aAccessors[normalsAccIdx];
     size_t normBufferView = normAcc.bufferView;
     size_t attrNormByteOffset = normAcc.byteOffset;
-    size_t normCount = normAcc.count;
+    [[maybe_unused]] size_t normCount = normAcc.count;
 
     /* textures */
     auto& texAcc = a.aAccessors[texcoordsAccIdx];
     size_t texBufferView = texAcc.bufferView;
     size_t attrTexByteOffset = texAcc.byteOffset;
-    size_t texCount = texAcc.count;
+    [[maybe_unused]] size_t texCount = texAcc.count;
 
     /* tangents */
     auto& tanAcc = a.aAccessors[tangentsAccIdx];
     size_t tanBufferView = tanAcc.bufferView;
-    size_t tanByteOffset = tanAcc.byteOffset;
-    size_t tanCount = tanAcc.count;
+    size_t attrTanByteOffset = tanAcc.byteOffset;
+    [[maybe_unused]] size_t tanCount = tanAcc.count;
 
     /* indices data */
     auto& bvInd = a.aBufferViews[indBufferView];
     size_t bvIndBufferIdx = bvInd.buffer;
     size_t bvIndByteOffset = bvInd.byteOffset;
     size_t bvIndByteLength = bvInd.byteLength;
-    size_t bvIndByteStride = bvInd.byteStride;
+    [[maybe_unused]] size_t bvAttrIndByteStride = bvInd.byteStride;
     enum gltf::TARGET bvIndTarget = bvInd.target;
 
     /* positions data */
@@ -374,27 +374,27 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
     /* texture coords data */
     auto& bvTex = a.aBufferViews[texBufferView];
-    size_t bvTexBufferIdx = bvTex.buffer;
-    size_t bvTexByteOffset = bvTex.byteOffset;
-    size_t bvTexByteLength = bvTex.byteLength;
+    [[maybe_unused]] size_t bvTexBufferIdx = bvTex.buffer;
+    [[maybe_unused]] size_t bvTexByteOffset = bvTex.byteOffset;
+    [[maybe_unused]] size_t bvTexByteLength = bvTex.byteLength;
     size_t bvAttrTexByteStride = bvTex.byteStride;
-    enum gltf::TARGET bvTexTarget = bvTex.target;
+    [[maybe_unused]] enum gltf::TARGET bvTexTarget = bvTex.target;
 
     /* normals data */
     auto& bvNorm = a.aBufferViews[normBufferView];
-    size_t bvNormBufferIdx = bvNorm.buffer;
-    size_t bvNormByteOffset = bvNorm.byteOffset;
-    size_t bvNormByteLength = bvNorm.byteLength;
+    [[maybe_unused]] size_t bvNormBufferIdx = bvNorm.buffer;
+    [[maybe_unused]] size_t bvNormByteOffset = bvNorm.byteOffset;
+    [[maybe_unused]] size_t bvNormByteLength = bvNorm.byteLength;
     size_t bvAttrNormByteStride = bvNorm.byteStride;
-    enum gltf::TARGET bvNormTarget = bvNorm.target;
+    [[maybe_unused]] enum gltf::TARGET bvNormTarget = bvNorm.target;
 
     /* tangents data */
     auto& bvTan = a.aBufferViews[tanBufferView];
-    size_t bvTanBufferIdx = bvTan.buffer;
-    size_t bvTanByteOffset = bvTan.byteOffset;
-    size_t bvTanByteLength = bvTan.byteLength;
-    size_t bvTanByteStride = bvTan.byteStride;
-    enum gltf::TARGET bvTanTarget = bvTan.target;
+    [[maybe_unused]] size_t bvTanBufferIdx = bvTan.buffer;
+    [[maybe_unused]] size_t bvTanByteOffset = bvTan.byteOffset;
+    [[maybe_unused]] size_t bvTanByteLength = bvTan.byteLength;
+    [[maybe_unused]] size_t bvAttrTanByteStride = bvTan.byteStride;
+    [[maybe_unused]] enum gltf::TARGET bvTanTarget = bvTan.target;
 
     std::lock_guard lock(g_glContextMtx);
     c->bindGlContext();
@@ -416,6 +416,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+
     /* positions */
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0,
@@ -440,6 +441,14 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                           GL_FALSE,
                           bvAttrNormByteStride,
                           reinterpret_cast<void*>(attrNormByteOffset));
+    /* tangents */
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3,
+                          v3Size,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          bvAttrTanByteStride,
+                          reinterpret_cast<void*>(attrTanByteOffset));
 
     glBindVertexArray(0);
     c->unbindGlContext();
@@ -498,6 +507,13 @@ Model::draw()
             glBindVertexArray(mesh.vao);
             glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
         }
+}
+
+void
+Model::drawGLTF()
+{
+    glBindVertexArray(this->obj.vao);
+    glDrawElements(static_cast<int>(this->mode), this->obj.eboSize, static_cast<int>(this->indType), nullptr);
 }
 
 void

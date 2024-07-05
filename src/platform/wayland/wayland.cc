@@ -1,7 +1,7 @@
 #define _POSIX_C_SOURCE 199309L
 
 #include "input.hh"
-#include "../../headers/utils.hh"
+#include "../../utils.hh"
 #include "wayland.hh"
 
 #include <cstring>

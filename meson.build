@@ -38,7 +38,7 @@ if get_option('buildtype') == 'debug'
 
   if build_machine.system() == 'linux'
     add_project_arguments([
-      '-DDEBUG', '-DLOGS', '-Wno-missing-field-initializers', '-Wno-unused-parameter'
+      '-Wno-missing-field-initializers', '-Wno-unused-parameter'
       ], language: 'cpp')
   endif
 

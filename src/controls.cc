@@ -1,6 +1,6 @@
-#include "headers/controls.hh"
-#include "headers/frame.hh"
-#include "headers/utils.hh"
+#include "controls.hh"
+#include "frame.hh"
+#include "utils.hh"
 #include <cmath>
 
 #ifdef __linux__

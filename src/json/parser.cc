@@ -1,5 +1,5 @@
 #include "parser.hh"
-#include "../headers/utils.hh"
+#include "../utils.hh"
 
 namespace json
 {

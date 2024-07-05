@@ -5,7 +5,7 @@
 #include <climits>
 #include <immintrin.h>
 
-#include "headers/utils.hh"
+#include "utils.hh"
 
 std::mutex g_glContextMtx;
 std::mutex g_logMtx;

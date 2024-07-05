@@ -1,7 +1,7 @@
 #include <fstream>
 
 #include "lex.hh"
-#include "../headers/utils.hh"
+#include "../utils.hh"
 
 namespace json
 {

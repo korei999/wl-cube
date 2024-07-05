@@ -1,4 +1,4 @@
-#include "headers/parser.hh"
+#include "parser.hh"
 
 ObjParser::ObjParser(std::string_view defaultSeparators)
     : defSeps(defaultSeparators) {}
