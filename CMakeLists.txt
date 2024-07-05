@@ -51,14 +51,13 @@ set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 
 find_package(PkgConfig REQUIRED)
 
-cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
-message(STATUS "OS_NAME: '${OS_NAME}'")
+message(STATUS "CMAKE_SYSTEM_NAME: '${CMAKE_SYSTEM_NAME}'")
 
 pkg_check_modules(PKGS REQUIRED gl)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${PKGS_INCLUDE_DIRS})
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${PKGS_LIBRARIES})
 
-if (OS_NAME MATCHES "Linux")
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     pkg_check_modules(LINUX_PKGS REQUIRED egl glesv2 wayland-client wayland-egl wayland-cursor)
     target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LINUX_PKGS_INCLUDE_DIRS})
     target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LINUX_PKGS_LIBRARIES})
@@ -73,7 +72,7 @@ if (OS_NAME MATCHES "Linux")
         src/platform/wayland/wayland-protocols/relative-pointer-unstable-v1.c
         src/platform/wayland/wayland-protocols/xdg-shell.c
     )
-elseif (OS_NAME MATCHES "Windows")
+elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
     target_sources(
         ${CMAKE_PROJECT_NAME}
         PRIVATE
