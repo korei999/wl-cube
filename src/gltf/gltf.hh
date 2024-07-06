@@ -3,7 +3,7 @@
 
 #include "../json/parser.hh"
 #include "../gmath.hh"
-#include "../utils.hh"
+#include "utils.hh"
 
 namespace gltf
 {
@@ -131,8 +131,7 @@ struct BufferView
 
 struct Image
 {
-    std::string_view svUri;
-    std::vector<char> aBin;
+    std::string_view uri;
 };
 
 /* match real gl macros */
@@ -170,6 +169,30 @@ struct Mesh
 
 struct Texture
 {
+    size_t source = NPOS; /* The index of the sampler used by this texture. When undefined, a sampler with repeat wrapping and auto filtering SHOULD be used. */
+    size_t sampler = NPOS; /* The index of the image used by this texture. */
+};
+
+struct TextureInfo
+{
+    size_t index = NPOS; /* (REQUIRED) The index of the texture. */
+};
+
+struct NormalTextureInfo
+{
+    size_t index = NPOS; /* (REQUIRED) */
+    f64 scale;
+};
+
+struct PbrMetallicRoughness
+{
+    TextureInfo baseColorTexture;
+};
+
+struct Material
+{
+    PbrMetallicRoughness pbrMetallicRoughness;
+    NormalTextureInfo normalTexture;
 };
 
 struct Asset
@@ -181,9 +204,11 @@ struct Asset
     std::vector<Scene> aScenes;
     std::vector<Buffer> aBuffers;
     std::vector<BufferView> aBufferViews;
-    std::vector<Image> aImages;
     std::vector<Accessor> aAccessors;
     std::vector<Mesh> aMeshes;
+    std::vector<Texture> aTextures;
+    std::vector<Material> aMaterials;
+    std::vector<Image> aImages {};
     std::vector<Node> aNodes;
 
     Asset() = default;
@@ -214,6 +239,8 @@ private:
     void processAccessors();
     void processMeshes();
     void processTexures();
+    void processMaterials();
+    void processImages();
     void processNodes();
 };
 

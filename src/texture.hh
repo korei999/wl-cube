@@ -22,10 +22,10 @@ struct Texture
     std::string texPath;
 
     Texture() = default;
-    Texture(std::string_view path, TEX_TYPE type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT);
+    Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c);
     ~Texture();
 
-    void loadBMP(std::string_view path, TEX_TYPE type, bool flip = false, GLint texMode = GL_MIRRORED_REPEAT, App* c = nullptr);
+    void loadBMP(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c);
     void bind(GLint glTexture);
 
 private:

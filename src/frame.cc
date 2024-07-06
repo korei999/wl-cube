@@ -142,8 +142,7 @@ prepareDraw(App* app)
         /*std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
         std::jthread m3([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         /*std::jthread m4([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
-        /*std::jthread m4([&]{ duck.loadGLTF("test-assets/models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
-        std::jthread m4([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m4([&]{ duck.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         /*std::jthread m3([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
         duckTex.loadBMP("test-assets/models/duck/DuckCM.bmp", TEX_TYPE::DIFFUSE, true, GL_MIRRORED_REPEAT, app);
         /*duckTex.loadBMP("test-assets/floor.bmp", diffuse, false, GL_CLAMP_TO_EDGE, app);*/
@@ -169,7 +168,7 @@ renderScene(Shader* sh, bool depth)
         sh->setM3("uNormalMatrix", m3Normal(m));
     }
     /*sponza.drawTex();*/
-    duckTex.bind(GL_TEXTURE0);
+    /*duckTex.bind(GL_TEXTURE0);*/
     duck.drawGLTF();
 }
 

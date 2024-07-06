@@ -1,7 +1,7 @@
 #include "../../controls.hh"
 #include "../../frame.hh"
 #include "wayland.hh"
-#include "../../utils.hh"
+#include "utils.hh"
 
 void
 keyboardKeymapHandler([[maybe_unused]] void* data,

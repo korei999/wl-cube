@@ -4,9 +4,9 @@
 /* create with new, because it's must not be automatically destroyed prior to texture destruction */
 // std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
 
-Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode)
+Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c)
 {
-    loadBMP(path, type, flip, texMode);
+    loadBMP(path, type, flip, texMode, c);
 }
 
 Texture::~Texture()
@@ -162,8 +162,8 @@ Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsize
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, texMode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, texMode);
     /* set texture filtering parameters */
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     /* load image, create texture and generate mipmaps */
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);

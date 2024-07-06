@@ -1,4 +1,5 @@
 #include "gltf.hh"
+#include "threadpool.hh"
 
 #include <thread>
 
@@ -171,24 +172,19 @@ Asset::Asset(std::string_view path)
     this->processJSONObjs();
     this->defaultSceneIdx = json::getLong(this->jsonObjs.scene);
 
-#ifdef GLTF
-    this->processScenes();
-    this->processBuffers();
-    this->processBufferViews();
-    this->processAccessors();
-    this->processMeshes();
-    this->processNodes();
-#else
-    {
-        std::jthread t0([this]{ this->processScenes(); });
-        std::jthread t1([this]{ this->processBuffers(); });
-        std::jthread t2([this]{ this->processBufferViews(); });
-        std::jthread t3([this]{ this->processAccessors(); });
-        std::jthread t4([this]{ this->processMeshes(); });
-        std::jthread t5([this]{ this->processTexures(); });
-        std::jthread t6([this]{ this->processNodes(); });
-    }
-#endif
+    ThreadPool tp(std::thread::hardware_concurrency());
+
+    tp.submit([this]{ this->processScenes(); });
+    tp.submit([this]{ this->processBuffers(); });
+    tp.submit([this]{ this->processBufferViews(); });
+    tp.submit([this]{ this->processAccessors(); });
+    tp.submit([this]{ this->processMeshes(); });
+    tp.submit([this]{ this->processTexures(); });
+    tp.submit([this]{ this->processMaterials(); });
+    tp.submit([this]{ this->processImages(); });
+    tp.submit([this]{ this->processNodes(); });
+
+    tp.wait();
 }
 
 void
@@ -380,7 +376,7 @@ Asset::processAccessors()
         auto pBufferView = json::searchObject(obj, "bufferView");
         auto pByteOffset = json::searchObject(obj, "byteOffset");
         auto pComponentType = json::searchObject(obj, "componentType");
-        if (!pComponentType) LOG(FATAL, "'componentType' filed is required\n");
+        if (!pComponentType) LOG(FATAL, "'componentType' field is required\n");
         auto pCount = json::searchObject(obj, "count");
         if (!pCount) LOG(FATAL, "'count' field is required\n");
         auto pMax = json::searchObject(obj, "max");
@@ -481,7 +477,79 @@ Asset::processMeshes()
 void
 Asset::processTexures()
 {
-    /*auto textures*/
+    auto textures = this->jsonObjs.textures;
+    if (!textures) return;
+
+    auto& arr = json::getArray(textures);
+    for (auto& tex : arr)
+    {
+        auto& obj = json::getObject(&tex);
+
+        auto pSource = json::searchObject(obj, "source");
+        auto pSampler = json::searchObject(obj, "sampler");
+
+        this->aTextures.push_back({
+            .source = pSource ? json::getLong(pSource) : NPOS,
+            .sampler = pSampler ? json::getLong(pSampler) : NPOS
+        });
+    }
+}
+
+void
+Asset::processMaterials()
+{
+    auto materials = this->jsonObjs.materials;
+    if (!materials) return;
+
+    auto& arr = json::getArray(materials);
+    for (auto& mat : arr)
+    {
+        auto& obj = json::getObject(&mat);
+
+        TextureInfo texInfo {};
+
+        auto pPbrMetallicRoughness = json::searchObject(obj, "pbrMetallicRoughness");
+        if (pPbrMetallicRoughness)
+        {
+            auto& oPbr = json::getObject(pPbrMetallicRoughness);
+
+            auto pBaseColorTexture = json::searchObject(oPbr, "baseColorTexture");
+            if (pBaseColorTexture)
+            {
+                auto& objBct = json::getObject(pBaseColorTexture);
+
+                auto pIndex = json::searchObject(objBct, "index");
+                if (!pIndex) LOG(FATAL, "index field is required\n");
+
+                texInfo.index = json::getLong(pIndex);
+                /* TODO: finish materials parsing */
+            }
+        }
+
+        this->aMaterials.push_back({
+            .pbrMetallicRoughness {
+                .baseColorTexture = texInfo,
+            },
+            .normalTexture {}
+        });
+    }
+}
+
+void
+Asset::processImages()
+{
+    auto imgs = this->jsonObjs.images;
+    if (!imgs) return;
+
+    auto& arr = json::getArray(imgs);
+    for (auto& img : arr)
+    {
+        auto& obj = json::getObject(&img);
+
+        auto pUri = json::searchObject(obj, "uri");
+        if (pUri)
+            this->aImages.push_back({json::getStringView(pUri)});
+    }
 }
 
 void

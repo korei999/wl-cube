@@ -1,5 +1,5 @@
 #include "input.hh"
-#include "headers/utils.hh"
+#include "utils.hh"
 #include "headers/frame.hh"
 
 #include <windowsx.h>
