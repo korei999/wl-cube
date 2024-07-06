@@ -55,7 +55,7 @@ enum class ACCESSOR_TYPE
 
 union Type
 {
-    size_t SCALAR;
+    f64 SCALAR;
     v2 VEC2;
     v3 VEC3;
     v4 VEC4;
@@ -155,7 +155,7 @@ struct Primitive
         size_t TEXCOORD_0 = NPOS;
         size_t TANGENT = NPOS;
     } attributes; /* each value is the index of the accessor containing attribute’s data. */
-    size_t indices = NPOS; /* The index of the accessor that contains the vertex indices */
+    size_t indices = NPOS; /* The index of the accessor that contains the vertex indices, drawElements() when defined and drawArrays() otherwise. */
     size_t material = NPOS; /* The index of the material to apply to this primitive when rendering */
     enum PRIMITIVES mode = PRIMITIVES::TRIANGLES;
 };
@@ -211,5 +211,36 @@ private:
     void processMeshes();
     void processNodes();
 };
+
+static inline std::string_view
+getComponentTypeString(enum COMPONENT_TYPE t)
+{
+    switch (t)
+    {
+        default:
+        case COMPONENT_TYPE::BYTE:
+            return "BYTE";
+        case COMPONENT_TYPE::UNSIGNED_BYTE:
+            return "UNSIGNED_BYTE";
+        case COMPONENT_TYPE::SHORT:
+            return "SHORT";
+        case COMPONENT_TYPE::UNSIGNED_SHORT:
+            return "UNSIGNED_SHORT";
+        case COMPONENT_TYPE::UNSIGNED_INT:
+            return "UNSIGNED_INT";
+        case COMPONENT_TYPE::FLOAT:
+            return "FLOAT";
+    }
+}
+
+static inline std::string_view
+getPrimitiveModeString(enum PRIMITIVES pm)
+{
+    constexpr std::string_view ss[] {
+        "POINTS", "LINES", "LINE_LOOP", "LINE_STRIP", "TRIANGLES", "TRIANGLE_STRIP", "TRIANGLE_FAN"
+    };
+
+    return ss[static_cast<int>(pm)];
+}
 
 } /* namespace gltf */

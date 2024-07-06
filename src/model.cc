@@ -302,33 +302,25 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
         /* get mesh */
         auto& mesh = a.aMeshes[meshIdx];
-
         for (auto& primitive : mesh.aPrimitives)
         {
-            size_t indAccIdx = primitive.indices;
-            size_t posAccIdx = primitive.attributes.POSITION;
-            size_t normAccIdx = primitive.attributes.NORMAL;
-            size_t texAccIdx = primitive.attributes.TEXCOORD_0;
-            size_t tanAccIdx = primitive.attributes.TANGENT;
+            size_t accIndIdx = primitive.indices;
+            size_t accPosIdx = primitive.attributes.POSITION;
+            size_t accNormIdx = primitive.attributes.NORMAL;
+            size_t accTexIdx = primitive.attributes.TEXCOORD_0;
+            size_t accTanIdx = primitive.attributes.TANGENT;
             enum gltf::PRIMITIVES mode = primitive.mode;
 
-            auto& accInd = a.aAccessors[indAccIdx];
-            auto& accPos = a.aAccessors[posAccIdx];
-            auto& accNorm = a.aAccessors[normAccIdx];
-            auto& accTex = a.aAccessors[texAccIdx];
-            auto& accTan = a.aAccessors[tanAccIdx];
+            auto& accPos = a.aAccessors[accPosIdx];
+            auto& accTex = a.aAccessors[accTexIdx];
+            auto& accTan = a.aAccessors[accTanIdx];
 
-            auto& bvInd = a.aBufferViews[accInd.bufferView];
             auto& bvPos = a.aBufferViews[accPos.bufferView];
             auto& bvTex = a.aBufferViews[accTex.bufferView];
-            auto& bvNorm = a.aBufferViews[accNorm.bufferView];
-            auto& bvTan = a.aBufferViews[accTan.bufferView];
 
             /* push to model */
             Mesh2 nMesh2 {};
-            nMesh2.indType = accInd.componentType;
             nMesh2.mode = mode;
-            nMesh2.meshData.eboSize = accInd.count;
 
             std::lock_guard lock(g_glContextMtx);
             c->bindGlContext();
@@ -336,9 +328,22 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             glGenVertexArrays(1, &nMesh2.meshData.vao);
             glBindVertexArray(nMesh2.meshData.vao);
 
-            glGenBuffers(1, &nMesh2.meshData.ebo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh2.meshData.ebo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvInd.byteLength, a.aBuffers[bvInd.buffer].aBin.data() + bvInd.byteOffset, drawMode);
+            if (accIndIdx != NPOS)
+            {
+                auto& accInd = a.aAccessors[accIndIdx];
+                auto& bvInd = a.aBufferViews[accInd.bufferView];
+                nMesh2.indType = accInd.componentType;
+                nMesh2.meshData.eboSize = accInd.count;
+                nMesh2.triangleCount = NPOS;
+
+                glGenBuffers(1, &nMesh2.meshData.ebo);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh2.meshData.ebo);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvInd.byteLength, &a.aBuffers[bvInd.buffer].aBin.data()[bvInd.byteOffset + accInd.byteOffset], drawMode);
+            }
+            else
+            {
+                nMesh2.triangleCount = accPos.count;
+            }
 
             glGenBuffers(1, &nMesh2.meshData.vbo);
             glBindBuffer(GL_ARRAY_BUFFER, nMesh2.meshData.vbo);
@@ -351,8 +356,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, v3Size, static_cast<GLenum>(accPos.componentType), GL_FALSE,
                                   bvPos.byteStride, reinterpret_cast<void*>(bvPos.byteOffset + accPos.byteOffset));
-            COUT("bvPos.byteOffset: {}\n", bvPos.byteOffset);
-            COUT("accPos.byteOffset: {}\n", accPos.byteOffset);
 
             /* texture coords */
             glEnableVertexAttribArray(1);
@@ -360,10 +363,18 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                                   bvTex.byteStride, reinterpret_cast<void*>(bvTex.byteOffset + accTex.byteOffset));
 
             /* normals */
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, v3Size, static_cast<GLenum>(accNorm.componentType), GL_FALSE,
-                                  bvNorm.byteStride, reinterpret_cast<void*>(accNorm.byteOffset + bvNorm.byteOffset));
+            if (accNormIdx != NPOS)
+            {
+                auto& accNorm = a.aAccessors[accNormIdx];
+                auto& bvNorm = a.aBufferViews[accNorm.bufferView];
+
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, v3Size, static_cast<GLenum>(accNorm.componentType), GL_FALSE,
+                                      bvNorm.byteStride, reinterpret_cast<void*>(accNorm.byteOffset + bvNorm.byteOffset));
+            }
+
             /* tangents */
+            /*auto& bvTan = a.aBufferViews[accTan.bufferView];*/
             /*glEnableVertexAttribArray(3);*/
             /*glVertexAttribPointer(3, v3Size, static_cast<GLenum>(accTan.componentType), GL_FALSE,*/
             /*                      bvTan.byteStride, reinterpret_cast<void*>(accTan.byteOffset + bvTan.byteOffset));*/
@@ -434,13 +445,13 @@ Model::draw()
 void
 Model::drawGLTF()
 {
-    /*int i = 0;*/
     for (auto& e : this->aM2s)
     {
-        /*if (i++ >= 3) break;*/
-
         glBindVertexArray(e.meshData.vao);
-        glDrawElements(static_cast<GLenum>(e.mode), e.meshData.eboSize, static_cast<GLenum>(e.indType), nullptr);
+        if (e.triangleCount != NPOS)
+            glDrawArrays(static_cast<GLenum>(e.mode), 0, e.triangleCount);
+        else
+            glDrawElements(static_cast<GLenum>(e.mode), e.meshData.eboSize, static_cast<GLenum>(e.indType), nullptr);
     }
 }
 

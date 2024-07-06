@@ -32,27 +32,6 @@ enum class HASH_CODES : u64
 #ifdef GLTF
 
 static std::string_view
-getComponentTypeString(enum COMPONENT_TYPE t)
-{
-    switch (t)
-    {
-        default:
-        case COMPONENT_TYPE::BYTE:
-            return "BYTE";
-        case COMPONENT_TYPE::UNSIGNED_BYTE:
-            return "UNSIGNED_BYTE";
-        case COMPONENT_TYPE::SHORT:
-            return "SHORT";
-        case COMPONENT_TYPE::UNSIGNED_SHORT:
-            return "UNSIGNED_SHORT";
-        case COMPONENT_TYPE::UNSIGNED_INT:
-            return "UNSIGNED_INT";
-        case COMPONENT_TYPE::FLOAT:
-            return "FLOAT";
-    }
-}
-
-static std::string_view
 getTargetString(enum TARGET t)
 {
     switch (t)
@@ -65,16 +44,6 @@ getTargetString(enum TARGET t)
         case TARGET::ELEMENT_ARRAY_BUFFER:
             return "ELEMENT_ARRAY_BUFFER";
     }
-}
-
-std::string_view
-getPrimitiveModeString(enum PRIMITIVES pm)
-{
-    constexpr std::string_view ss[] {
-        "POINTS", "LINES", "LINE_LOOP", "LINE_STRIP", "TRIANGLES", "TRIANGLE_STRIP", "TRIANGLE_FAN"
-    };
-
-    return ss[static_cast<int>(pm)];
 }
 
 static std::string
@@ -149,7 +118,10 @@ assignUnionType(json::Object* obj, size_t n)
     union Type type;
 
     for (size_t i = 0; i < n; i++)
-        type.MAT4.p[i] = json::getDouble(&arr[i]);
+        if (arr[i].tagVal.tag == json::TAG::LONG)
+            type.MAT4.p[i] = static_cast<f64>(json::getLong(&arr[i]));
+        else
+            type.MAT4.p[i] = json::getDouble(&arr[i]);
 
     return type;
 }
@@ -165,7 +137,10 @@ accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
         case ACCESSOR_TYPE::SCALAR:
             {
                 auto& arr = json::getArray(obj);
-                type.SCALAR = static_cast<size_t>(json::getLong(&arr[0]));
+                if (arr[0].tagVal.tag == json::TAG::LONG)
+                    type.SCALAR = static_cast<f64>(json::getLong(&arr[0]));
+                else
+                    type.SCALAR = static_cast<f64>(json::getDouble(&arr[0]));
             }
             break;
         case ACCESSOR_TYPE::VEC2:
@@ -472,13 +447,13 @@ Asset::processMeshes()
  
             aPrimitives.push_back({
                 .attributes {
-                    .NORMAL = pNORMAL ? static_cast<decltype(Primitive::attributes.NORMAL)>(json::getLong(pNORMAL)) : 0,
-                    .POSITION = pPOSITION ? static_cast<decltype(Primitive::attributes.POSITION)>(json::getLong(pPOSITION)) : 0,
-                    .TEXCOORD_0 = pTEXCOORD_0 ? static_cast<decltype(Primitive::attributes.TEXCOORD_0)>(json::getLong(pTEXCOORD_0)) : 0,
-                    .TANGENT = pTANGENT ? static_cast<decltype(Primitive::attributes.TANGENT)>(json::getLong(pTANGENT)) : 0,
+                    .NORMAL = pNORMAL ? static_cast<decltype(Primitive::attributes.NORMAL)>(json::getLong(pNORMAL)) : NPOS,
+                    .POSITION = pPOSITION ? static_cast<decltype(Primitive::attributes.POSITION)>(json::getLong(pPOSITION)) : NPOS,
+                    .TEXCOORD_0 = pTEXCOORD_0 ? static_cast<decltype(Primitive::attributes.TEXCOORD_0)>(json::getLong(pTEXCOORD_0)) : NPOS,
+                    .TANGENT = pTANGENT ? static_cast<decltype(Primitive::attributes.TANGENT)>(json::getLong(pTANGENT)) : NPOS,
                 },
-                .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getLong(pIndices)) : 0,
-                .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getLong(pMaterial)) : 0,
+                .indices = pIndices ? static_cast<decltype(Primitive::indices)>(json::getLong(pIndices)) : NPOS,
+                .material = pMaterial ? static_cast<decltype(Primitive::material)>(json::getLong(pMaterial)) : NPOS,
                 .mode = pMode ? static_cast<decltype(Primitive::mode)>(json::getLong(pMode)) : PRIMITIVES::TRIANGLES,
             });
         }

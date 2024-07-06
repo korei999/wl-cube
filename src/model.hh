@@ -67,6 +67,7 @@ struct Mesh2
 
     enum gltf::COMPONENT_TYPE indType;
     enum gltf::PRIMITIVES mode;
+    size_t triangleCount;
 };
 
 struct Model
