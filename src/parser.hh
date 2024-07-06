@@ -37,7 +37,7 @@ template <typename Type>
 __attribute__((no_sanitize("undefined"))) /* complains about unaligned pointers */
 #endif
 Type
-readTypeBytes(const std::vector<char>& vec, size_t i)
+readTypeBytes(std::vector<char>& vec, size_t i)
 {
-    return *(Type*)&vec[i];
+    return *reinterpret_cast<Type*>(&vec[i]);
 }

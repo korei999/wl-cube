@@ -89,7 +89,7 @@ struct Model
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void draw();
-    void drawGLTF();
+    void drawGLTF(bool bBindTextures);
     void drawInstanced(GLsizei count);
     /* bind texture for each drawcall */
     void drawTex(GLint primitives = GL_TRIANGLES);

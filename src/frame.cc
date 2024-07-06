@@ -1,9 +1,9 @@
+#include <cmath>
+#include <thread>
+
 #include "frame.hh"
 #include "colors.hh"
 #include "model.hh"
-
-#include <cmath>
-#include <thread>
 
 #define SHADOW_WIDTH 1024
 #define SHADOW_HEIGHT 1024
@@ -81,10 +81,8 @@ Model sphere;
 Model plane;
 Model teaPot;
 Model sponza;
-Model duck;
 Texture boxTex;
 Texture dirtTex;
-Texture duckTex;
 Ubo projView;
 CubeMap cubeMap;
 
@@ -137,15 +135,9 @@ prepareDraw(App* app)
     /* models */
     {
         std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        /*std::jthread m1(&Model::loadOBJ, &sponza, "test-assets/models/Sponza/sponza.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
         std::jthread m2(&Model::loadOBJ, &teaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        /*std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
         std::jthread m3([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        /*std::jthread m4([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
-        std::jthread m4([&]{ duck.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        /*std::jthread m3([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
-        duckTex.loadBMP("test-assets/models/duck/DuckCM.bmp", TEX_TYPE::DIFFUSE, true, GL_MIRRORED_REPEAT, app);
-        /*duckTex.loadBMP("test-assets/floor.bmp", diffuse, false, GL_CLAMP_TO_EDGE, app);*/
+        std::jthread m4([&]{ sponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     }
 
     /* restore context after assets are loaded */
@@ -167,9 +159,7 @@ renderScene(Shader* sh, bool depth)
     {
         sh->setM3("uNormalMatrix", m3Normal(m));
     }
-    /*sponza.drawTex();*/
-    /*duckTex.bind(GL_TEXTURE0);*/
-    duck.drawGLTF();
+    sponza.drawGLTF(true);
 }
 
 void

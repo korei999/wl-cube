@@ -5,7 +5,6 @@
 #include "gl/gl.hh"
 
 #include <string>
-// #include <unordered_map>
 
 enum TEX_TYPE : int
 {
@@ -29,8 +28,6 @@ struct Texture
     void bind(GLint glTexture);
 
 private:
-    // static std::unordered_map<u64, Texture*>* loadedTex;
-
     void setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, App* c);
 };
 

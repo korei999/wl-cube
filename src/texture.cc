@@ -1,9 +1,6 @@
 #include "texture.hh"
 #include "parser.hh"
 
-/* create with new, because it's must not be automatically destroyed prior to texture destruction */
-// std::unordered_map<u64, Texture*>* Texture::loadedTex = new std::unordered_map<u64, Texture*>;
-
 Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c)
 {
     loadBMP(path, type, flip, texMode, c);
@@ -36,8 +33,6 @@ Texture::~Texture()
  *	DATA:	X	Pixels
  */
 
-// static std::mutex insMtx;
-
 void
 Texture::loadBMP(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c)
 {
@@ -50,10 +45,6 @@ Texture::loadBMP(std::string_view path, TEX_TYPE type, bool flip, GLint texMode,
     }
     this->texPath = path;
     this->type = type;
-
-    // insMtx.lock();
-    // auto inserted = loadedTex->try_emplace(hashFNV(path), this);
-    // insMtx.unlock();
 
     u32 imageDataAddress;
     s32 width;
@@ -121,22 +112,20 @@ Texture::loadBMP(std::string_view path, TEX_TYPE type, bool flip, GLint texMode,
     LOG(OK, "pos: {}, size: {}\n", bmp.start, bmp.size() - bmp.start);
 #endif
 
-    /*std::vector<u8> aRGBA(nPixels * byteDepth);*/
-
     switch (format)
     {
         default:
         case GL_RGB:
-            flipCpyBGRtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
+            flipCpyBGRtoRGBA(pixels.data(), reinterpret_cast<u8*>(&p[p.start]), width, height, flip);
             format = GL_RGBA;
             break;
 
         case GL_RGBA:
-            flipCpyBGRAtoRGBA((u8*)pixels.data(), (u8*)&p[p.start], width, height, flip);
+            flipCpyBGRAtoRGBA(pixels.data(), reinterpret_cast<u8*>(&p[p.start]), width, height, flip);
             break;
     }
 
-    setTexture((u8*)pixels.data(), texMode, format, width, height, c);
+    setTexture(pixels.data(), texMode, format, width, height, c);
 
 #ifdef TEXTURE
     LOG(OK, "{}: id: {}, texMode: {}\n", path, this->id, format);

@@ -3,7 +3,6 @@
 
 #include "model.hh"
 #include "parser.hh"
-#include "threadpool.hh"
 
 static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c);
 static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
@@ -292,7 +291,6 @@ void
 Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     gltf::Asset a(path);
-    ThreadPool tp(std::thread::hardware_concurrency());
 
     size_t meshIdx = NPOS;
     for (auto& node : a.aNodes)
@@ -305,106 +303,103 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
         auto& mesh = a.aMeshes[meshIdx];
         for (auto& primitive : mesh.aPrimitives)
         {
-            tp.submit([&]
+            size_t accIndIdx = primitive.indices;
+            size_t accPosIdx = primitive.attributes.POSITION;
+            size_t accNormIdx = primitive.attributes.NORMAL;
+            size_t accTexIdx = primitive.attributes.TEXCOORD_0;
+            size_t accTanIdx = primitive.attributes.TANGENT;
+            size_t accMatIdx = primitive.material;
+            enum gltf::PRIMITIVES mode = primitive.mode;
+
+            auto& accPos = a.aAccessors[accPosIdx];
+            auto& accTex = a.aAccessors[accTexIdx];
+            auto& accTan = a.aAccessors[accTanIdx];
+
+            auto& bvPos = a.aBufferViews[accPos.bufferView];
+            auto& bvTex = a.aBufferViews[accTex.bufferView];
+
+            Mesh2 nMesh2 {};
+            nMesh2.mode = mode;
+
+            g_glContextMtx.lock();
+            c->bindGlContext();
+
+            glGenVertexArrays(1, &nMesh2.meshData.vao);
+            glBindVertexArray(nMesh2.meshData.vao);
+
+            if (accIndIdx != NPOS)
             {
-                size_t accIndIdx = primitive.indices;
-                size_t accPosIdx = primitive.attributes.POSITION;
-                size_t accNormIdx = primitive.attributes.NORMAL;
-                size_t accTexIdx = primitive.attributes.TEXCOORD_0;
-                size_t accTanIdx = primitive.attributes.TANGENT;
-                size_t accMatIdx = primitive.material;
-                enum gltf::PRIMITIVES mode = primitive.mode;
+                auto& accInd = a.aAccessors[accIndIdx];
+                auto& bvInd = a.aBufferViews[accInd.bufferView];
+                nMesh2.indType = accInd.componentType;
+                nMesh2.meshData.eboSize = accInd.count;
+                nMesh2.triangleCount = NPOS;
 
-                auto& accPos = a.aAccessors[accPosIdx];
-                auto& accTex = a.aAccessors[accTexIdx];
-                auto& accTan = a.aAccessors[accTanIdx];
+                glGenBuffers(1, &nMesh2.meshData.ebo);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh2.meshData.ebo);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvInd.byteLength,
+                             &a.aBuffers[bvInd.buffer].aBin.data()[bvInd.byteOffset + accInd.byteOffset], drawMode);
+            }
+            else
+            {
+                nMesh2.triangleCount = accPos.count;
+            }
 
-                auto& bvPos = a.aBufferViews[accPos.bufferView];
-                auto& bvTex = a.aBufferViews[accTex.bufferView];
+            glGenBuffers(1, &nMesh2.meshData.vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, nMesh2.meshData.vbo);
+            glBufferData(GL_ARRAY_BUFFER, a.aBuffers[bvPos.buffer].byteLength,
+                         a.aBuffers[bvPos.buffer].aBin.data(), drawMode);
 
-                /* push to model */
-                Mesh2 nMesh2 {};
-                nMesh2.mode = mode;
+            constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
+            constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
 
-                g_glContextMtx.lock();
-                c->bindGlContext();
+            /* positions */
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, v3Size, static_cast<GLenum>(accPos.componentType), GL_FALSE,
+                                  bvPos.byteStride, reinterpret_cast<void*>(bvPos.byteOffset + accPos.byteOffset));
 
-                glGenVertexArrays(1, &nMesh2.meshData.vao);
-                glBindVertexArray(nMesh2.meshData.vao);
+            /* texture coords */
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, v2Size, static_cast<GLenum>(accTex.componentType), GL_FALSE,
+                                  bvTex.byteStride, reinterpret_cast<void*>(bvTex.byteOffset + accTex.byteOffset));
 
-                if (accIndIdx != NPOS)
-                {
-                    auto& accInd = a.aAccessors[accIndIdx];
-                    auto& bvInd = a.aBufferViews[accInd.bufferView];
-                    nMesh2.indType = accInd.componentType;
-                    nMesh2.meshData.eboSize = accInd.count;
-                    nMesh2.triangleCount = NPOS;
+            /* normals */
+            if (accNormIdx != NPOS)
+            {
+                auto& accNorm = a.aAccessors[accNormIdx];
+                auto& bvNorm = a.aBufferViews[accNorm.bufferView];
 
-                    glGenBuffers(1, &nMesh2.meshData.ebo);
-                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh2.meshData.ebo);
-                    glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvInd.byteLength, &a.aBuffers[bvInd.buffer].aBin.data()[bvInd.byteOffset + accInd.byteOffset], drawMode);
-                }
-                else
-                {
-                    nMesh2.triangleCount = accPos.count;
-                }
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, v3Size, static_cast<GLenum>(accNorm.componentType), GL_FALSE,
+                                      bvNorm.byteStride, reinterpret_cast<void*>(accNorm.byteOffset + bvNorm.byteOffset));
+            }
 
-                glGenBuffers(1, &nMesh2.meshData.vbo);
-                glBindBuffer(GL_ARRAY_BUFFER, nMesh2.meshData.vbo);
-                glBufferData(GL_ARRAY_BUFFER, a.aBuffers[bvPos.buffer].byteLength, a.aBuffers[bvPos.buffer].aBin.data(), drawMode);
+            /* tangents */
+            /*auto& bvTan = a.aBufferViews[accTan.bufferView];*/
+            /*glEnableVertexAttribArray(3);*/
+            /*glVertexAttribPointer(3, v3Size, static_cast<GLenum>(accTan.componentType), GL_FALSE,*/
+            /*                      bvTan.byteStride, reinterpret_cast<void*>(accTan.byteOffset + bvTan.byteOffset));*/
 
-                constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
-                constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+            glBindVertexArray(0);
+            c->unbindGlContext();
+            g_glContextMtx.unlock();
 
-                /* positions */
-                glEnableVertexAttribArray(0);
-                glVertexAttribPointer(0, v3Size, static_cast<GLenum>(accPos.componentType), GL_FALSE,
-                                      bvPos.byteStride, reinterpret_cast<void*>(bvPos.byteOffset + accPos.byteOffset));
+            /* load textures */
+            if (accMatIdx != NPOS)
+            {
+                auto& mat = a.aMaterials[accMatIdx];
+                size_t baseColorTexIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
+                size_t diffuseIdx = a.aTextures[baseColorTexIdx].source;
+                auto& diffuseImg = a.aImages[diffuseIdx];
+                auto diffuseImgPath = replaceFileSuffixInPath(path, diffuseImg.uri);
 
-                /* texture coords */
-                glEnableVertexAttribArray(1);
-                glVertexAttribPointer(1, v2Size, static_cast<GLenum>(accTex.componentType), GL_FALSE,
-                                      bvTex.byteStride, reinterpret_cast<void*>(bvTex.byteOffset + accTex.byteOffset));
+                nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
+                                                            false, GL_MIRRORED_REPEAT, c);
+            }
 
-                /* normals */
-                if (accNormIdx != NPOS)
-                {
-                    auto& accNorm = a.aAccessors[accNormIdx];
-                    auto& bvNorm = a.aBufferViews[accNorm.bufferView];
-
-                    glEnableVertexAttribArray(2);
-                    glVertexAttribPointer(2, v3Size, static_cast<GLenum>(accNorm.componentType), GL_FALSE,
-                                          bvNorm.byteStride, reinterpret_cast<void*>(accNorm.byteOffset + bvNorm.byteOffset));
-                }
-
-                /* tangents */
-                /*auto& bvTan = a.aBufferViews[accTan.bufferView];*/
-                /*glEnableVertexAttribArray(3);*/
-                /*glVertexAttribPointer(3, v3Size, static_cast<GLenum>(accTan.componentType), GL_FALSE,*/
-                /*                      bvTan.byteStride, reinterpret_cast<void*>(accTan.byteOffset + bvTan.byteOffset));*/
-
-                glBindVertexArray(0);
-                c->unbindGlContext();
-                g_glContextMtx.unlock();
-
-                /* load textures */
-                if (accMatIdx != NPOS)
-                {
-                    auto& mat = a.aMaterials[accMatIdx];
-                    size_t baseColorTexIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
-                    size_t diffuseIdx = a.aTextures[baseColorTexIdx].source;
-                    auto& diffuseImg = a.aImages[diffuseIdx];
-
-                    auto diffuseImgPath = replaceFileSuffixInPath(path, diffuseImg.uri);
-                    nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE, false, GL_MIRRORED_REPEAT, c);
-                }
-
-                this->aM2s.push_back(nMesh2);
-            });
+            this->aM2s.push_back(nMesh2);
         }
     }
-
-    tp.wait();
 }
 
 static void
@@ -463,12 +458,14 @@ Model::draw()
 }
 
 void
-Model::drawGLTF()
+Model::drawGLTF(bool bBindTextures)
 {
     for (auto& e : this->aM2s)
     {
         glBindVertexArray(e.meshData.vao);
-        e.meshData.materials.diffuse.bind(GL_TEXTURE0);
+
+        if (bBindTextures)
+            e.meshData.materials.diffuse.bind(GL_TEXTURE0);
 
         if (e.triangleCount != NPOS)
             glDrawArrays(static_cast<GLenum>(e.mode), 0, e.triangleCount);
