@@ -12,7 +12,7 @@ project(wl-cube VERSION 0.2 LANGUAGES CXX C)
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 
 add_compile_options(-Wall -Wextra)
-include_directories(BEFORE "include")
+include_directories(BEFORE "utils")
 
 add_executable(
     ${CMAKE_PROJECT_NAME}
@@ -28,7 +28,7 @@ add_executable(
     src/json/parser.cc
     src/gltf/gltf.cc
     src/gl/gl.cc
-    include/utils.cc
+    utils/utils.cc
 )
 
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
