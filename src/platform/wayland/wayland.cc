@@ -29,6 +29,12 @@ static const wl_pointer_listener pointerListener {
     .motion = pointerMotionHandler,
     .button = pointerButtonHandler,
     .axis = pointerAxisHandler,
+    .frame {},
+    .axis_source {},
+    .axis_stop {},
+    .axis_discrete {},
+    .axis_value120 {},
+    .axis_relative_direction {}
 };
 
 static const wl_keyboard_listener keyboardListener {
@@ -79,6 +85,7 @@ seatCapabilitiesHandler([[maybe_unused]] void* data,
 
 static const wl_seat_listener seatListener {
     .capabilities = seatCapabilitiesHandler,
+	.name = {}
 };
 
 static void

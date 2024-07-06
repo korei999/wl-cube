@@ -168,6 +168,10 @@ struct Mesh
     std::string_view svName;
 };
 
+struct Texture
+{
+};
+
 struct Asset
 {
     json::Parser parser;
@@ -209,6 +213,7 @@ private:
     void processBufferViews();
     void processAccessors();
     void processMeshes();
+    void processTexures();
     void processNodes();
 };
 

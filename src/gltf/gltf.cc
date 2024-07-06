@@ -185,7 +185,8 @@ Asset::Asset(std::string_view path)
         std::jthread t2([this]{ this->processBufferViews(); });
         std::jthread t3([this]{ this->processAccessors(); });
         std::jthread t4([this]{ this->processMeshes(); });
-        std::jthread t5([this]{ this->processNodes(); });
+        std::jthread t5([this]{ this->processTexures(); });
+        std::jthread t6([this]{ this->processNodes(); });
     }
 #endif
 }
@@ -475,6 +476,12 @@ Asset::processMeshes()
         }
     }
 #endif
+}
+
+void
+Asset::processTexures()
+{
+    /*auto textures*/
 }
 
 void
