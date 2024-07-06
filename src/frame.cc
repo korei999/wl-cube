@@ -73,6 +73,7 @@ Shader cubeDepthSh;
 Shader omniDirShadowSh;
 Shader colorSh;
 Shader texSh;
+Shader shBF;
 Model cube;
 Model sphere;
 Model plane;
@@ -106,7 +107,7 @@ prepareDraw(App* app)
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 
-    v4 gray = v4Color(0x444444FF);
+    v4 gray = v4Color(0x000000FF);
     glClearColor(gray.r, gray.g, gray.b, gray.a);
 
     debugDepthQuadSh.loadShaders("shaders/shadows/debugQuad.vert", "shaders/shadows/debugQuad.frag");
@@ -138,7 +139,9 @@ prepareDraw(App* app)
         std::jthread m2(&Model::loadOBJ, &teaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
         /*std::jthread m2(&Model::loadOBJ, &sphere, "test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);*/
         std::jthread m3([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m4([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        /*std::jthread m4([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
+        /*std::jthread m4([&]{ duck.loadGLTF("test-assets/models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
+        std::jthread m4([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         /*std::jthread m3([&]{ duck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
         duckTex.loadBMP("test-assets/models/duck/DuckCM.bmp", TEX_TYPE::DIFFUSE, true, GL_MIRRORED_REPEAT, app);
         /*duckTex.loadBMP("test-assets/floor.bmp", diffuse, false, GL_CLAMP_TO_EDGE, app);*/
@@ -157,13 +160,15 @@ renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
 
-    m = m4Scale(m, 0.01f);
+    m = m4Scale(m, 0.4f);
     sh->setM4("uModel", m);
     if (!depth)
     {
         sh->setM3("uNormalMatrix", m3Normal(m));
     }
-    sponza.drawTex();
+    /*sponza.drawTex();*/
+    duckTex.bind(GL_TEXTURE0);
+    duck.drawGLTF();
 }
 
 void
@@ -205,7 +210,7 @@ drawFrame(App* app)
         cubeDepthSh.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
         glCullFace(GL_FRONT);
-        /*renderScene(&cubeDepthSh, true);*/
+        renderScene(&cubeDepthSh, true);
         glCullFace(GL_BACK);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -222,7 +227,7 @@ drawFrame(App* app)
         omniDirShadowSh.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
-        /*renderScene(&omniDirShadowSh, false);*/
+        renderScene(&omniDirShadowSh, false);
 
         /* draw light source */
         m4 cubeTm = m4Iden();
@@ -233,10 +238,10 @@ drawFrame(App* app)
         colorSh.setV3("uColor", lightColor);
         sphere.drawTex();
 
-        texSh.use();
-        texSh.setM4("uModel", m4Scale(m4Iden(), 0.01));
-        duckTex.bind(GL_TEXTURE0);
-        duck.drawGLTF();
+        /*texSh.use();*/
+        /*texSh.setM4("uModel", m4Scale(m4Iden(), 0.01));*/
+        /*duckTex.bind(GL_TEXTURE0);*/
+        /*duck.drawGLTF();*/
 
         incCounter += 1.0 * player.deltaTime;
     }

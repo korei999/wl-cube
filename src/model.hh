@@ -1,4 +1,5 @@
 #pragma once
+
 #include "gltf/gltf.hh"
 #include "gmath.hh"
 #include "shader.hh"
@@ -60,14 +61,20 @@ struct MeshData
     std::string name;
 };
 
+struct Mesh2
+{
+    MeshData meshData;
+
+    enum gltf::COMPONENT_TYPE indType;
+    enum gltf::PRIMITIVES mode;
+};
+
 struct Model
 {
     std::vector<std::vector<MeshData>> objects;
     std::string_view savedPath;
 
-    MeshData obj;
-    enum gltf::COMPONENT_TYPE indType;
-    enum gltf::PRIMITIVES mode;
+    std::vector<Mesh2> aM2s;
 
     Model() = default;
     Model(const Model& other) = delete;

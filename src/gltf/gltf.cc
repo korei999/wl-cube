@@ -67,8 +67,8 @@ getTargetString(enum TARGET t)
     }
 }
 
-static std::string_view
-getPrimitiveModeString(enum PRIMITIVES_MODE pm)
+std::string_view
+getPrimitiveModeString(enum PRIMITIVES pm)
 {
     constexpr std::string_view ss[] {
         "POINTS", "LINES", "LINE_LOOP", "LINE_STRIP", "TRIANGLES", "TRIANGLE_STRIP", "TRIANGLE_FAN"
