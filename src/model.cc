@@ -292,6 +292,23 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     gltf::Asset a(path);
 
+    /* load buffers first */
+    std::vector<GLuint> aBufferMap;
+    for (size_t i = 0; i < a.aBuffers.size(); i++)
+    {
+        std::scoped_lock lock(g_glContextMtx);
+        c->bindGlContext();
+
+        GLuint b;
+        glGenBuffers(1, &b);
+        glBindBuffer(GL_ARRAY_BUFFER, b);
+        glBufferData(GL_ARRAY_BUFFER, a.aBuffers[i].byteLength, a.aBuffers[i].aBin.data(), drawMode);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        aBufferMap.push_back(b);
+
+        c->unbindGlContext();
+    }
+
     size_t meshIdx = NPOS;
     for (auto& node : a.aNodes)
     {
@@ -321,6 +338,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             Mesh2 nMesh2 {};
             nMesh2.mode = mode;
 
+            /* manually unlock before texture loading */
             g_glContextMtx.lock();
             c->bindGlContext();
 
@@ -345,13 +363,13 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 nMesh2.triangleCount = accPos.count;
             }
 
-            glGenBuffers(1, &nMesh2.meshData.vbo);
-            glBindBuffer(GL_ARRAY_BUFFER, nMesh2.meshData.vbo);
-            glBufferData(GL_ARRAY_BUFFER, a.aBuffers[bvPos.buffer].byteLength,
-                         a.aBuffers[bvPos.buffer].aBin.data(), drawMode);
-
             constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
             constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
+
+            /* if there are different VBO's for positions textures or normals,
+             * given gltf file should be considered harmful, and this will crash ofc */
+            nMesh2.meshData.vbo = aBufferMap[bvPos.buffer];
+            glBindBuffer(GL_ARRAY_BUFFER, nMesh2.meshData.vbo);
 
             /* positions */
             glEnableVertexAttribArray(0);
@@ -363,7 +381,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             glVertexAttribPointer(1, v2Size, static_cast<GLenum>(accTex.componentType), GL_FALSE,
                                   bvTex.byteStride, reinterpret_cast<void*>(bvTex.byteOffset + accTex.byteOffset));
 
-            /* normals */
+             /*normals */
             if (accNormIdx != NPOS)
             {
                 auto& accNorm = a.aAccessors[accNormIdx];
@@ -470,7 +488,10 @@ Model::drawGLTF(bool bBindTextures)
         if (e.triangleCount != NPOS)
             glDrawArrays(static_cast<GLenum>(e.mode), 0, e.triangleCount);
         else
-            glDrawElements(static_cast<GLenum>(e.mode), e.meshData.eboSize, static_cast<GLenum>(e.indType), nullptr);
+            glDrawElements(static_cast<GLenum>(e.mode),
+                           e.meshData.eboSize,
+                           static_cast<GLenum>(e.indType),
+                           nullptr);
     }
 }
 

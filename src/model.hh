@@ -76,6 +76,7 @@ struct Model
     std::string_view savedPath;
 
     std::vector<Mesh2> aM2s;
+    gltf::Asset asset;
 
     Model() = default;
     Model(const Model& other) = delete;
