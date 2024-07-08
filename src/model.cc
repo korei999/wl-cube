@@ -353,6 +353,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 nMesh2.meshData.eboSize = accInd.count;
                 nMesh2.triangleCount = NPOS;
 
+                /* TODO: figure out how to reuse VBO data for index buffer (possible?) */
                 glGenBuffers(1, &nMesh2.meshData.ebo);
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh2.meshData.ebo);
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvInd.byteLength,

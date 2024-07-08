@@ -396,3 +396,19 @@ v4Color(const u32 hex)
     v4 t = COLOR4(hex);
     return t;
 }
+
+m4
+qtrRot(const qtr& q)
+{
+    auto& x = q.x;
+    auto& y = q.y;
+    auto& z = q.z;
+    auto& s = q.w;
+
+    return {.e {
+        {1 - 2*sq(y) - 2*sq(z), 2*x*y - 2*s*z,         2*x*z + 2*s*y,         0},
+        {2*x*y + 2*s*z,         1 - 2*sq(x) - 2*sq(z), 2*y*z - 2*s*x,         0},
+        {2*x*z - 2*s*y,         2*y*z + 2*s*x,         1 - 2*sq(x) - 2*sq(y), 0},
+        {0,                     0,                     0,                     1}
+    }};
+}

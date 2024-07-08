@@ -81,6 +81,7 @@ Model sphere;
 Model plane;
 Model teaPot;
 Model sponza;
+Model duck;
 Texture boxTex;
 Texture dirtTex;
 Ubo projView;
@@ -138,6 +139,7 @@ prepareDraw(App* app)
         std::jthread m2(&Model::loadOBJ, &teaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
         std::jthread m3([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         std::jthread m4([&]{ sponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m5([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     }
 
     /* restore context after assets are loaded */
@@ -160,6 +162,12 @@ renderScene(Shader* sh, bool depth)
         sh->setM3("uNormalMatrix", m3Normal(m));
     }
     sponza.drawGLTF(true);
+
+    m = m4Iden();
+    m = m4Scale(m, 0.008f);
+
+    sh->setM4("uModel", m);
+    duck.drawGLTF(true);
 }
 
 void
@@ -231,8 +239,7 @@ drawFrame(App* app)
 
         /*texSh.use();*/
         /*texSh.setM4("uModel", m4Scale(m4Iden(), 0.01));*/
-        /*duckTex.bind(GL_TEXTURE0);*/
-        /*duck.drawGLTF();*/
+        /*duck.drawGLTF(true);*/
 
         incCounter += 1.0 * player.deltaTime;
     }

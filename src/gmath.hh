@@ -7,6 +7,8 @@
 template<typename T> T sq(T x) { return x * x; }
 constexpr f64 toDeg(f64 x) { return x * 180.0 / M_PI; }
 constexpr f64 toRad(f64 x) { return x * M_PI / 180.0; }
+constexpr f32 toDeg(f32 x) { return x * 180.0f / static_cast<f32>(M_PI); }
+constexpr f32 toRad(f32 x) { return x * static_cast<f32>(M_PI) / 180.0f; }
 
 #define COLOR4(hex)                                                                                                    \
     {                                                                                                                  \
@@ -26,6 +28,7 @@ constexpr f64 toRad(f64 x) { return x * M_PI / 180.0; }
 union v2;
 union v3;
 union v4;
+using qtr = v4;
 
 union v2
 {
@@ -138,3 +141,4 @@ m3 m3Inverse(const m3& m);
 m3 m3Normal(const m3& m);
 v3 v3Color(const u32 hex);
 v4 v4Color(const u32 hex);
+m4 qtrRot(const qtr& q);
