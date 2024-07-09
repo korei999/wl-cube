@@ -420,7 +420,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
                     if (diffuseImgPath.ends_with(".bmp"))
                         nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
-                                true, GL_MIRRORED_REPEAT, c);
+                                true, texMode, c);
                 }
             }
 

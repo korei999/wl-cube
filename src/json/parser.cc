@@ -104,7 +104,7 @@ Parser::parseNumber(TagVal* pTV)
     if (bReal)
         *pTV = {.tag = TAG::DOUBLE, .val = std::atof(m_tCurr.svLiteral.data())};
     else
-        *pTV = {.tag = TAG::LONG, .val = std::atoll(m_tCurr.svLiteral.data())};
+        *pTV = TagVal{.tag = TAG::LONG, .val = std::atol(m_tCurr.svLiteral.data())};
 
     next();
 }

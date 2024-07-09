@@ -89,6 +89,8 @@ union m4
     v4 v[4];
     f32 e[4][4];
     f32 p[16];
+
+    m4& operator*=(const m4& other);
 };
 
 union m3
@@ -108,14 +110,14 @@ union qt
     struct {
         f32 x, y, z, w;
     };
-    /*struct {*/
-    /*    v3 v;*/
-    /*    f32 s;*/
-    /*};*/
     f32 p[4];
 
+    qt() = default;
     qt(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
     qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), w(_s) {}
+
+    v3 v3() { return {x, y, z}; }
+    v4 v4() { return {x, y, z, w}; }
 };
 
 #ifdef LOGS
@@ -139,7 +141,6 @@ f32 v4Dot(const v4& l, const v4& r);
 m4 m4Iden();
 m3 m3Iden();
 m4 operator*(const m4& l, const m4& r);
-m4 operator*=(m4& l, const m4& r);
 m4 m4Rot(const m4& m, const f32 th, const v3& ax);
 m4 m4RotX(const m4& m, const f32 angle);
 m4 m4RotY(const m4& m, const f32 angle);
@@ -156,5 +157,5 @@ m3 m3Inverse(const m3& m);
 m3 m3Normal(const m3& m);
 v3 v3Color(const u32 hex);
 v4 v4Color(const u32 hex);
-qt qtAxisAngle(v3 axis, f32 angle);
+qt qtAxisAngle(v3 axis, f32 th);
 m4 qtRot(const qt& q);

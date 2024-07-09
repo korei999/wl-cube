@@ -1,5 +1,8 @@
+#ifdef LOGS
+    #include "utils.hh"
+#endif
+
 #include "gmath.hh"
-#include "utils.hh"
 
 static m4 m4LookAtInternal(const v3& R, const v3& U, const v3& D, const v3& P);
 
@@ -142,6 +145,13 @@ m3Iden()
     };
 }
 
+m4&
+m4::operator*=(const m4& other)
+{
+    *this = *this * other;
+    return *this;
+}
+
 m4
 operator*(const m4& l, const m4& r)
 {
@@ -155,12 +165,6 @@ operator*(const m4& l, const m4& r)
     }
 
     return res;
-}
-
-m4
-operator*=(m4& l, const m4& r)
-{
-    return l = (l * r);
 }
 
 m4
@@ -404,16 +408,15 @@ v4Color(const u32 hex)
 }
 
 qt
-qtAxisAngle(v3 axis, f32 angle)
+qtAxisAngle(v3 axis, f32 th)
 {
-    f32 sinA = static_cast<f32>(sin(angle / 2));
-    f32 cosA = static_cast<f32>(cos(angle / 2));
+    f32 sinA = static_cast<f32>(sin(th / 2));
 
     return {
         axis.x * sinA,
         axis.y * sinA,
         axis.z * sinA,
-        cosA
+        static_cast<f32>(cos(th / 2))
     };
 }
 
