@@ -412,9 +412,9 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 auto& diffuseImg = a.aImages[diffuseIdx];
                 auto diffuseImgPath = replaceFileSuffixInPath(path, diffuseImg.uri);
 
-                nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
-                                                            true, GL_MIRRORED_REPEAT, c);
-                                                   /* to flip or not to? */
+                if (diffuseImgPath.ends_with(".bmp"))
+                    nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
+                                                                true, GL_MIRRORED_REPEAT, c);
             }
 
             this->aM2s.push_back(nMesh2);

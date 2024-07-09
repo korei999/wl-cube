@@ -224,11 +224,11 @@ drawFrame(App* app)
         renderScene(&shOmniDirShadow, false);
 
         /* draw light source */
-        m4 cubeTm = m4Iden();
-        cubeTm = m4Translate(cubeTm, lightPos);
-        cubeTm = m4Scale(cubeTm, 0.05f);
+        m4 tmCube = m4Iden();
+        tmCube = m4Translate(tmCube, lightPos);
+        tmCube = m4Scale(tmCube, 0.05f);
         shColor.use();
-        shColor.setM4("uModel", cubeTm);
+        shColor.setM4("uModel", tmCube);
         shColor.setV3("uColor", lightColor);
         mSphere.drawGLTF(false);
 
