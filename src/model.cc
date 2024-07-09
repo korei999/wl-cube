@@ -414,6 +414,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
                 nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
                                                             true, GL_MIRRORED_REPEAT, c);
+                                                   /* to flip or not to? */
             }
 
             this->aM2s.push_back(nMesh2);
@@ -424,6 +425,8 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 static void
 setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, GLint drawMode, App* c)
 {
+    /* TODO: use one buffer object, or drop OBJ since gltf is here */
+
     std::lock_guard lock(g_glContextMtx);
 
     c->bindGlContext();

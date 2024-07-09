@@ -70,22 +70,22 @@ PlayerControls player {
     .mouse {.sens = 0.07}
 };
 
-Shader debugDepthQuadSh;
-Shader cubeDepthSh;
-Shader omniDirShadowSh;
-Shader colorSh;
-Shader texSh;
+Shader shDebugDepthQuad;
+Shader shCubeDepth;
+Shader shOmniDirShadow;
+Shader shColor;
+Shader shTex;
 Shader shBF;
-Model cube;
-Model sphere;
-Model plane;
-Model teaPot;
-Model sponza;
-Model duck;
-Texture boxTex;
-Texture dirtTex;
-Ubo projView;
-CubeMap cubeMap;
+Model mCube;
+Model mSphere;
+Model mPlane;
+Model mTeaPot;
+Model mSponza;
+Model mDuck;
+Texture mBoxTex;
+Texture mDirtTex;
+Ubo uboProjView;
+CubeMap cmCubeMap;
 
 #ifdef FPS_COUNTER
 f64 _prevTime;
@@ -111,35 +111,35 @@ prepareDraw(App* app)
     v4 gray = v4Color(0x444444FF);
     glClearColor(gray.r, gray.g, gray.b, gray.a);
 
-    debugDepthQuadSh.loadShaders("shaders/shadows/debugQuad.vert", "shaders/shadows/debugQuad.frag");
-    cubeDepthSh.loadShaders("shaders/shadows/cubeMap/cubeMapDepth.vert", "shaders/shadows/cubeMap/cubeMapDepth.geom", "shaders/shadows/cubeMap/cubeMapDepth.frag");
-    omniDirShadowSh.loadShaders("shaders/shadows/cubeMap/omniDirShadow.vert", "shaders/shadows/cubeMap/omniDirShadow.frag");
-    colorSh.loadShaders("shaders/simple.vert", "shaders/simple.frag");
-    texSh.loadShaders("shaders/simpleTex.vert", "shaders/simpleTex.frag");
+    shDebugDepthQuad.loadShaders("shaders/shadows/debugQuad.vert", "shaders/shadows/debugQuad.frag");
+    shCubeDepth.loadShaders("shaders/shadows/cubeMap/cubeMapDepth.vert", "shaders/shadows/cubeMap/cubeMapDepth.geom", "shaders/shadows/cubeMap/cubeMapDepth.frag");
+    shOmniDirShadow.loadShaders("shaders/shadows/cubeMap/omniDirShadow.vert", "shaders/shadows/cubeMap/omniDirShadow.frag");
+    shColor.loadShaders("shaders/simple.vert", "shaders/simple.frag");
+    shTex.loadShaders("shaders/simpleTex.vert", "shaders/simpleTex.frag");
 
-    omniDirShadowSh.use();
-    omniDirShadowSh.setI("uDiffuseTexture", 0);
-    omniDirShadowSh.setI("uDepthMap", 1);
+    shOmniDirShadow.use();
+    shOmniDirShadow.setI("uDiffuseTexture", 0);
+    shOmniDirShadow.setI("uDepthMap", 1);
 
-    debugDepthQuadSh.use();
-    debugDepthQuadSh.setI("uDepthMap", 1);
+    shDebugDepthQuad.use();
+    shDebugDepthQuad.setI("uDepthMap", 1);
 
-    cubeMap = createCubeShadowMap(SHADOW_WIDTH, SHADOW_HEIGHT);
+    cmCubeMap = createCubeShadowMap(SHADOW_WIDTH, SHADOW_HEIGHT);
 
-    projView.createBuffer(sizeof(m4) * 2, GL_DYNAMIC_DRAW);
-    projView.bindBlock(&omniDirShadowSh, "ubProjView", 0);
-    projView.bindBlock(&colorSh, "ubProjView", 0);
-    projView.bindBlock(&texSh, "ubProjView", 0);
+    uboProjView.createBuffer(sizeof(m4) * 2, GL_DYNAMIC_DRAW);
+    uboProjView.bindBlock(&shOmniDirShadow, "ubProjView", 0);
+    uboProjView.bindBlock(&shColor, "ubProjView", 0);
+    uboProjView.bindBlock(&shTex, "ubProjView", 0);
 
     /* unbind before creating threads */
     app->unbindGlContext();
     /* models */
     {
-        std::jthread m0(&Model::loadOBJ, &cube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        std::jthread m2(&Model::loadOBJ, &teaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        std::jthread m3([&]{ sphere.loadOBJ("test-assets/models/icosphere/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m4([&]{ sponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m5([&]{ duck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m0(&Model::loadOBJ, &mCube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        std::jthread m2(&Model::loadOBJ, &mTeaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
+        std::jthread m3([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m4([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     }
 
     /* restore context after assets are loaded */
@@ -161,13 +161,13 @@ renderScene(Shader* sh, bool depth)
     {
         sh->setM3("uNormalMatrix", m3Normal(m));
     }
-    sponza.drawGLTF(true);
+    mSponza.drawGLTF(true);
 
     m = m4Iden();
     m = m4Scale(m, 0.008f);
 
     sh->setM4("uModel", m);
-    duck.drawGLTF(true);
+    mDuck.drawGLTF(true);
 }
 
 void
@@ -187,7 +187,7 @@ drawFrame(App* app)
         player.updateProj(toRad(fov), aspect, 0.01f, 100.0f);
         player.updateView();
         /* copy both proj and view in one go */
-        projView.bufferData(&player, 0, sizeof(m4) * 2);
+        uboProjView.bufferData(&player, 0, sizeof(m4) * 2);
 
         // v3 lightPos {x, 4, -1};
         v3 lightPos {(f32)cos(player.currTime) * 6.0f, 3, (f32)sin(player.currTime) * 1.1f};
@@ -197,19 +197,19 @@ drawFrame(App* app)
         CubeMapProjections shadowTms(shadowProj, lightPos);
 
         /* render scene to depth cubemap */
-        glViewport(0, 0, cubeMap.width, cubeMap.height);
-        glBindFramebuffer(GL_FRAMEBUFFER, cubeMap.fbo);
+        glViewport(0, 0, cmCubeMap.width, cmCubeMap.height);
+        glBindFramebuffer(GL_FRAMEBUFFER, cmCubeMap.fbo);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        cubeDepthSh.use();
+        shCubeDepth.use();
         constexpr auto len = LEN(shadowTms);
         for (size_t i = 0; i < len; i++)
-            cubeDepthSh.setM4("uShadowMatrices[" + std::to_string(i) + "]", shadowTms[i]);
-        cubeDepthSh.setV3("uLightPos", lightPos);
-        cubeDepthSh.setF("uFarPlane", farPlane);
+            shCubeDepth.setM4("uShadowMatrices[" + std::to_string(i) + "]", shadowTms[i]);
+        shCubeDepth.setV3("uLightPos", lightPos);
+        shCubeDepth.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
         glCullFace(GL_FRONT);
-        renderScene(&cubeDepthSh, true);
+        renderScene(&shCubeDepth, true);
         glCullFace(GL_BACK);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -219,27 +219,23 @@ drawFrame(App* app)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         /* render scene as normal using the denerated depth map */
-        omniDirShadowSh.use();
-        omniDirShadowSh.setV3("uLightPos", lightPos);
-        omniDirShadowSh.setV3("uLightColor", lightColor);
-        omniDirShadowSh.setV3("uViewPos", player.pos);
-        omniDirShadowSh.setF("uFarPlane", farPlane);
+        shOmniDirShadow.use();
+        shOmniDirShadow.setV3("uLightPos", lightPos);
+        shOmniDirShadow.setV3("uLightColor", lightColor);
+        shOmniDirShadow.setV3("uViewPos", player.pos);
+        shOmniDirShadow.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap.tex);
-        renderScene(&omniDirShadowSh, false);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cmCubeMap.tex);
+        renderScene(&shOmniDirShadow, false);
 
         /* draw light source */
         m4 cubeTm = m4Iden();
         cubeTm = m4Translate(cubeTm, lightPos);
         cubeTm = m4Scale(cubeTm, 0.05f);
-        colorSh.use();
-        colorSh.setM4("uModel", cubeTm);
-        colorSh.setV3("uColor", lightColor);
-        sphere.drawTex();
-
-        /*texSh.use();*/
-        /*texSh.setM4("uModel", m4Scale(m4Iden(), 0.01));*/
-        /*duck.drawGLTF(true);*/
+        shColor.use();
+        shColor.setM4("uModel", cubeTm);
+        shColor.setV3("uColor", lightColor);
+        mSphere.drawGLTF(false);
 
         incCounter += 1.0 * player.deltaTime;
     }

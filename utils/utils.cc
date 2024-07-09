@@ -64,12 +64,12 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     {
         for (int x = 0; x < width; x += 4)
         {
-            u32 clrsPack[4];
-            for (size_t i = 0; i < std::size(clrsPack); i++)
-                clrsPack[i] = swapRedBlueBits(s[y*width + x + i]);
+            u32 colorsPack[4];
+            for (size_t i = 0; i < std::size(colorsPack); i++)
+                colorsPack[i] = swapRedBlueBits(s[y*width + x + i]);
 
             auto _dest = reinterpret_cast<__m128i_u*>(&d[(y-f)*width + x]);
-            _mm_storeu_si128(_dest, *reinterpret_cast<__m128i*>(clrsPack));
+            _mm_storeu_si128(_dest, *reinterpret_cast<__m128i*>(colorsPack));
         }
 
         f += inc;
