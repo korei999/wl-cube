@@ -23,7 +23,7 @@ public:
     void
     wait()
     {
-        while (this->busy())
+        if (this->busy())
         {
             std::unique_lock lock(this->mtxWait);
             cndWait.wait(lock);
@@ -77,7 +77,7 @@ private:
             {
                 std::unique_lock lock(this->mtxQ);
 
-                this->cndMtx.wait(lock, [this] { return !this->qTasks.empty() || this->bDone; });
+                this->cndMtx.wait(lock, [this]{ return !this->qTasks.empty() || this->bDone; });
 
                 if (this->bDone) return;
 
