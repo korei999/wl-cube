@@ -31,9 +31,9 @@ PlayerControls::procMouse()
         mouse.pitch = -89.9;
 
     front = v3Norm({
-        f32(cos(toRad(mouse.yaw)) * cos(toRad(mouse.pitch))),
-        f32(sin(toRad(mouse.pitch))),
-        f32(sin(toRad(mouse.yaw)) * cos(toRad(mouse.pitch)))
+        static_cast<f32>(cos(toRad(mouse.yaw)) * cos(toRad(mouse.pitch))),
+        static_cast<f32>(sin(toRad(mouse.pitch))),
+        static_cast<f32>(sin(toRad(mouse.yaw)) * cos(toRad(mouse.pitch)))
     });
 
     right = v3Norm(v3Cross(front, up));

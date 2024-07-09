@@ -28,12 +28,10 @@ constexpr f32 toRad(f32 x) { return x * static_cast<f32>(M_PI) / 180.0f; }
 union v2;
 union v3;
 union v4;
-using qtr = v4;
 
 union v2
 {
-    struct
-    {
+    struct {
         f32 x, y;
     };
     f32 e[2];
@@ -45,12 +43,10 @@ union v2
 
 union v3
 {
-    struct
-    {
+    struct {
         f32 x, y, z;
     };
-    struct
-    {
+    struct {
         f32 r, g, b;
     };
     f32 e[3];
@@ -71,18 +67,21 @@ union v3
 
 union v4
 {
-    struct
-    {
+    struct {
         f32 x, y, z, w;
     };
-    struct
-    {
+    struct {
         f32 r, g, b, a;
+    };
+    struct {
+        v3 v;
+        f32 s;
     };
     f32 e[4];
 
     v4() = default;
     constexpr v4(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
+    constexpr v4(v3 _v, f32 _w) : v(_v), s(_w) {}
 };
 
 union m4
@@ -103,6 +102,8 @@ union m3
     constexpr m3(f32 _0, f32 _1, f32 _2, f32 _3, f32 _4, f32 _5, f32 _6, f32 _7, f32 _8)
         : p{_0, _1, _2, _3, _4, _5, _6, _7, _8} {}
 };
+
+using qt = v4;
 
 #ifdef LOGS
 void m4Print(const m4& m, std::string_view prefix = "");
@@ -141,4 +142,3 @@ m3 m3Inverse(const m3& m);
 m3 m3Normal(const m3& m);
 v3 v3Color(const u32 hex);
 v4 v4Color(const u32 hex);
-m4 qtrRot(const qtr& q);
