@@ -12,12 +12,13 @@ namespace json
 
 struct Parser
 {
-    const std::string m_sName {};
+    std::string m_sName {};
     std::unique_ptr<Object> m_upHead {};
 
     Parser() = default;
     Parser(std::string_view path);
 
+    void load(std::string_view path);
     void parse();
     void print();
     void printNode(Object* pNode, std::string_view svEnd);

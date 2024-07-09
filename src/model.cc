@@ -210,7 +210,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
     if (!mtllibName.empty())
     {
         LOG(OK, "loading mtllib: '{}'\n", mtllibName);
-        std::string pathToMtl = replaceFileSuffixInPath(path, mtllibName);
+        std::string pathToMtl = replacePathSuffix(path, mtllibName);
         parseMtl(&materialsMap, pathToMtl, texMode, c);
     }
 
@@ -290,7 +290,8 @@ Model::loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 void
 Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    gltf::Asset a(path);
+    this->asset.load(path);
+    auto& a = this->asset;;
 
     /* load buffers first */
     std::vector<GLuint> aBufferMap;
@@ -308,6 +309,8 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
         c->unbindGlContext();
     }
+
+    /* TODO: preload textures + map duplicates */
 
     size_t meshIdx = NPOS;
     for (auto& node : a.aNodes)
@@ -337,8 +340,9 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
             Mesh2 nMesh2 {};
             nMesh2.mode = mode;
+            nMesh2.vScale = node.scale;
 
-            /* manually unlock before texture loading */
+            /* manually unlock before loading texture */
             g_glContextMtx.lock();
             c->bindGlContext();
 
@@ -410,7 +414,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 size_t baseColorTexIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
                 size_t diffuseIdx = a.aTextures[baseColorTexIdx].source;
                 auto& diffuseImg = a.aImages[diffuseIdx];
-                auto diffuseImgPath = replaceFileSuffixInPath(path, diffuseImg.uri);
+                auto diffuseImgPath = replacePathSuffix(path, diffuseImg.uri);
 
                 if (diffuseImgPath.ends_with(".bmp"))
                     nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
@@ -480,14 +484,19 @@ Model::draw()
 }
 
 void
-Model::drawGLTF(bool bBindTextures)
+Model::drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, const m4& tm)
 {
     for (auto& e : this->aM2s)
     {
         glBindVertexArray(e.meshData.vao);
 
-        if (bBindTextures)
-            e.meshData.materials.diffuse.bind(GL_TEXTURE0);
+        if (bBindTextures) e.meshData.materials.diffuse.bind(GL_TEXTURE0);
+
+        if (sh != nullptr)
+        {
+            m4 m = m4Scale(tm, e.vScale);
+            sh->setM4(svUniform, m);
+        }
 
         if (e.triangleCount != NPOS)
             glDrawArrays(static_cast<GLenum>(e.mode), 0, e.triangleCount);
@@ -787,7 +796,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 /* TODO: implement thread pool for this kind of stuff */
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.diffuse,
-                                     replaceFileSuffixInPath(path, p.word),
+                                     replacePathSuffix(path, p.word),
                                      TEX_TYPE::DIFFUSE,
                                      false,
                                      texMode,
@@ -799,7 +808,7 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
                 p.nextWord("\n");
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.normal,
-                                     replaceFileSuffixInPath(path, p.word),
+                                     replacePathSuffix(path, p.word),
                                      TEX_TYPE::NORMAL,
                                      false,
                                      texMode,

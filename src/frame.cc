@@ -134,7 +134,8 @@ prepareDraw(App* app)
     {
         std::jthread m3([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         std::jthread m4([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        /*std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
+        std::jthread m5([&]{ mDuck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/ToyCar/glTF/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     }
 
     /* restore context after assets are loaded */
@@ -149,20 +150,14 @@ void
 renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
+    if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
+    mSponza.drawGLTF(true, sh, "uModel", m);
 
-    m = m4Scale(m, 0.01f);
-    sh->setM4("uModel", m);
-    if (!depth)
-    {
-        sh->setM3("uNormalMatrix", m3Normal(m));
-    }
-    mSponza.drawGLTF(true);
+    m = m4Translate(m4Iden(), {0, 0.5, 0});
+    m = m4Scale(m, 30.0f);
+    m = m4RotX(m, toRad(90.0f));
 
-    m = m4Iden();
-    m = m4Scale(m, 0.008f);
-
-    sh->setM4("uModel", m);
-    mDuck.drawGLTF(true);
+    mDuck.drawGLTF(true, sh, "uModel", m);
 }
 
 void
@@ -230,7 +225,7 @@ drawFrame(App* app)
         shColor.use();
         shColor.setM4("uModel", tmCube);
         shColor.setV3("uColor", lightColor);
-        mSphere.drawGLTF(false);
+        mSphere.drawGLTF(false, {}, "", {});
 
         incCounter += 1.0 * player.deltaTime;
     }

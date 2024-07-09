@@ -164,7 +164,7 @@ timeNow()
 }
 
 std::string
-replaceFileSuffixInPath(std::string_view path, std::string_view suffix)
+replacePathSuffix(std::string_view path, std::string_view suffix)
 {
 #ifdef _WIN32
     suffix->back() = '\0';

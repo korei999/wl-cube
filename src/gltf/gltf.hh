@@ -90,7 +90,7 @@ struct Node
     size_t mesh = NPOS; /* The index of the mesh in this node. */
     v4 rotation;
     v3 translation;
-    v3 scale = {1, 1, 1};
+    v3 scale {1, 1, 1};
 };
 
 struct CameraPersp
@@ -214,6 +214,7 @@ struct Asset
     Asset() = default;
     Asset(std::string_view path);
 
+    void load(std::string_view path);
 private:
     struct {
         json::Object* scene;

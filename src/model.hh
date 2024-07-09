@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "gltf/gltf.hh"
 #include "gmath.hh"
 #include "shader.hh"
@@ -68,6 +70,7 @@ struct Mesh2
     enum gltf::COMPONENT_TYPE indType;
     enum gltf::PRIMITIVES mode;
     size_t triangleCount;
+    v3 vScale {1, 1, 1};
 };
 
 struct Model
@@ -90,7 +93,7 @@ struct Model
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void draw();
-    void drawGLTF(bool bBindTextures);
+    void drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, const m4& tm);
     void drawInstanced(GLsizei count);
     /* bind texture for each drawcall */
     void drawTex(GLint primitives = GL_TRIANGLES);

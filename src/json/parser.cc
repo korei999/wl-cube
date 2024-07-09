@@ -5,8 +5,16 @@ namespace json
 {
 
 Parser::Parser(std::string_view path)
-    : m_sName(path), m_l(path)
 {
+    load(path);
+}
+
+void
+Parser::load(std::string_view path)
+{
+    m_sName = path;
+    m_l.loadFile(path);
+
     m_tCurr = m_l.next();
     m_tNext = m_l.next();
 

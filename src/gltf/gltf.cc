@@ -165,8 +165,14 @@ accessorTypeToUnionType(enum ACCESSOR_TYPE t, json::Object* obj)
 }
 
 Asset::Asset(std::string_view path)
-    : parser(path)
 {
+    this->load(path);
+}
+
+void
+Asset::load(std::string_view path)
+{
+    this->parser.load(path);
     this->parser.parse();
 
     this->processJSONObjs();
@@ -312,7 +318,7 @@ Asset::processBuffers()
         if (pUri)
         {
             svUri = json::getStringView(pUri);
-            auto sNewPath = replaceFileSuffixInPath(this->parser.m_sName, svUri);
+            auto sNewPath = replacePathSuffix(this->parser.m_sName, svUri);
             aBin = loadFileToCharArray(sNewPath);
         }
 
