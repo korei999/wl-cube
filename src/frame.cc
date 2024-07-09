@@ -4,6 +4,7 @@
 #include "frame.hh"
 #include "colors.hh"
 #include "model.hh"
+#include "threadpool.hh"
 
 #define SHADOW_WIDTH 1024
 #define SHADOW_HEIGHT 1024
@@ -78,7 +79,7 @@ Shader shTex;
 Shader shBF;
 Model mSphere;
 Model mSponza;
-Model mDuck;
+Model mCar;
 Texture mBoxTex;
 Texture mDirtTex;
 Ubo uboProjView;
@@ -130,13 +131,14 @@ prepareDraw(App* app)
 
     /* unbind before creating threads */
     app->unbindGlContext();
-    /* models */
-    {
-        std::jthread m3([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m4([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-    }
 
+    ThreadPool tp(std::thread::hardware_concurrency());
+    /* models */
+    tp.submit([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mCar.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+
+    tp.wait();
     /* restore context after assets are loaded */
     app->bindGlContext();
 }
@@ -156,12 +158,14 @@ renderScene(Shader* sh, bool depth)
 
     m = m4Translate(m4Iden(), {-0.4, 0.6, 0});
     m *= qtRot(qtAxisAngle(v3Norm({0, 1, 0}), i));
-    m = m4Scale(m, 50.0f);
+    m = m4Scale(m, 30.0f);
     m = m4RotX(m, toRad(90.0f));
     i += 0.30f * player.deltaTime;
 
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
-    mDuck.drawGLTF(true, sh, "uModel", m);
+    glDisable(GL_CULL_FACE);
+    mCar.drawGLTF(true, sh, "uModel", m);
+    glEnable(GL_CULL_FACE);
 }
 
 void
