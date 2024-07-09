@@ -76,10 +76,7 @@ Shader shOmniDirShadow;
 Shader shColor;
 Shader shTex;
 Shader shBF;
-Model mCube;
 Model mSphere;
-Model mPlane;
-Model mTeaPot;
 Model mSponza;
 Model mDuck;
 Texture mBoxTex;
@@ -135,8 +132,6 @@ prepareDraw(App* app)
     app->unbindGlContext();
     /* models */
     {
-        std::jthread m0(&Model::loadOBJ, &mCube, "test-assets/models/cube/cube.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
-        std::jthread m2(&Model::loadOBJ, &mTeaPot, "test-assets/models/teapot/teapot.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app);
         std::jthread m3([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         std::jthread m4([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
