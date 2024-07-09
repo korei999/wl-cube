@@ -412,13 +412,16 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             {
                 auto& mat = a.aMaterials[accMatIdx];
                 size_t baseColorTexIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
-                size_t diffuseIdx = a.aTextures[baseColorTexIdx].source;
-                auto& diffuseImg = a.aImages[diffuseIdx];
-                auto diffuseImgPath = replacePathSuffix(path, diffuseImg.uri);
+                if (baseColorTexIdx != NPOS)
+                {
+                    size_t diffuseIdx = a.aTextures[baseColorTexIdx].source;
+                    auto& diffuseImg = a.aImages[diffuseIdx];
+                    auto diffuseImgPath = replacePathSuffix(path, diffuseImg.uri);
 
-                if (diffuseImgPath.ends_with(".bmp"))
-                    nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
-                                                                true, GL_MIRRORED_REPEAT, c);
+                    if (diffuseImgPath.ends_with(".bmp"))
+                        nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
+                                true, GL_MIRRORED_REPEAT, c);
+                }
             }
 
             this->aM2s.push_back(nMesh2);

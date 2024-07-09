@@ -135,7 +135,7 @@ prepareDraw(App* app)
         std::jthread m3([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         std::jthread m4([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         /*std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
-        std::jthread m5([&]{ mDuck.loadGLTF("/home/korei/source/glTF-Sample-Assets/Models/ToyCar/glTF/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     }
 
     /* restore context after assets are loaded */
