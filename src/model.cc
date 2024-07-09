@@ -487,7 +487,7 @@ Model::draw()
 }
 
 void
-Model::drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, const m4& tm)
+Model::drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
 {
     for (auto& e : this->aM2s)
     {
@@ -497,7 +497,7 @@ Model::drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, cons
 
         if (sh != nullptr)
         {
-            m4 m = m4Scale(tm, e.vScale);
+            m4 m = m4Scale(tmGlobal, e.vScale);
             sh->setM4(svUniform, m);
         }
 

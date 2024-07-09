@@ -11,7 +11,7 @@ endif()
 project(wl-cube VERSION 0.2 LANGUAGES CXX C)
 message(STATUS "CMAKE_PROJECT_VERSION: '${CMAKE_PROJECT_VERSION}'")
 
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra -fms-extensions)
 include_directories(BEFORE "utils")
 
 add_executable(

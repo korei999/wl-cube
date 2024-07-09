@@ -134,8 +134,8 @@ prepareDraw(App* app)
     {
         std::jthread m3([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
         std::jthread m4([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-        /*std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
-        std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/duck/Duck.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+        /*std::jthread m5([&]{ mDuck.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
     }
 
     /* restore context after assets are loaded */
@@ -153,9 +153,14 @@ renderScene(Shader* sh, bool depth)
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
     mSponza.drawGLTF(true, sh, "uModel", m);
 
-    m = m4Translate(m4Iden(), {0, 0.5, 0});
-    m = m4Scale(m, 30.0f);
-    m = m4RotX(m, toRad(90.0f));
+    static f32 i = 0.0f;
+
+    m = m4Translate(m4Iden(), {0, 0.0, 0});
+    m *= qtRot(qtAxisAngle({0, 1, 0}, i));
+    /*m = m4RotX(m, toRad(90.0f));*/
+    m = m4Scale(m, 0.008f);
+
+    i += 0.20f * player.deltaTime;
 
     mDuck.drawGLTF(true, sh, "uModel", m);
 }

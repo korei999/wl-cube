@@ -73,15 +73,15 @@ union v4
     struct {
         f32 r, g, b, a;
     };
-    struct {
-        v3 v;
-        f32 s;
-    };
+    /*struct {*/
+    /*    v3 v;*/
+    /*    f32 s;*/
+    /*};*/
     f32 e[4];
 
     v4() = default;
     constexpr v4(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
-    constexpr v4(v3 _v, f32 _w) : v(_v), s(_w) {}
+    /*constexpr v4(v3 _v, f32 _w) : v(_v), s(_w) {}*/
 };
 
 union m4
@@ -103,11 +103,24 @@ union m3
         : p{_0, _1, _2, _3, _4, _5, _6, _7, _8} {}
 };
 
-using qt = v4;
+union qt
+{
+    struct {
+        f32 x, y, z, w;
+    };
+    /*struct {*/
+    /*    v3 v;*/
+    /*    f32 s;*/
+    /*};*/
+    f32 p[4];
+
+    qt(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
+    qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), w(_s) {}
+};
 
 #ifdef LOGS
-void m4Print(const m4& m, std::string_view prefix = "");
-void m3Print(const m3& m, std::string_view prefix = "");
+std::string m4ToString(const m4& m, std::string_view prefix);
+std::string m3ToString(const m3& m, std::string_view prefix = "");
 #endif
 
 f32 v3Length(const v3& a);
@@ -126,6 +139,7 @@ f32 v4Dot(const v4& l, const v4& r);
 m4 m4Iden();
 m3 m3Iden();
 m4 operator*(const m4& l, const m4& r);
+m4 operator*=(m4& l, const m4& r);
 m4 m4Rot(const m4& m, const f32 th, const v3& ax);
 m4 m4RotX(const m4& m, const f32 angle);
 m4 m4RotY(const m4& m, const f32 angle);
@@ -142,3 +156,5 @@ m3 m3Inverse(const m3& m);
 m3 m3Normal(const m3& m);
 v3 v3Color(const u32 hex);
 v4 v4Color(const u32 hex);
+qt qtAxisAngle(v3 axis, f32 angle);
+m4 qtRot(const qt& q);

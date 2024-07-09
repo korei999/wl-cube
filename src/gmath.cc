@@ -158,6 +158,12 @@ operator*(const m4& l, const m4& r)
 }
 
 m4
+operator*=(m4& l, const m4& r)
+{
+    return l = (l * r);
+}
+
+m4
 m4Rot(const m4& m, const f32 th, const v3& ax)
 {
     const f32 c = (f32)cos(th);
@@ -328,11 +334,11 @@ m3Transpose(const m3& m)
 }
 
 #ifdef LOGS
-void
-m4Print(const m4& m, std::string_view prefix)
+std::string
+m4ToString(const m4& m, std::string_view prefix)
 {
     auto e = m.e;
-    LOG(OK, "{}:\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\n",
+    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\n",
         prefix,
         e[0][0], e[0][1], e[0][2], e[0][3],
         e[1][0], e[1][1], e[1][2], e[1][3],
@@ -340,11 +346,11 @@ m4Print(const m4& m, std::string_view prefix)
         e[3][0], e[3][1], e[3][2], e[3][3]);
 }
 
-void
-m3Print(const m3& m, std::string_view prefix)
+std::string
+m3ToString(const m3& m, std::string_view prefix)
 {
     auto e = m.e;
-    LOG(OK, "{}:\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\n",
+    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\n",
         prefix,
         e[0][0], e[0][1], e[0][2],
         e[1][0], e[1][1], e[1][2],
@@ -397,18 +403,32 @@ v4Color(const u32 hex)
     return t;
 }
 
-/*m4*/
-/*qtrRot(const qtr& q)*/
-/*{*/
-/*    auto& x = q.x;*/
-/*    auto& y = q.y;*/
-/*    auto& z = q.z;*/
-/*    auto& s = q.w;*/
-/**/
-/*    return {.e {*/
-/*        {1 - 2*sq(y) - 2*sq(z), 2*x*y - 2*s*z,         2*x*z + 2*s*y,         0},*/
-/*        {2*x*y + 2*s*z,         1 - 2*sq(x) - 2*sq(z), 2*y*z - 2*s*x,         0},*/
-/*        {2*x*z - 2*s*y,         2*y*z + 2*s*x,         1 - 2*sq(x) - 2*sq(y), 0},*/
-/*        {0,                     0,                     0,                     1}*/
-/*    }};*/
-/*}*/
+qt
+qtAxisAngle(v3 axis, f32 angle)
+{
+    f32 sinA = static_cast<f32>(sin(angle / 2));
+    f32 cosA = static_cast<f32>(cos(angle / 2));
+
+    return {
+        axis.x * sinA,
+        axis.y * sinA,
+        axis.z * sinA,
+        cosA
+    };
+}
+
+m4
+qtRot(const qt& q)
+{
+    auto& x = q.x;
+    auto& y = q.y;
+    auto& z = q.z;
+    auto& s = q.w;
+
+    return {.e {
+        {1 - 2*sq(y) - 2*sq(z), 2*x*y - 2*s*z,         2*x*z + 2*s*y,         0},
+        {2*x*y + 2*s*z,         1 - 2*sq(x) - 2*sq(z), 2*y*z - 2*s*x,         0},
+        {2*x*z - 2*s*y,         2*y*z + 2*s*x,         1 - 2*sq(x) - 2*sq(y), 0},
+        {0,                     0,                     0,                     1}
+    }};
+}
