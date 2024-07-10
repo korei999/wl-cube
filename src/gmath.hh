@@ -28,6 +28,7 @@ constexpr f32 toRad(f32 x) { return x * static_cast<f32>(M_PI) / 180.0f; }
 union v2;
 union v3;
 union v4;
+union qt;
 
 union v2
 {
@@ -73,15 +74,11 @@ union v4
     struct {
         f32 r, g, b, a;
     };
-    /*struct {*/
-    /*    v3 v;*/
-    /*    f32 s;*/
-    /*};*/
     f32 e[4];
 
     v4() = default;
     constexpr v4(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
-    /*constexpr v4(v3 _v, f32 _w) : v(_v), s(_w) {}*/
+    v4(const qt& q);
 };
 
 union m4
@@ -116,9 +113,6 @@ union qt
     qt(f32 _x, f32 _y, f32 _z, f32 _s) : x(_x), y(_y), z(_z), s(_s) {}
     qt(v4 _v) : x(_v.x), y(_v.y), z(_v.z), s(_v.w) {}
     qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), s(_s) {}
-
-    v3 v3() { return {x, y, z}; }
-    v4 v4() { return {x, y, z, s}; }
 };
 
 #ifdef LOGS
@@ -126,17 +120,17 @@ std::string m4ToString(const m4& m, std::string_view prefix);
 std::string m3ToString(const m3& m, std::string_view prefix = "");
 #endif
 
-f32 v3Length(const v3& a);
-v3 v3Norm(const v3& a);
-v3 v3Norm(const v3& v, const f32 length);
+f32 v3Length(const v3& v);
+f32 v4Length(const v4& v);
+v3 v3Norm(const v3& v); /* normilized (not length) */
+v4 v4Norm(const v4& v); /* normilized (not length) */
+v3 v3Norm(const v3& v, const f32 length); /* normilized (not length) */
 v3 v3Cross(const v3& l, const v3& r);
 v3 operator-(const v3& l, const v3& r);
 v3 operator+(const v3& l, const v3& r);
 v3 operator*(const v3& v, const f32 s);
-/* degree(IN RADIANS) between two vectors */
-f32 v3Rad(const v3& l, const v3& r);
-/* distance between two points in space (vectors) */
-f32 v3Dist(const v3& l, const v3& r);
+f32 v3Rad(const v3& l, const v3& r); /* degree between two vectors */
+f32 v3Dist(const v3& l, const v3& r); /* distance between two points in space */
 f32 v3Dot(const v3& l, const v3& r);
 f32 v4Dot(const v4& l, const v4& r);
 m4 m4Iden();

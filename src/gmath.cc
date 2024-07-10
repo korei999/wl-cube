@@ -15,6 +15,9 @@ v3::v3(const v2& v)
 v3::v3(const v4& v)
     : x(v.x), y(v.y), z(v.z) {}
 
+v4::v4(const qt& q)
+    : x(q.x), y(q.y), z(q.z), w(q.s) {}
+
 f32
 v3Length(const v3& v)
 {
@@ -23,7 +26,19 @@ v3Length(const v3& v)
     res += sq(v.y);
     res += sq(v.z);
 
-    return sqrt(res);
+    return std::sqrt(res);
+}
+
+f32
+v4Length(const v4& v)
+{
+    f32 res = 0;
+    res += sq(v.x);
+    res += sq(v.y);
+    res += sq(v.z);
+    res += sq(v.w);
+
+    return std::sqrt(res);
 }
 
 v3
@@ -31,6 +46,13 @@ v3Norm(const v3& v)
 {
     f32 len = v3Length(v);
     return v3 {v.x / len, v.y / len, v.z / len};
+}
+
+v4
+v4Norm(const v4& v)
+{
+    f32 len = v4Length(v);
+    return {v.x / len, v.y / len, v.z / len, v.w / len};
 }
 
 v3
@@ -103,13 +125,13 @@ v3::operator*=(const f32 s)
 f32
 v3Rad(const v3& l, const v3& r)
 {
-    return acos(v3Dot(l, r) / (v3Length(l) * v3Length(r)));
+    return std::acos(v3Dot(l, r) / (v3Length(l) * v3Length(r)));
 }
 
 f32
 v3Dist(const v3& l, const v3& r)
 {
-    return sqrt(sq(r.x - l.x) + sq(r.y - l.y) + sq(r.z - l.z));
+    return std::sqrt(sq(r.x - l.x) + sq(r.y - l.y) + sq(r.z - l.z));
 }
 
 f32
@@ -170,8 +192,8 @@ operator*(const m4& l, const m4& r)
 m4
 m4Rot(const m4& m, const f32 th, const v3& ax)
 {
-    const f32 c = (f32)cos(th);
-    const f32 s = (f32)sin(th);
+    const f32 c = std::cos(th);
+    const f32 s = std::sin(th);
 
     const f32 x = ax.x;
     const f32 y = ax.y;
@@ -191,9 +213,9 @@ m4
 m4RotX(const m4& m, const f32 angle)
 {
     m4 axisX {.e {
-        {1, 0,                 0,              0},
-        {0, (f32)cos(angle),  (f32)sin(angle), 0},
-        {0, (f32)-sin(angle), (f32)cos(angle), 0},
+        {1, 0,                0,               0},
+        {0, std::cos(angle),  std::sin(angle), 0},
+        {0, -std::sin(angle), std::cos(angle), 0},
         {0, 0,                0,               1}
     }};
 
@@ -204,9 +226,9 @@ m4
 m4RotY(const m4& m, const f32 angle)
 {
     m4 axisY {.e {
-        {(f32)cos(angle), 0, (f32)-sin(angle), 0},
+        {std::cos(angle), 0, -std::sin(angle), 0},
         {0,               1, 0,                0},
-        {(f32)sin(angle), 0, (f32)cos(angle),  0},
+        {std::sin(angle), 0, std::cos(angle),  0},
         {0,               0, 0,                1}
     }};
 
@@ -217,8 +239,8 @@ m4
 m4RotZ(const m4& m, const f32 angle)
 {
     m4 axisZ {.e {
-        {(f32)cos(angle),  (f32)sin(angle), 0, 0},
-        {(f32)-sin(angle), (f32)cos(angle), 0, 0},
+        {std::cos(angle),  std::sin(angle), 0, 0},
+        {-std::sin(angle), std::cos(angle), 0, 0},
         {0,                0,               1, 0},
         {0,                0,               0, 1}
     }};
@@ -268,8 +290,8 @@ m4Translate(const m4& m, const v3& tv)
 m4
 m4Pers(const f32 fov, const f32 asp, const f32 n, const f32 f)
 {
-    /* b(back), l(left) are not needed if our viewing volume is symmetric */
-    f32 t = n * tan(fov / 2);
+    /* b(back), l(left) are not needed if viewing volume is symmetric */
+    f32 t = n * std::tan(fov / 2);
     f32 r = t * asp;
 
     return m4 {.e {
@@ -410,7 +432,7 @@ v4Color(const u32 hex)
 qt
 qtAxisAngle(const v3& axis, f32 th)
 {
-    f32 sinTh = static_cast<f32>(sin(th / 2));
+    f32 sinTh = static_cast<f32>(std::sin(th / 2));
 
     return {
         axis.x * sinTh,

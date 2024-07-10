@@ -164,7 +164,7 @@ procMovements(App* c)
     if (len > 0)
         combinedMove = v3Norm(combinedMove, len);
 
-    player.pos += combinedMove * (f32)moveSpeed;
+    player.pos += combinedMove * static_cast<f32>(moveSpeed);
 }
 
 void

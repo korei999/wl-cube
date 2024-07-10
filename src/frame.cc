@@ -152,7 +152,7 @@ renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
-    mSponza.drawGLTF(true, sh, "uModel", m);
+    mSponza.drawGLTF(DRAW_FLAGS::BIND_TEX | DRAW_FLAGS::APPLY_TM, sh, "uModel", m);
 
     static f32 i = 0.0f;
 
@@ -165,7 +165,7 @@ renderScene(Shader* sh, bool depth)
 
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
     glDisable(GL_CULL_FACE);
-    mCar.drawGLTF(true, sh, "uModel", m);
+    mCar.drawGLTF(DRAW_FLAGS::BIND_TEX | DRAW_FLAGS::APPLY_TM, sh, "uModel", m);
     glEnable(GL_CULL_FACE);
 }
 
@@ -233,7 +233,7 @@ drawFrame(App* app)
         tmCube = m4Scale(tmCube, 0.05f);
         shColor.use();
         shColor.setV3("uColor", lightColor);
-        mSphere.drawGLTF(false, &shColor, "uModel", tmCube);
+        mSphere.drawGLTF(DRAW_FLAGS::APPLY_TM, &shColor, "uModel", tmCube);
 
         incCounter += 1.0 * player.deltaTime;
     }

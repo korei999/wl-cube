@@ -487,24 +487,26 @@ Model::draw()
 }
 
 void
-Model::drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
+Model::drawGLTF(enum DRAW_FLAGS flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
 {
     for (auto& e : this->aM2s)
     {
         glBindVertexArray(e.meshData.vao);
 
-        if (bBindTextures)
+        if (flags & DRAW_FLAGS::BIND_TEX)
         {
             e.meshData.materials.diffuse.bind(GL_TEXTURE0);
             /* TODO: implement */
             /*e.meshData.materials.normal.bind(GL_TEXTURE01);*/
         }
 
-        if (sh != nullptr)
+        m4 m = m4Iden();
+        if (flags & DRAW_FLAGS::APPLY_TM)
         {
-            m4 m = m4Scale(tmGlobal, e.vScale);
-            sh->setM4(svUniform, m);
+            m = m4Scale(m, e.vScale);
         }
+
+        if (sh) sh->setM4(svUniform, m * tmGlobal);
 
         if (e.triangleCount != NPOS)
             glDrawArrays(static_cast<GLenum>(e.mode), 0, e.triangleCount);
