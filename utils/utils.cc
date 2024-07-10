@@ -7,8 +7,7 @@
 
 #include "utils.hh"
 
-std::mutex g_glContextMtx;
-std::mutex g_logMtx;
+std::mutex g_mtxLog;
 
 static std::mt19937 rngCreate();
 

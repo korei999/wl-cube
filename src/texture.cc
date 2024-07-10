@@ -142,7 +142,7 @@ Texture::bind(GLint glTexture)
 void
 Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, App* c)
 {
-    std::lock_guard lock(g_glContextMtx);
+    std::lock_guard lock(g_mtxGlContext);
     c->bindGlContext();
 
     glGenTextures(1, &this->id);

@@ -1,9 +1,13 @@
 #pragma once
+
+#include <mutex>
+
 #ifdef __linux__
 #include <GLES3/gl32.h>
 #elif _WIN32
 #include "../platform/windows/glad.h"
 #endif
+
 
 #ifdef DEBUG
 #    define D(C)                                                                                                       \
@@ -45,3 +49,4 @@
 #endif
 
 extern GLenum glLastErrorCode;
+extern std::mutex g_mtxGlContext;

@@ -297,7 +297,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     std::vector<GLuint> aBufferMap;
     for (size_t i = 0; i < a.aBuffers.size(); i++)
     {
-        std::scoped_lock lock(g_glContextMtx);
+        std::scoped_lock lock(g_mtxGlContext);
         c->bindGlContext();
 
         GLuint b;
@@ -343,7 +343,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             nMesh2.vScale = node.scale;
 
             /* manually unlock before loading texture */
-            g_glContextMtx.lock();
+            g_mtxGlContext.lock();
             c->bindGlContext();
 
             glGenVertexArrays(1, &nMesh2.meshData.vao);
@@ -405,7 +405,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
             glBindVertexArray(0);
             c->unbindGlContext();
-            g_glContextMtx.unlock();
+            g_mtxGlContext.unlock();
 
             /* load textures */
             if (accMatIdx != NPOS)
@@ -434,7 +434,7 @@ setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, G
 {
     /* TODO: use one buffer object, or drop OBJ since gltf is here */
 
-    std::lock_guard lock(g_glContextMtx);
+    std::lock_guard lock(g_mtxGlContext);
 
     c->bindGlContext();
 

@@ -35,8 +35,7 @@ const std::string_view severityStr[FATAL + 1] {
     "[FATAL]"
 };
 
-extern std::mutex g_glContextMtx;
-extern std::mutex g_logMtx;
+extern std::mutex g_mtxLog;
 
 #define LEN(A) (sizeof(A) / sizeof(A[0]))
 #define ODD(A) (A & 1)
@@ -52,7 +51,7 @@ extern std::mutex g_logMtx;
 #    define LOG(severity, ...)                                                                                         \
         do                                                                                                             \
         {                                                                                                              \
-            std::lock_guard lock(g_logMtx);                                                                            \
+            std::lock_guard lock(g_mtxLog);                                                                            \
             CERR("{}({}): {} ", __FILE__, __LINE__, severityStr[severity]);                                            \
             CERR(__VA_ARGS__);                                                                                         \
             if (severity == FATAL)                                                                                     \
