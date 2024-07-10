@@ -166,12 +166,8 @@ timeNow()
 std::string
 replacePathSuffix(std::string_view path, std::string_view suffix)
 {
-#ifdef _WIN32
-    suffix->back() = '\0';
-#endif
-
     auto lastSlash = path.find_last_of("/");
-    std::string pathToMtl {path.begin(), path.begin() + lastSlash};
+    std::string_view pathToMtl = std::string_view(path).substr(0, lastSlash);
 
-    return {pathToMtl + "/" + std::string(suffix)};
+    return FMT("{}/{}", pathToMtl, suffix);
 }

@@ -487,13 +487,13 @@ Model::draw()
 }
 
 void
-Model::drawGLTF(enum DRAW_FLAGS flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
+Model::drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
 {
     for (auto& e : this->aM2s)
     {
         glBindVertexArray(e.meshData.vao);
 
-        if (flags & DRAW_FLAGS::BIND_TEX)
+        if (flags & DRAW::TEX)
         {
             e.meshData.materials.diffuse.bind(GL_TEXTURE0);
             /* TODO: implement */
@@ -501,7 +501,7 @@ Model::drawGLTF(enum DRAW_FLAGS flags, Shader* sh, std::string_view svUniform, c
         }
 
         m4 m = m4Iden();
-        if (flags & DRAW_FLAGS::APPLY_TM)
+        if (flags & DRAW::APPLY_TM)
         {
             m = m4Scale(m, e.vScale);
         }

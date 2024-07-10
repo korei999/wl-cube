@@ -8,29 +8,29 @@
 #include "texture.hh"
 #include "app.hh"
 
-enum class DRAW_FLAGS : int
+enum class DRAW : int
 {
     NONE = 0,
-    BIND_TEX = 1,
-    APPLY_TM = 1 << 1
+    TEX = 1, /* bind texture for each drawcall */
+    APPLY_TM = 1 << 1 /* apply transformation matrix */
 };
 
 static inline bool
-operator&(enum DRAW_FLAGS l, enum DRAW_FLAGS r)
+operator&(enum DRAW l, enum DRAW r)
 {
     return static_cast<int>(l) & static_cast<int>(r);
 }
 
-static inline enum DRAW_FLAGS
-operator|(enum DRAW_FLAGS l, enum DRAW_FLAGS r)
+static inline enum DRAW
+operator|(enum DRAW l, enum DRAW r)
 {
-    return static_cast<enum DRAW_FLAGS>(static_cast<int>(l) | static_cast<int>(r));
+    return static_cast<enum DRAW>(static_cast<int>(l) | static_cast<int>(r));
 }
 
-static inline enum DRAW_FLAGS
-operator^(enum DRAW_FLAGS l, enum DRAW_FLAGS r)
+static inline enum DRAW
+operator^(enum DRAW l, enum DRAW r)
 {
-    return static_cast<enum DRAW_FLAGS>(static_cast<int>(l) ^ static_cast<int>(r));
+    return static_cast<enum DRAW>(static_cast<int>(l) ^ static_cast<int>(r));
 }
 
 struct FacePositions
@@ -118,7 +118,7 @@ struct Model
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void draw();
-    void drawGLTF(enum DRAW_FLAGS flags, Shader* sh, std::string_view svUniform, const m4& tm);
+    void drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tm);
     void drawInstanced(GLsizei count);
     /* bind texture for each drawcall */
     void drawTex(GLint primitives = GL_TRIANGLES);
