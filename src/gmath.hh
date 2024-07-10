@@ -108,16 +108,17 @@ union m3
 union qt
 {
     struct {
-        f32 x, y, z, w;
+        f32 x, y, z, s;
     };
     f32 p[4];
 
     qt() = default;
-    qt(f32 _x, f32 _y, f32 _z, f32 _w) : x(_x), y(_y), z(_z), w(_w) {}
-    qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), w(_s) {}
+    qt(f32 _x, f32 _y, f32 _z, f32 _s) : x(_x), y(_y), z(_z), s(_s) {}
+    qt(v4 _v) : x(_v.x), y(_v.y), z(_v.z), s(_v.w) {}
+    qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), s(_s) {}
 
     v3 v3() { return {x, y, z}; }
-    v4 v4() { return {x, y, z, w}; }
+    v4 v4() { return {x, y, z, s}; }
 };
 
 #ifdef LOGS
@@ -157,5 +158,8 @@ m3 m3Inverse(const m3& m);
 m3 m3Normal(const m3& m);
 v3 v3Color(const u32 hex);
 v4 v4Color(const u32 hex);
-qt qtAxisAngle(v3 axis, f32 th);
+qt qtAxisAngle(const v3& axis, f32 th);
 m4 qtRot(const qt& q);
+qt qtConj(const qt& q);
+qt operator*(const qt& l, const qt& r);
+qt operator*=(qt& l, const qt& r);

@@ -157,10 +157,11 @@ renderScene(Shader* sh, bool depth)
     static f32 i = 0.0f;
 
     m = m4Translate(m4Iden(), {-0.4, 0.6, 0});
-    m *= qtRot(qtAxisAngle(v3Norm({0, 1, 0}), i));
+    qt q = qtAxisAngle({1, 0, 0}, toRad(-90.0f)) * qtAxisAngle({0, 1, 0}, i);
+    q *= qtAxisAngle({0, 1, 0}, i);
+    m *= qtRot(q);
     m = m4Scale(m, 30.0f);
-    m = m4RotX(m, toRad(90.0f));
-    i += 0.30f * player.deltaTime;
+    i += 0.130f * player.deltaTime;
 
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
     glDisable(GL_CULL_FACE);
@@ -202,7 +203,7 @@ drawFrame(App* app)
         shCubeDepth.use();
         constexpr auto len = LEN(shadowTms);
         for (size_t i = 0; i < len; i++)
-            shCubeDepth.setM4("uShadowMatrices[" + std::to_string(i) + "]", shadowTms[i]);
+            shCubeDepth.setM4(FMT("uShadowMatrices[{}]", i), shadowTms[i]);
         shCubeDepth.setV3("uLightPos", lightPos);
         shCubeDepth.setF("uFarPlane", farPlane);
         glActiveTexture(GL_TEXTURE1);

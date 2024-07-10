@@ -342,7 +342,7 @@ std::string
 m4ToString(const m4& m, std::string_view prefix)
 {
     auto e = m.e;
-    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\n",
+    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n",
         prefix,
         e[0][0], e[0][1], e[0][2], e[0][3],
         e[1][0], e[1][1], e[1][2], e[1][3],
@@ -354,7 +354,7 @@ std::string
 m3ToString(const m3& m, std::string_view prefix)
 {
     auto e = m.e;
-    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\n",
+    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n\t{:.3f} {:.3f} {:.3f}\n",
         prefix,
         e[0][0], e[0][1], e[0][2],
         e[1][0], e[1][1], e[1][2],
@@ -408,14 +408,14 @@ v4Color(const u32 hex)
 }
 
 qt
-qtAxisAngle(v3 axis, f32 th)
+qtAxisAngle(const v3& axis, f32 th)
 {
-    f32 sinA = static_cast<f32>(sin(th / 2));
+    f32 sinTh = static_cast<f32>(sin(th / 2));
 
     return {
-        axis.x * sinA,
-        axis.y * sinA,
-        axis.z * sinA,
+        axis.x * sinTh,
+        axis.y * sinTh,
+        axis.z * sinTh,
         static_cast<f32>(cos(th / 2))
     };
 }
@@ -426,12 +426,35 @@ qtRot(const qt& q)
     auto& x = q.x;
     auto& y = q.y;
     auto& z = q.z;
-    auto& s = q.w;
+    auto& s = q.s;
 
     return {.e {
-        {1 - 2*sq(y) - 2*sq(z), 2*x*y - 2*s*z,         2*x*z + 2*s*y,         0},
-        {2*x*y + 2*s*z,         1 - 2*sq(x) - 2*sq(z), 2*y*z - 2*s*x,         0},
-        {2*x*z - 2*s*y,         2*y*z + 2*s*x,         1 - 2*sq(x) - 2*sq(y), 0},
-        {0,                     0,                     0,                     1}
+        {1 - 2*y*y - 2*z*z, 2*x*y - 2*s*z,     2*x*z + 2*s*y,     0},
+        {2*x*y + 2*s*z,     1 - 2*x*x - 2*z*z, 2*y*z - 2*s*x,     0},
+        {2*x*z - 2*s*y,     2*y*z + 2*s*x,     1 - 2*x*x - 2*y*y, 0},
+        {0,                 0,                 0,                 1}
     }};
+}
+
+qt
+qtConj(const qt& q)
+{
+    return {-q.x, -q.y, -q.z, q.s};
+}
+
+qt
+operator*(const qt& l, const qt& r)
+{
+    return {
+        l.s*r.x + l.x*r.s + l.y*r.z - l.z*r.y,
+        l.s*r.y - l.x*r.z + l.y*r.s + l.z*r.x,
+        l.s*r.z + l.x*r.y - l.y*r.x + l.z*r.s,
+        l.s*r.s - l.x*r.x - l.y*r.y - l.z*r.z,
+    };
+}
+
+qt
+operator*=(qt& l, const qt& r)
+{
+    return l = l * r;
 }

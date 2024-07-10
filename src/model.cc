@@ -493,7 +493,12 @@ Model::drawGLTF(bool bBindTextures, Shader* sh, std::string_view svUniform, cons
     {
         glBindVertexArray(e.meshData.vao);
 
-        if (bBindTextures) e.meshData.materials.diffuse.bind(GL_TEXTURE0);
+        if (bBindTextures)
+        {
+            e.meshData.materials.diffuse.bind(GL_TEXTURE0);
+            /* TODO: implement */
+            /*e.meshData.materials.normal.bind(GL_TEXTURE01);*/
+        }
 
         if (sh != nullptr)
         {
