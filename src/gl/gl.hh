@@ -8,9 +8,8 @@
 #include "../platform/windows/glad.h"
 #endif
 
-
 #ifdef DEBUG
-#    define D(C)                                                                                                       \
+    #define D(C)                                                                                                       \
         {                                                                                                              \
             /* call function C and check for error, enabled if -DDEBUG and -DLOGS */                                   \
             C;                                                                                                         \
@@ -19,7 +18,7 @@
                 switch (glLastErrorCode)                                                                               \
                 {                                                                                                      \
                     default:                                                                                           \
-                        LOG(WARNING, "unknown error: {:#x}\n", glLastErrorCode);                                       \
+                        LOG(WARNING, "unknown error: {:#x}\n", g_glLastErrorCode);                                     \
                         break;                                                                                         \
                                                                                                                        \
                     case 0x506:                                                                                        \
@@ -45,8 +44,8 @@
             }                                                                                                          \
         }
 #else
-#    define D(C) C;
+    #define D(C) C;
 #endif
 
-extern GLenum glLastErrorCode;
+extern GLenum g_glLastErrorCode;
 extern std::mutex g_mtxGlContext;

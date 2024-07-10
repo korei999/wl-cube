@@ -133,7 +133,7 @@ prepareDraw(App* app)
     app->unbindGlContext();
 
     ThreadPool tp(std::thread::hardware_concurrency());
-    /* models */
+
     tp.submit([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mCar.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
