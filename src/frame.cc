@@ -173,9 +173,6 @@ static void
 drawFrame(App* app)
 {
     player.updateDeltaTime();
-    /*player.procMouse();*/
-    /*player.procKeys(app);*/
-
     app->tp.submit([]{ player.procMouse(); });
     app->tp.submit([app]{ player.procKeys(app); });
     app->tp.wait();

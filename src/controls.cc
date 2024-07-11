@@ -93,7 +93,6 @@ procKeysOnce(App* app, u32 key, u32 pressed)
 void
 PlayerControls::procKeys(App* app)
 {
-    /*procMovements(app);*/
     app->tp.submit([app]{ procMovements(app); });
 
     if (pressedKeys[KEY_I])

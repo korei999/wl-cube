@@ -3,21 +3,42 @@
 #include <condition_variable>
 #include <functional>
 #include <deque>
+#include <future>
 
 class ThreadPool
 {
 public:
-    ThreadPool(size_t nThreads) { this->start(nThreads); }
+    ThreadPool(size_t threadCount) { this->start(threadCount); }
     ~ThreadPool() { this->stop(); }
 
     void
-    submit(const std::function<void()>& job)
+    submit(const std::function<void()> task)
     {
         {
             std::unique_lock lock(this->mtxQ);
-            this->qTasks.emplace_back(std::move(job));
+            this->qTasks.emplace_back(std::move(task));
+            this->activeTasks++; /* decrement after completing the task */
         }
         this->cndMtx.notify_one();
+    }
+
+    template<typename Fn, typename... Args>
+    auto future(Fn&& f, Args&&... args)
+    {
+        auto task {
+            std::make_shared<std::packaged_task<std::invoke_result_t<Fn, Args...>()>>(
+                [&f, &args...]() { return f(std::forward<Args>(args)...); }
+            )
+        };
+
+        {
+            std::unique_lock lock(this->mtxQ);
+            this->qTasks.emplace_back([task]{ (*task)(); });
+            this->activeTasks++;
+        }
+        this->cndMtx.notify_one();
+
+        return task->get_future();
     }
 
     void
@@ -54,9 +75,9 @@ public:
     }
 
     void
-    start(size_t nThreads = std::thread::hardware_concurrency())
+    start(size_t threadCount = std::thread::hardware_concurrency())
     {
-        for (size_t i = 0; i < nThreads; i++)
+        for (size_t i = 0; i < threadCount; i++)
             aThreads.emplace_back(std::thread(&ThreadPool::loop, this));
     }
 
@@ -73,7 +94,7 @@ private:
     {
         while (!this->bDone)
         {
-            std::function<void()> job;
+            std::function<void()> task;
             {
                 std::unique_lock lock(this->mtxQ);
 
@@ -81,11 +102,10 @@ private:
 
                 if (this->bDone) return;
 
-                job = this->qTasks.front();
+                task = this->qTasks.front();
                 this->qTasks.pop_front();
-                this->activeTasks++; /* increment before unlocking mtxQ to avoid 0 tasks and 0 q possibility */
             }
-            job();
+            task();
             this->activeTasks--;
 
             if (!this->busy())
