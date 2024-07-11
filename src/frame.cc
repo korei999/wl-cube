@@ -77,6 +77,7 @@ Shader shOmniDirShadow;
 Shader shColor;
 Shader shTex;
 Shader shBF;
+Shader shNormalMapping;
 Model mSphere;
 Model mSponza;
 Model mCar;
@@ -114,6 +115,7 @@ prepareDraw(App* app)
     shOmniDirShadow.loadShaders("shaders/shadows/cubeMap/omniDirShadow.vert", "shaders/shadows/cubeMap/omniDirShadow.frag");
     shColor.loadShaders("shaders/simple.vert", "shaders/simple.frag");
     shTex.loadShaders("shaders/simpleTex.vert", "shaders/simpleTex.frag");
+    shNormalMapping.loadShaders("shaders/normalMapping.vert", "shaders/normalMapping.frag");
 
     shOmniDirShadow.use();
     shOmniDirShadow.setI("uDiffuseTexture", 0);

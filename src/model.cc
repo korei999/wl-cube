@@ -398,10 +398,13 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             }
 
             /* tangents */
-            /*auto& bvTan = a.aBufferViews[accTan.bufferView];*/
-            /*glEnableVertexAttribArray(3);*/
-            /*glVertexAttribPointer(3, v3Size, static_cast<GLenum>(accTan.componentType), GL_FALSE,*/
-            /*                      bvTan.byteStride, reinterpret_cast<void*>(accTan.byteOffset + bvTan.byteOffset));*/
+            if (accTanIdx != NPOS)
+            {
+                auto& bvTan = a.aBufferViews[accTan.bufferView];
+                glEnableVertexAttribArray(3);
+                glVertexAttribPointer(3, v3Size, static_cast<GLenum>(accTan.componentType), GL_FALSE,
+                                      bvTan.byteStride, reinterpret_cast<void*>(accTan.byteOffset + bvTan.byteOffset));
+            }
 
             glBindVertexArray(0);
             c->unbindGlContext();
