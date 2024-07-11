@@ -504,6 +504,7 @@ Model::drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m
         if (flags & DRAW::APPLY_TM)
         {
             m = m4Scale(m, e.vScale);
+            /* TODO: other transformations */
         }
 
         if (sh) sh->setM4(svUniform, m * tmGlobal);

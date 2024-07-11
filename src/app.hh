@@ -2,20 +2,20 @@
 
 #include <string_view>
 
+#include "threadpool.hh"
+
 struct App
 {
     int wWidth = 1920;
     int wHeight = 1080;
-
     bool bRunning = false;
     bool bConfigured = false;
     int swapInterval = 1;
-
     bool bPaused = false;
     bool bRelativeMode = false;
     bool bFullscreen = false;
-
     std::string_view name;
+    ThreadPool tp {std::thread::hardware_concurrency()};
 
     virtual ~App() = default;
 

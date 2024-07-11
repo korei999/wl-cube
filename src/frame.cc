@@ -147,7 +147,7 @@ f64 incCounter = 0;
 f32 fov = 90.0f;
 f64 x = 0.0, y = 0.0, z = 0.0;
 
-void
+static void
 renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
@@ -169,12 +169,13 @@ renderScene(Shader* sh, bool depth)
     glEnable(GL_CULL_FACE);
 }
 
-void
+static void
 drawFrame(App* app)
 {
     player.updateDeltaTime();
-    player.procMouse();
-    player.procKeys(app);
+    app->tp.submit([&]{ player.procMouse(); });
+    app->tp.submit([&]{ player.procKeys(app); });
+    app->tp.wait();
 
     f32 aspect = (f32)app->wWidth / (f32)app->wHeight;
     constexpr f32 shadowAspect = (f32)SHADOW_WIDTH / (f32)SHADOW_HEIGHT;

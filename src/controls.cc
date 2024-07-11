@@ -16,27 +16,27 @@ static void procMovements(App* c);
 void
 PlayerControls::procMouse()
 {
-    auto offsetX = (mouse.relX - mouse.prevRelX) * mouse.sens;
-    auto offsetY = (mouse.prevRelY - mouse.relY) * mouse.sens;
+    f64 offsetX = (this->mouse.relX - this->mouse.prevRelX) * this->mouse.sens;
+    f64 offsetY = (this->mouse.prevRelY - this->mouse.relY) * this->mouse.sens;
 
-    mouse.prevRelX = mouse.relX;
-    mouse.prevRelY = mouse.relY;
+    this->mouse.prevRelX = this->mouse.relX;
+    this->mouse.prevRelY = this->mouse.relY;
 
-    mouse.yaw += offsetX;
-    mouse.pitch += offsetY;
+    this->mouse.yaw += offsetX;
+    this->mouse.pitch += offsetY;
 
-    if (mouse.pitch > 89.9)
-        mouse.pitch = 89.9;
-    if (mouse.pitch < -89.9)
-        mouse.pitch = -89.9;
+    if (this->mouse.pitch > 89.9)
+        this->mouse.pitch = 89.9;
+    if (this->mouse.pitch < -89.9)
+        this->mouse.pitch = -89.9;
 
     front = v3Norm({
-        static_cast<f32>(cos(toRad(mouse.yaw)) * cos(toRad(mouse.pitch))),
-        static_cast<f32>(sin(toRad(mouse.pitch))),
-        static_cast<f32>(sin(toRad(mouse.yaw)) * cos(toRad(mouse.pitch)))
+        static_cast<f32>(cos(toRad(this->mouse.yaw)) * cos(toRad(this->mouse.pitch))),
+        static_cast<f32>(sin(toRad(this->mouse.pitch))),
+        static_cast<f32>(sin(toRad(this->mouse.yaw)) * cos(toRad(this->mouse.pitch)))
     });
 
-    right = v3Norm(v3Cross(front, up));
+    this->right = v3Norm(v3Cross(this->front, this->up));
 }
 
 void
@@ -93,7 +93,8 @@ procKeysOnce(App* app, u32 key, u32 pressed)
 void
 PlayerControls::procKeys(App* app)
 {
-    procMovements(app);
+    /* wait for this outside */
+    app->tp.submit([app]{ procMovements(app); });
 
     if (pressedKeys[KEY_I])
     {
