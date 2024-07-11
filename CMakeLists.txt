@@ -31,6 +31,10 @@ add_executable(
     utils/utils.cc
 )
 
+if (FPS_COUNTER)
+    add_definitions("-DFPS_COUNTER")
+endif()
+
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
     set(CMAKE_BUILD_TYPE "Debug")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g3 -fsanitize=undefined -fsanitize=address ")

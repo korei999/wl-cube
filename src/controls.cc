@@ -93,8 +93,7 @@ procKeysOnce(App* app, u32 key, u32 pressed)
 void
 PlayerControls::procKeys(App* app)
 {
-    /* wait for this outside */
-    app->tp.submit([app]{ procMovements(app); });
+    procMovements(app);
 
     if (pressedKeys[KEY_I])
     {
@@ -127,7 +126,7 @@ PlayerControls::procKeys(App* app)
 }
 
 static void
-procMovements(App* c)
+procMovements([[maybe_unused]] App* c)
 {
     f64 moveSpeed = player.moveSpeed * player.deltaTime;
 
@@ -162,8 +161,7 @@ procMovements(App* c)
     }
 
     f32 len = v3Length(combinedMove);
-    if (len > 0)
-        combinedMove = v3Norm(combinedMove, len);
+    if (len > 0) combinedMove = v3Norm(combinedMove, len);
 
     player.pos += combinedMove * static_cast<f32>(moveSpeed);
 }

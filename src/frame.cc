@@ -163,19 +163,18 @@ renderScene(Shader* sh, bool depth)
     m = m4Scale(m, 30.0f);
     i += 0.130f * player.deltaTime;
 
-    if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
-    glDisable(GL_CULL_FACE);
-    mCar.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, sh, "uModel", m);
-    glEnable(GL_CULL_FACE);
+    /*if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));*/
+    /*glDisable(GL_CULL_FACE);*/
+    /*mCar.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, sh, "uModel", m);*/
+    /*glEnable(GL_CULL_FACE);*/
 }
 
 static void
 drawFrame(App* app)
 {
     player.updateDeltaTime();
-    app->tp.submit([&]{ player.procMouse(); });
-    app->tp.submit([&]{ player.procKeys(app); });
-    app->tp.wait();
+    player.procMouse();
+    player.procKeys(app);
 
     f32 aspect = (f32)app->wWidth / (f32)app->wHeight;
     constexpr f32 shadowAspect = (f32)SHADOW_WIDTH / (f32)SHADOW_HEIGHT;
@@ -273,6 +272,7 @@ run(App* app)
 
         drawFrame(app);
 
+        app->tp.wait();
         app->swapBuffers();
     /* drawing */
 #ifdef FPS_COUNTER

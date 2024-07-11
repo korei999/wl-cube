@@ -23,7 +23,7 @@ public:
     void
     wait()
     {
-        if (this->busy())
+        while (this->busy())
         {
             std::unique_lock lock(this->mtxWait);
             cndWait.wait(lock);
