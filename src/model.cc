@@ -557,32 +557,31 @@ Ubo::~Ubo()
 void
 Ubo::createBuffer(size_t _size, GLint drawMode)
 {
-    size = _size;
-    glGenBuffers(1, &id);
-    glBindBuffer(GL_UNIFORM_BUFFER, id);
-    glBufferData(GL_UNIFORM_BUFFER, size, nullptr, drawMode);
+    this->size = _size;
+    glGenBuffers(1, &this->id);
+    glBindBuffer(GL_UNIFORM_BUFFER, this->id);
+    glBufferData(GL_UNIFORM_BUFFER, this->size, nullptr, drawMode);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void
 Ubo::bindBlock(Shader* sh, std::string_view block, GLuint _point)
 {
-    point = _point;
-    GLuint index;
-    index = glGetUniformBlockIndex(sh->id, block.data());
+    this->point = _point;
+    GLuint index = glGetUniformBlockIndex(sh->id, block.data());
     glUniformBlockBinding(sh->id, index, _point);
     LOG(OK, "uniform block: '{}' at '{}', in shader '{}'\n", block, index, sh->id);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, _point, id);
+    glBindBufferBase(GL_UNIFORM_BUFFER, _point, this->id);
     /* or */
     // glBindBufferRange(GL_UNIFORM_BUFFER, point, id, 0, size);
 }
 
 void
-Ubo::bufferData(void* data, size_t offset, size_t _size)
+Ubo::bufferData(void* pData, size_t offset, size_t _size)
 {
-    glBindBuffer(GL_UNIFORM_BUFFER, id);
-    glBufferSubData(GL_UNIFORM_BUFFER, offset, _size, data);
+    glBindBuffer(GL_UNIFORM_BUFFER, this->id);
+    glBufferSubData(GL_UNIFORM_BUFFER, offset, _size, pData);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 

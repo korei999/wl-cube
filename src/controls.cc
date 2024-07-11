@@ -31,9 +31,9 @@ PlayerControls::procMouse()
         this->mouse.pitch = -89.9;
 
     front = v3Norm({
-        static_cast<f32>(cos(toRad(this->mouse.yaw)) * cos(toRad(this->mouse.pitch))),
-        static_cast<f32>(sin(toRad(this->mouse.pitch))),
-        static_cast<f32>(sin(toRad(this->mouse.yaw)) * cos(toRad(this->mouse.pitch)))
+        static_cast<f32>(std::cos(toRad(this->mouse.yaw)) * std::cos(toRad(this->mouse.pitch))),
+        static_cast<f32>(std::sin(toRad(this->mouse.pitch))),
+        static_cast<f32>(std::sin(toRad(this->mouse.yaw)) * std::cos(toRad(this->mouse.pitch)))
     });
 
     this->right = v3Norm(v3Cross(this->front, this->up));
@@ -93,7 +93,8 @@ procKeysOnce(App* app, u32 key, u32 pressed)
 void
 PlayerControls::procKeys(App* app)
 {
-    procMovements(app);
+    /*procMovements(app);*/
+    app->tp.submit([app]{ procMovements(app); });
 
     if (pressedKeys[KEY_I])
     {

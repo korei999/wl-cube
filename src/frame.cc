@@ -173,11 +173,15 @@ static void
 drawFrame(App* app)
 {
     player.updateDeltaTime();
-    player.procMouse();
-    player.procKeys(app);
+    /*player.procMouse();*/
+    /*player.procKeys(app);*/
 
-    f32 aspect = (f32)app->wWidth / (f32)app->wHeight;
-    constexpr f32 shadowAspect = (f32)SHADOW_WIDTH / (f32)SHADOW_HEIGHT;
+    app->tp.submit([]{ player.procMouse(); });
+    app->tp.submit([app]{ player.procKeys(app); });
+    app->tp.wait();
+
+    f32 aspect = static_cast<f32>(app->wWidth) / static_cast<f32>(app->wHeight);
+    constexpr f32 shadowAspect = static_cast<f32>(SHADOW_WIDTH) / static_cast<f32>(SHADOW_HEIGHT);
 
     if (!app->bPaused)
     {
@@ -189,7 +193,7 @@ drawFrame(App* app)
         uboProjView.bufferData(&player, 0, sizeof(m4) * 2);
 
         // v3 lightPos {x, 4, -1};
-        v3 lightPos {(f32)cos(player.currTime) * 6.0f, 3, (f32)sin(player.currTime) * 1.1f};
+        v3 lightPos {std::cos(player.currTime) * 6.0f, 3, std::sin(player.currTime) * 1.1f};
         constexpr v3 lightColor(Color::snow);
         f32 nearPlane = 0.01f, farPlane = 25.0f;
         m4 shadowProj = m4Pers(toRad(90.0f), shadowAspect, nearPlane, farPlane);
@@ -201,7 +205,7 @@ drawFrame(App* app)
         glClear(GL_DEPTH_BUFFER_BIT);
 
         shCubeDepth.use();
-        constexpr auto len = LEN(shadowTms);
+        constexpr auto len = std::size(shadowTms.tms);
         for (size_t i = 0; i < len; i++)
             shCubeDepth.setM4(FMT("uShadowMatrices[{}]", i), shadowTms[i]);
         shCubeDepth.setV3("uLightPos", lightPos);
@@ -272,7 +276,6 @@ run(App* app)
 
         drawFrame(app);
 
-        app->tp.wait();
         app->swapBuffers();
     /* drawing */
 #ifdef FPS_COUNTER
