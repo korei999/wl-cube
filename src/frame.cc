@@ -121,6 +121,10 @@ prepareDraw(App* app)
     shOmniDirShadow.setI("uDiffuseTexture", 0);
     shOmniDirShadow.setI("uDepthMap", 1);
 
+    shNormalMapping.use();
+    shNormalMapping.setI("uDiffuseTex", 0);
+    shNormalMapping.setI("uNormalMap", 1);
+
     shDebugDepthQuad.use();
     shDebugDepthQuad.setI("uDepthMap", 1);
 
@@ -130,6 +134,7 @@ prepareDraw(App* app)
     uboProjView.bindBlock(&shOmniDirShadow, "ubProjView", 0);
     uboProjView.bindBlock(&shColor, "ubProjView", 0);
     uboProjView.bindBlock(&shTex, "ubProjView", 0);
+    uboProjView.bindBlock(&shNormalMapping, "ubProjView", 0);
 
     /* unbind before creating threads */
     app->unbindGlContext();
@@ -156,14 +161,14 @@ renderScene(Shader* sh, bool depth)
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
     mSponza.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, sh, "uModel", m);
 
-    static f32 i = 0.0f;
-
-    m = m4Translate(m4Iden(), {-0.4, 0.6, 0});
-    qt q = qtAxisAngle({1, 0, 0}, toRad(-90.0f)) * qtAxisAngle({0, 1, 0}, i);
-    q *= qtAxisAngle({0, 1, 0}, i);
-    m *= qtRot(q);
-    m = m4Scale(m, 30.0f);
-    i += 0.130f * player.deltaTime;
+    /*static f32 i = 0.0f;*/
+    /**/
+    /*m = m4Translate(m4Iden(), {-0.4, 0.6, 0});*/
+    /*qt q = qtAxisAngle({1, 0, 0}, toRad(-90.0f)) * qtAxisAngle({0, 1, 0}, i);*/
+    /*q *= qtAxisAngle({0, 1, 0}, i);*/
+    /*m *= qtRot(q);*/
+    /*m = m4Scale(m, 30.0f);*/
+    /*i += 0.130f * player.deltaTime;*/
 
     /*if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));*/
     /*glDisable(GL_CULL_FACE);*/
@@ -175,9 +180,8 @@ static void
 drawFrame(App* app)
 {
     player.updateDeltaTime();
-    app->tp.submit([]{ player.procMouse(); });
-    app->tp.submit([app]{ player.procKeys(app); });
-    app->tp.wait();
+    player.procMouse();
+    player.procKeys(app);
 
     f32 aspect = static_cast<f32>(app->wWidth) / static_cast<f32>(app->wHeight);
     constexpr f32 shadowAspect = static_cast<f32>(SHADOW_WIDTH) / static_cast<f32>(SHADOW_HEIGHT);
@@ -195,24 +199,24 @@ drawFrame(App* app)
         v3 lightPos {std::cos(player.currTime) * 6.0f, 3, std::sin(player.currTime) * 1.1f};
         constexpr v3 lightColor(Color::snow);
         f32 nearPlane = 0.01f, farPlane = 25.0f;
-        m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);
-        CubeMapProjections shadowTms(shadowProj, lightPos);
+        /*m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);*/
+        /*CubeMapProjections shadowTms(shadowProj, lightPos);*/
 
         /* render scene to depth cubemap */
-        glViewport(0, 0, cmCubeMap.width, cmCubeMap.height);
-        glBindFramebuffer(GL_FRAMEBUFFER, cmCubeMap.fbo);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        shCubeDepth.use();
-        constexpr auto len = std::size(shadowTms.tms);
-        for (size_t i = 0; i < len; i++)
-            shCubeDepth.setM4(FMT("uShadowMatrices[{}]", i), shadowTms[i]);
-        shCubeDepth.setV3("uLightPos", lightPos);
-        shCubeDepth.setF("uFarPlane", farPlane);
-        glActiveTexture(GL_TEXTURE1);
-        glCullFace(GL_FRONT);
-        renderScene(&shCubeDepth, true);
-        glCullFace(GL_BACK);
+        /*glViewport(0, 0, cmCubeMap.width, cmCubeMap.height);*/
+        /*glBindFramebuffer(GL_FRAMEBUFFER, cmCubeMap.fbo);*/
+        /*glClear(GL_DEPTH_BUFFER_BIT);*/
+        /**/
+        /*shCubeDepth.use();*/
+        /*constexpr auto len = std::size(shadowTms.tms);*/
+        /*for (size_t i = 0; i < len; i++)*/
+        /*    shCubeDepth.setM4(FMT("uShadowMatrices[{}]", i), shadowTms[i]);*/
+        /*shCubeDepth.setV3("uLightPos", lightPos);*/
+        /*shCubeDepth.setF("uFarPlane", farPlane);*/
+        /*glActiveTexture(GL_TEXTURE1);*/
+        /*glCullFace(GL_FRONT);*/
+        /*renderScene(&shCubeDepth, true);*/
+        /*glCullFace(GL_BACK);*/
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -221,14 +225,22 @@ drawFrame(App* app)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         /* render scene as normal using the denerated depth map */
-        shOmniDirShadow.use();
-        shOmniDirShadow.setV3("uLightPos", lightPos);
-        shOmniDirShadow.setV3("uLightColor", lightColor);
-        shOmniDirShadow.setV3("uViewPos", player.pos);
-        shOmniDirShadow.setF("uFarPlane", farPlane);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cmCubeMap.tex);
-        renderScene(&shOmniDirShadow, false);
+        /*shOmniDirShadow.use();*/
+        /*shOmniDirShadow.setV3("uLightPos", lightPos);*/
+        /*shOmniDirShadow.setV3("uLightColor", lightColor);*/
+        /*shOmniDirShadow.setV3("uViewPos", player.pos);*/
+        /*shOmniDirShadow.setF("uFarPlane", farPlane);*/
+        /*glActiveTexture(GL_TEXTURE1);*/
+        /*glBindTexture(GL_TEXTURE_CUBE_MAP, cmCubeMap.tex);*/
+        /*renderScene(&shOmniDirShadow, false);*/
+
+        shNormalMapping.use();
+        shNormalMapping.setV3("uLightPos", lightPos);
+        shNormalMapping.setV3("uLightColor", lightColor);
+        shNormalMapping.setV3("uViewPos", player.pos);
+        shNormalMapping.setF("uFarPlane", farPlane);
+        shNormalMapping.setM3("uNormalMatrix", m3Normal(m4Iden()));
+        mSponza.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, &shNormalMapping, "uModel", m4Iden());
 
         /* draw light source */
         m4 tmCube = m4Iden();

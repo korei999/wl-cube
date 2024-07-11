@@ -130,6 +130,7 @@ v4 v4Norm(const v4& v); /* normilized (not length) */
 v3 v3Norm(const v3& v, const f32 length); /* normilized (not length) */
 v3 v3Cross(const v3& l, const v3& r);
 v3 operator-(const v3& l, const v3& r);
+v2 operator-(const v2& l, const v2& r);
 v3 operator+(const v3& l, const v3& r);
 v3 operator*(const v3& v, const f32 s);
 f32 v3Rad(const v3& l, const v3& r); /* degree between two vectors */

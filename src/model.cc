@@ -293,6 +293,8 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     this->asset.load(path);
     auto& a = this->asset;;
 
+    ThreadPool tp(std::thread::hardware_concurrency());
+
     /* load buffers first */
     std::vector<GLuint> aBufferMap;
     for (size_t i = 0; i < a.aBuffers.size(); i++)
@@ -333,7 +335,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
             auto& accPos = a.aAccessors[accPosIdx];
             auto& accTex = a.aAccessors[accTexIdx];
-            auto& accTan = a.aAccessors[accTanIdx];
 
             auto& bvPos = a.aBufferViews[accPos.bufferView];
             auto& bvTex = a.aBufferViews[accTex.bufferView];
@@ -380,6 +381,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, v3Size, static_cast<GLenum>(accPos.componentType), GL_FALSE,
                                   bvPos.byteStride, reinterpret_cast<void*>(bvPos.byteOffset + accPos.byteOffset));
+            COUT("bvPos.byteStride: {}\n", bvPos.byteStride);
 
             /* texture coords */
             glEnableVertexAttribArray(1);
@@ -397,10 +399,14 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                                       bvNorm.byteStride, reinterpret_cast<void*>(accNorm.byteOffset + bvNorm.byteOffset));
             }
 
+            std::vector<v3> aBitangets;
+
             /* tangents */
             if (accTanIdx != NPOS)
             {
+                auto& accTan = a.aAccessors[accTanIdx];
                 auto& bvTan = a.aBufferViews[accTan.bufferView];
+
                 glEnableVertexAttribArray(3);
                 glVertexAttribPointer(3, v3Size, static_cast<GLenum>(accTan.componentType), GL_FALSE,
                                       bvTan.byteStride, reinterpret_cast<void*>(accTan.byteOffset + bvTan.byteOffset));
@@ -422,9 +428,27 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                     auto diffuseImgPath = replacePathSuffix(path, diffuseImg.uri);
 
                     if (diffuseImgPath.ends_with(".bmp"))
-                        nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE,
-                                true, texMode, c);
+                    {
+                        tp.submit([=, &nMesh2]{
+                            nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE, true, texMode, c);
+                        });
+                    }
                 }
+
+                size_t normalTexIdx = mat.normalTexture.index;
+                if (normalTexIdx != NPOS)
+                {
+                    auto normalImgPath = replacePathSuffix(path, a.aImages[normalTexIdx].uri);
+                    COUT("NORMAL: '{}'\n", normalImgPath);
+                    if (normalImgPath.ends_with(".bmp"))
+                    {
+                        tp.submit([=, &nMesh2]{
+                            nMesh2.meshData.materials.normal = Texture(normalImgPath, TEX_TYPE::NORMAL, true, texMode, c);
+                        });
+                    }
+                }
+
+                tp.wait();
             }
 
             this->aM2s.push_back(nMesh2);
@@ -499,8 +523,7 @@ Model::drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m
         if (flags & DRAW::TEX)
         {
             e.meshData.materials.diffuse.bind(GL_TEXTURE0);
-            /* TODO: implement */
-            /*e.meshData.materials.normal.bind(GL_TEXTURE01);*/
+            e.meshData.materials.normal.bind(GL_TEXTURE1);
         }
 
         m4 m = m4Iden();

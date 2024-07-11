@@ -36,8 +36,8 @@ main()
     vec3 t = normalize(uNormalMatrix * aTan);
     vec3 n = normalize(uNormalMatrix * aNorm);
     // t = normalize(t - dot(t, n) * n);
-    vec3 bitan = cross(aNorm, aTan);
-    vec3 b = normalize(uNormalMatrix * bitan);
+    // vec3 bitan = normalize(cross(n, t));
+    vec3 b = normalize(uNormalMatrix * aTan);
     mat3 tbn = transpose(mat3(t, b, n));
 
     vOut.tanLightPos = tbn * uLightPos;

@@ -528,15 +528,26 @@ Asset::processMaterials()
                 if (!pIndex) LOG(FATAL, "index field is required\n");
 
                 texInfo.index = json::getLong(pIndex);
-                /* TODO: finish materials parsing */
             }
+        }
+
+        NormalTextureInfo normTexInfo {};
+
+        auto pNormalTexture = json::searchObject(obj, "normalTexture");
+        if (pNormalTexture)
+        {
+            auto& objNT = json::getObject(pNormalTexture);
+            auto pIndex = json::searchObject(objNT, "index");
+            if (!pIndex) LOG(FATAL, "index filed is required\n");
+
+            normTexInfo.index = json::getLong(pIndex);
         }
 
         this->aMaterials.push_back({
             .pbrMetallicRoughness {
                 .baseColorTexture = texInfo,
             },
-            .normalTexture {}
+            .normalTexture = normTexInfo
         });
     }
 }

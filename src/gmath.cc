@@ -81,6 +81,15 @@ operator-(const v3& l, const v3& r)
     };
 }
 
+v2
+operator-(const v2& l, const v2& r)
+{
+    return v2 {
+        l.x - r.x,
+        l.y - r.y
+    };
+}
+
 v3
 operator+(const v3& l, const v3& r)
 {
