@@ -74,13 +74,6 @@ public:
         return bPoolBusy || this->activeTasks > 0;
     }
 
-    void
-    start(size_t threadCount = std::thread::hardware_concurrency())
-    {
-        for (size_t i = 0; i < threadCount; i++)
-            aThreads.emplace_back(std::thread(&ThreadPool::loop, this));
-    }
-
 private:
     bool bDone = false;
     std::atomic<int> activeTasks = 0;
@@ -88,6 +81,13 @@ private:
     std::condition_variable cndMtx, cndWait;
     std::vector<std::thread> aThreads;
     std::deque<std::function<void()>> qTasks;
+
+    void
+    start(size_t threadCount = std::thread::hardware_concurrency())
+    {
+        for (size_t i = 0; i < threadCount; i++)
+            aThreads.emplace_back(std::thread(&ThreadPool::loop, this));
+    }
 
     void
     loop()

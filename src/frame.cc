@@ -137,8 +137,8 @@ prepareDraw(App* app)
     tp.submit([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mCar.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-
     tp.wait();
+
     /* restore context after assets are loaded */
     app->bindGlContext();
 }
@@ -193,7 +193,7 @@ drawFrame(App* app)
         v3 lightPos {std::cos(player.currTime) * 6.0f, 3, std::sin(player.currTime) * 1.1f};
         constexpr v3 lightColor(Color::snow);
         f32 nearPlane = 0.01f, farPlane = 25.0f;
-        m4 shadowProj = m4Pers(toRad(90.0f), shadowAspect, nearPlane, farPlane);
+        m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);
         CubeMapProjections shadowTms(shadowProj, lightPos);
 
         /* render scene to depth cubemap */
