@@ -381,7 +381,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             glEnableVertexAttribArray(0);
             glVertexAttribPointer(0, v3Size, static_cast<GLenum>(accPos.componentType), GL_FALSE,
                                   bvPos.byteStride, reinterpret_cast<void*>(bvPos.byteOffset + accPos.byteOffset));
-            COUT("bvPos.byteStride: {}\n", bvPos.byteStride);
 
             /* texture coords */
             glEnableVertexAttribArray(1);
@@ -439,7 +438,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 if (normalTexIdx != NPOS)
                 {
                     auto normalImgPath = replacePathSuffix(path, a.aImages[normalTexIdx].uri);
-                    COUT("NORMAL: '{}'\n", normalImgPath);
                     if (normalImgPath.ends_with(".bmp"))
                     {
                         tp.submit([=, &nMesh2]{
