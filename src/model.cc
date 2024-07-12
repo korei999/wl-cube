@@ -40,15 +40,15 @@ Model::Model(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
 Model::~Model()
 {
-    if (this->objects.size())
+    if (!this->objects.empty())
     {
-        for (auto& materials : objects)
-            for (auto& mesh : materials)
-            {
-                glDeleteVertexArrays(1, &mesh.vao);
-                glDeleteBuffers(1, &mesh.vbo);
-                glDeleteBuffers(1, &mesh.ebo);
-            }
+        for (auto& obj : objects)
+        {
+            auto& o = obj.meshData;
+            glDeleteVertexArrays(1, &o.vao);
+            glDeleteBuffers(1, &o.vbo);
+            glDeleteBuffers(1, &o.ebo);
+        }
     }
 }
 
@@ -267,8 +267,13 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
             auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
 
-            this->objects.back().push_back(std::move(mesh));
-            this->objects.back().back().materials = std::move(foundTex->second);
+            this->objects.push_back({
+                .meshData = std::move(mesh),
+                .indType = gltf::COMPONENT_TYPE::UNSIGNED_INT,
+                .mode = gltf::PRIMITIVES::TRIANGLES,
+                .triangleCount = NPOS,
+                .vScale = {1, 1, 1}
+            });
 
             /* TODO: these will be needed later */
             verts.clear();
@@ -277,6 +282,17 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
     }
 
     this->objects.shrink_to_fit();
+}
+
+void
+Model::load(std::string_view path, GLint drawMode, GLint texMode, App* c)
+{
+    if (path.ends_with(".obj"))
+        loadOBJ(path, drawMode, texMode, c);
+    else if (path.ends_with(".gltf"))
+        loadGLTF(path, drawMode, texMode, c);
+    else
+        LOG(FATAL, "trying to load unsupported asset: '{}'\n", path);
 }
 
 void
@@ -449,7 +465,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 tp.wait();
             }
 
-            this->aM2s.push_back(nMesh2);
+            this->objects.push_back(nMesh2);
         }
     }
 }
@@ -500,21 +516,27 @@ setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, G
     c->unbindGlContext();
 }
 
+/*void*/
+/*Model::draw()*/
+/*{*/
+/*    for (auto& meshes : objects)*/
+/*        for (auto& mesh : meshes)*/
+/*        {*/
+/*            glBindVertexArray(mesh.vao);*/
+/*            glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);*/
+/*        }*/
+/*}*/
+
 void
-Model::draw()
+Model::drawGLTF(enum DRAW flags)
 {
-    for (auto& meshes : objects)
-        for (auto& mesh : meshes)
-        {
-            glBindVertexArray(mesh.vao);
-            glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
-        }
+    drawGLTF(flags, nullptr, "", {});
 }
 
 void
 Model::drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
 {
-    for (auto& e : this->aM2s)
+    for (auto& e : this->objects)
     {
         glBindVertexArray(e.meshData.vao);
 
@@ -543,29 +565,29 @@ Model::drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m
     }
 }
 
-void
-Model::drawInstanced(GLsizei count)
-{
-    for (auto& meshes : objects)
-        for (auto& mesh : meshes)
-        {
-            glBindVertexArray(mesh.vao);
-            glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);
-        }
-}
-
-void
-Model::drawTex(GLint primitives)
-{
-    for (auto& materials : objects)
-        for (auto& mesh : materials)
-        {
-            mesh.materials.diffuse.bind(GL_TEXTURE0);
-
-            glBindVertexArray(mesh.vao);
-            glDrawElements(primitives, mesh.eboSize, GL_UNSIGNED_INT, nullptr);
-        }
-}
+/*void*/
+/*Model::drawInstanced(GLsizei count)*/
+/*{*/
+/*    for (auto& meshes : objects)*/
+/*        for (auto& mesh : meshes)*/
+/*        {*/
+/*            glBindVertexArray(mesh.vao);*/
+/*            glDrawElementsInstanced(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr, count);*/
+/*        }*/
+/*}*/
+/**/
+/*void*/
+/*Model::drawTex(GLint primitives)*/
+/*{*/
+/*    for (auto& materials : objects)*/
+/*        for (auto& mesh : materials)*/
+/*        {*/
+/*            mesh.materials.diffuse.bind(GL_TEXTURE0);*/
+/**/
+/*            glBindVertexArray(mesh.vao);*/
+/*            glDrawElements(primitives, mesh.eboSize, GL_UNSIGNED_INT, nullptr);*/
+/*        }*/
+/*}*/
 
 Ubo::Ubo(size_t _size, GLint drawMode)
 {
@@ -625,19 +647,18 @@ getQuad(GLint drawMode)
 
     Model q;
     q.objects.resize(1);
-    q.objects.back().resize(1);
 
-    glGenVertexArrays(1, &q.objects[0][0].vao);
-    glBindVertexArray(q.objects[0][0].vao);
+    glGenVertexArrays(1, &q.objects[0].meshData.vao);
+    glBindVertexArray(q.objects[0].meshData.vao);
 
-    glGenBuffers(1, &q.objects[0][0].vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0][0].vbo);
+    glGenBuffers(1, &q.objects[0].meshData.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0].meshData.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, drawMode);
 
-    glGenBuffers(1, &q.objects[0][0].ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.objects[0][0].ebo);
+    glGenBuffers(1, &q.objects[0].meshData.ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, q.objects[0].meshData.ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, drawMode);
-    q.objects[0][0].eboSize = LEN(quadIndices);
+    q.objects[0].meshData.eboSize = LEN(quadIndices);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
     constexpr size_t v2Size = sizeof(v2) / sizeof(f32);
@@ -651,7 +672,7 @@ getQuad(GLint drawMode)
 
     glBindVertexArray(0);
 
-    LOG(OK, "quad '{}' created\n", q.objects[0][0].vao);
+    LOG(OK, "quad '{}' created\n", q.objects[0].meshData.vao);
     q.savedPath = "Quad";
     return q;
 }
@@ -672,13 +693,12 @@ getPlane(GLint drawMode)
 
     Model q;
     q.objects.resize(1);
-    q.objects.back().resize(1);
 
-    glGenVertexArrays(1, &q.objects[0][0].vao);
-    glBindVertexArray(q.objects[0][0].vao);
+    glGenVertexArrays(1, &q.objects[0].meshData.vao);
+    glBindVertexArray(q.objects[0].meshData.vao);
 
-    glGenBuffers(1, &q.objects[0][0].vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0][0].vbo);
+    glGenBuffers(1, &q.objects[0].meshData.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0].meshData.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
@@ -696,21 +716,21 @@ getPlane(GLint drawMode)
 
     glBindVertexArray(0);
 
-    LOG(OK, "plane '{}' created\n", q.objects[0][0].vao);
+    LOG(OK, "plane '{}' created\n", q.objects[0].meshData.vao);
     return q;
 }
 
 void
 drawQuad(const Model& q)
 {
-    glBindVertexArray(q.objects[0][0].vao);
-    glDrawElements(GL_TRIANGLES, q.objects[0][0].eboSize, GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(q.objects[0].meshData.vao);
+    glDrawElements(GL_TRIANGLES, q.objects[0].meshData.eboSize, GL_UNSIGNED_INT, nullptr);
 }
 
 void
 drawPlane(const Model& q)
 {
-    glBindVertexArray(q.objects[0][0].vao);
+    glBindVertexArray(q.objects[0].meshData.vao);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
@@ -764,13 +784,12 @@ getCube(GLint drawMode)
 
     Model q;
     q.objects.resize(1);
-    q.objects.back().resize(1);
 
-    glGenVertexArrays(1, &q.objects[0][0].vao);
-    glBindVertexArray(q.objects[0][0].vao);
+    glGenVertexArrays(1, &q.objects[0].meshData.vao);
+    glBindVertexArray(q.objects[0].meshData.vao);
 
-    glGenBuffers(1, &q.objects[0][0].vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0][0].vbo);
+    glGenBuffers(1, &q.objects[0].meshData.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, q.objects[0].meshData.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, drawMode);
 
     constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
@@ -789,14 +808,14 @@ getCube(GLint drawMode)
 
     glBindVertexArray(0);
 
-    LOG(OK, "cube '{}' created\n", q.objects[0][0].vao);
+    LOG(OK, "cube '{}' created\n", q.objects[0].meshData.vao);
     return q;
 }
 
 void
 drawCube(const Model& q)
 {
-    glBindVertexArray(q.objects[0][0].vao);
+    glBindVertexArray(q.objects[0].meshData.vao);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 

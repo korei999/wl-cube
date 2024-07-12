@@ -141,9 +141,9 @@ prepareDraw(App* app)
 
     ThreadPool tp(std::thread::hardware_concurrency());
 
-    tp.submit([&]{ mSphere.loadGLTF("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-    tp.submit([&]{ mSponza.loadGLTF("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-    tp.submit([&]{ mCar.loadGLTF("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mSphere.load("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mSponza.load("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mCar.load("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.wait();
 
     /* restore context after assets are loaded */
@@ -233,14 +233,6 @@ drawFrame(App* app)
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cmCubeMap.tex);
         renderScene(&shOmniDirShadow, false);
-
-        /*shNormalMapping.use();*/
-        /*shNormalMapping.setV3("uLightPos", lightPos);*/
-        /*shNormalMapping.setV3("uLightColor", lightColor);*/
-        /*shNormalMapping.setV3("uViewPos", player.pos);*/
-        /*shNormalMapping.setF("uFarPlane", farPlane);*/
-        /*shNormalMapping.setM3("uNormalMatrix", m3Normal(m4Iden()));*/
-        /*mSponza.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, &shNormalMapping, "uModel", m4Iden());*/
 
         /* draw light source */
         m4 tmCube = m4Iden();

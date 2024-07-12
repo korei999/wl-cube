@@ -100,10 +100,8 @@ struct Mesh2
 
 struct Model
 {
-    std::vector<std::vector<MeshData>> objects;
     std::string_view savedPath;
-
-    std::vector<Mesh2> aM2s;
+    std::vector<Mesh2> objects;
     gltf::Asset asset;
 
     Model() = default;
@@ -115,13 +113,15 @@ struct Model
     Model& operator=(const Model& other) = delete;
     Model& operator=(Model&& other);
 
+    void load(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
-    void draw();
+    void drawGLTF(enum DRAW flags);
     void drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tm);
-    void drawInstanced(GLsizei count);
+    /*void draw();*/
+    /*void drawInstanced(GLsizei count);*/
     /* bind texture for each drawcall */
-    void drawTex(GLint primitives = GL_TRIANGLES);
+    /*void drawTex(GLint primitives = GL_TRIANGLES);*/
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
