@@ -2,7 +2,7 @@
 #include <unordered_map>
 
 #include "model.hh"
-#include "parser.hh"
+#include "parser/obj.hh"
 
 static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c);
 static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
@@ -63,7 +63,7 @@ Model::operator=(Model&& other)
 void
 Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    GenParser objP(path, " /\n");
+    parser::WaveFrontObj objP(path, " /\n\t\r");
 
     std::vector<v3> vs {};
     std::vector<v2> vts {};
@@ -91,14 +91,6 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
     };
 
     std::vector<Object> objects;
-
-    auto wordToInt = [](const std::string& str) -> int
-    {
-        if (str.size() == 0)
-            return 0;
-        
-        return std::stoi(str);
-    };
 
     while (!objP.finished())
     {
@@ -136,11 +128,14 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             case HASH::v:
                 /* get 3 floats */
                 objP.nextWord();
-                tv.x = std::stof(objP.word);
+                /*tv.x = std::stof(objP.word);*/
+                tv.x = objP.wordToFloat();
                 objP.nextWord();
-                tv.y = std::stof(objP.word);
+                /*tv.y = std::stof(objP.word);*/
+                tv.y = objP.wordToFloat();
                 objP.nextWord();
-                tv.z = std::stof(objP.word);
+                /*tv.z = std::stof(objP.word);*/
+                tv.z = objP.wordToFloat();
 
                 vs.push_back(tv);
                 break;
@@ -148,9 +143,9 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             case HASH::vt:
                 /* get 2 floats */
                 objP.nextWord();
-                tv.x = std::stof(objP.word);
+                tv.x = objP.wordToFloat();
                 objP.nextWord();
-                tv.y = std::stof(objP.word);
+                tv.y = objP.wordToFloat();
 
                 vts.push_back(v2(tv));
                 break;
@@ -158,11 +153,11 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             case HASH::vn:
                 /* get 3 floats */
                 objP.nextWord();
-                tv.x = std::stof(objP.word);
+                tv.x = objP.wordToFloat();
                 objP.nextWord();
-                tv.y = std::stof(objP.word);
+                tv.y = objP.wordToFloat();
                 objP.nextWord();
-                tv.z = std::stof(objP.word);
+                tv.z = objP.wordToFloat();
 
                 vns.push_back(tv);
                 break;
@@ -170,23 +165,23 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             case HASH::f:
                 /* get 9 ints */
                 objP.nextWord();
-                tf[0] = wordToInt(objP.word) - 1; /* obj faces count from 1 */
+                tf[0] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[1] = wordToInt(objP.word) - 1;
+                tf[1] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[2] = wordToInt(objP.word) - 1;
+                tf[2] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[3] = wordToInt(objP.word) - 1;
+                tf[3] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[4] = wordToInt(objP.word) - 1;
+                tf[4] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[5] = wordToInt(objP.word) - 1;
+                tf[5] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[6] = wordToInt(objP.word) - 1;
+                tf[6] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[7] = wordToInt(objP.word) - 1;
+                tf[7] = objP.wordToInt() - 1;
                 objP.nextWord();
-                tf[8] = wordToInt(objP.word) - 1;
+                tf[8] = objP.wordToInt() - 1;
 #ifdef MODEL
                 LOG(OK, "f {}/{}/{} {}/{}/{} {}/{}/{}\n", tf[0], tf[1], tf[2], tf[3], tf[4], tf[5], tf[6], tf[7], tf[8]);
 #endif
@@ -199,10 +194,6 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
         }
     }
     LOG(OK, "vs: {}\tvts: {}\tvns: {}\tobjects: {}\n", vs.size(), vts.size(), vns.size(), objects.size());
-#ifdef MODEL
-    for (auto& i : objects)
-        LOG(OK, "o: '{}', usemtl: '{}'\n", i.o, i.usemtl);
-#endif
 
     /* parse mtl file and load all the textures, later move them to the models */
     std::unordered_map<u64, Materials> materialsMap(objects.size() * 2);
@@ -820,7 +811,7 @@ drawCube(const Model& q)
 static void
 parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c)
 {
-    GenParser p(path, " \n");
+    parser::WaveFrontObj p(path, " \n");
     decltype(materials->insert({u64(), Materials()})) ins; /* get iterator placeholder */
 
     std::vector<std::jthread> threads;

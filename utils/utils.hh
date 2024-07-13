@@ -76,6 +76,23 @@ loadFileToCharArray(std::string_view path, size_t addBytes = 1)
     return buffer;
 }
 
+static inline std::string
+loadFileToString(std::string_view path)
+{
+    std::ifstream file(path.data(), std::ios::in | std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+        LOG(FATAL, "failed to open file: '{}'\n", path);
+
+    size_t fileSize = (size_t)file.tellg();
+    std::string buffer = std::string(fileSize + 1, '\0');
+
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
+    file.close();
+
+    return buffer;
+}
+
 static inline f64
 timeNowS()
 {

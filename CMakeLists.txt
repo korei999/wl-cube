@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.8)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -21,7 +24,6 @@ add_executable(
     src/controls.cc
     src/frame.cc
     src/gmath.cc
-    src/parser.cc
     src/shader.cc
     src/texture.cc
     src/rng.cc
@@ -29,14 +31,18 @@ add_executable(
     src/json/parser.cc
     src/gltf/gltf.cc
     src/gl/gl.cc
+    src/parser/bin.cc
+    src/parser/obj.cc
 )
 
 if (FPS_COUNTER)
     add_definitions("-DFPS_COUNTER")
 endif()
-
 if (LOGS)
     add_definitions("-DLOGS")
+endif()
+if (MODEL)
+    add_definitions("-DMODEL")
 endif()
 
 if (CMAKE_BUILD_TYPE MATCHES "Asan")
@@ -55,8 +61,6 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions("-DDEBUG")
     add_definitions("-DFPS_COUNTER")
 endif()
-
-set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 
 message(STATUS "CMAKE_SYSTEM_NAME: '${CMAKE_SYSTEM_NAME}'")
 

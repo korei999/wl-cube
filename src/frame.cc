@@ -141,7 +141,7 @@ prepareDraw(App* app)
 
     ThreadPool tp(std::thread::hardware_concurrency());
 
-    tp.submit([&]{ mSphere.load("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mSphere.load("test-assets/models/icosphere/obj/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mSponza.load("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mCar.load("test-assets/models/backpack/scene.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.wait();

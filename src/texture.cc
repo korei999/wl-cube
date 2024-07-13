@@ -1,7 +1,7 @@
 #include <emmintrin.h>
 
 #include "texture.hh"
-#include "parser.hh"
+#include "parser/bin.hh"
 
 Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c)
 {
@@ -59,7 +59,7 @@ Texture::loadBMP(std::string_view path, TEX_TYPE type, bool flip, GLint texMode,
     u16 bitDepth;
     u8 byteDepth;
 
-    GenParser p(path, "", 0);
+    parser::Binary p(path);
     auto BM = p.readString(2);
 
     if (BM != "BM")
