@@ -1,8 +1,9 @@
 #pragma once
-#include "ultratypes.h"
 
 #include <string_view>
 #include <cmath>
+
+#include "ultratypes.h"
 
 #define PI 3.14159265358979323846
 
