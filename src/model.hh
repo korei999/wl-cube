@@ -99,6 +99,7 @@ struct Mesh
     size_t triangleCount;
     v3 vScale {1, 1, 1};
     qt qRot;
+    m4 tm = m4Iden();
 };
 
 struct Model

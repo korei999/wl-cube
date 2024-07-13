@@ -359,6 +359,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             nMesh.mode = mode;
             nMesh.vScale = node.scale;
             nMesh.qRot = node.rotation;
+            node.matrix = node.matrix;
 
             /* manually unlock before loading texture */
             gl::mtxGlContext.lock();
@@ -534,8 +535,9 @@ Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string
         m4 m = m4Iden();
         if (flags & DRAW::APPLY_TM)
         {
+            /*m *= qtRot(e.qRot);*/
             m *= m4Scale(m, e.vScale);
-            m *= qtRot(e.qRot);
+            /*m *= e.tm;*/
         }
 
         if (sh)
@@ -566,18 +568,6 @@ Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string
 /*        }*/
 /*}*/
 /**/
-/*void*/
-/*Model::drawTex(GLint primitives)*/
-/*{*/
-/*    for (auto& materials : objects)*/
-/*        for (auto& mesh : materials)*/
-/*        {*/
-/*            mesh.materials.diffuse.bind(GL_TEXTURE0);*/
-/**/
-/*            glBindVertexArray(mesh.vao);*/
-/*            glDrawElements(primitives, mesh.eboSize, GL_UNSIGNED_INT, nullptr);*/
-/*        }*/
-/*}*/
 
 Ubo::Ubo(size_t _size, GLint drawMode)
 {
