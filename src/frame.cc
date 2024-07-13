@@ -143,7 +143,7 @@ prepareDraw(App* app)
 
     tp.submit([&]{ mSphere.load("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mSponza.load("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-    /*tp.submit([&]{ mCar.load("test-assets/models/backpack/scene.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
+    tp.submit([&]{ mCar.load("test-assets/models/backpack/scene.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.wait();
 
     /* restore context after assets are loaded */
@@ -167,12 +167,12 @@ renderScene(Shader* sh, bool depth)
     /*qt q = qtAxisAngle({1, 0, 0}, toRad(-90.0f)) * qtAxisAngle({0, 1, 0}, i);*/
     /*q *= qtAxisAngle({0, 1, 0}, i);*/
     /*m *= qtRot(q);*/
-    /*m = m4Scale(m, 30.0f);*/
+    /*m = m4Scale(m, 1.0f);*/
     /*i += 0.130f * player.deltaTime;*/
-
+    /**/
     /*if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));*/
     /*glDisable(GL_CULL_FACE);*/
-    /*mCar.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, sh, "uModel", m);*/
+    /*mCar.draw(DRAW::DIFF_TEX | DRAW::APPLY_TM, sh, "uModel", m);*/
     /*glEnable(GL_CULL_FACE);*/
 }
 
