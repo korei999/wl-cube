@@ -54,3 +54,6 @@ struct CubeMapProjections
 
 ShadowMap createShadowMap(const int width, const int height);
 CubeMap createCubeShadowMap(const int width, const int height);
+void flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);
+void flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip);
+void flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip);

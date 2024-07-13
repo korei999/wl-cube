@@ -208,8 +208,7 @@ drawFrame(App* app)
         glClear(GL_DEPTH_BUFFER_BIT);
 
         shCubeDepth.use();
-        constexpr auto len = std::size(shadowTms.tms);
-        for (size_t i = 0; i < len; i++)
+        for (size_t i = 0; i < std::size(shadowTms.tms); i++)
             shCubeDepth.setM4(FMT("uShadowMatrices[{}]", i), shadowTms[i]);
         shCubeDepth.setV3("uLightPos", lightPos);
         shCubeDepth.setF("uFarPlane", farPlane);
@@ -255,7 +254,7 @@ run(App* app)
     app->setCursorImage("default");
 
 #ifdef FPS_COUNTER
-    _prevTime = timeNow();
+    _prevTime = timeNowS();
 #endif
 
     prepareDraw(app);
@@ -266,7 +265,7 @@ run(App* app)
     {
 #ifdef FPS_COUNTER
     static int _fpsCount = 0;
-    f64 _currTime = timeNow();
+    f64 _currTime = timeNowS();
     if (_currTime >= _prevTime + 1.0)
     {
         CERR("fps: {}, ms: {:.3f}\n", _fpsCount, player.deltaTime);

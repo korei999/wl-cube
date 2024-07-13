@@ -24,11 +24,11 @@ add_executable(
     src/parser.cc
     src/shader.cc
     src/texture.cc
+    src/rng.cc
     src/json/lex.cc
     src/json/parser.cc
     src/gltf/gltf.cc
     src/gl/gl.cc
-    utils/utils.cc
 )
 
 if (FPS_COUNTER)

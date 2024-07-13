@@ -169,7 +169,7 @@ procMovements([[maybe_unused]] App* c)
 void
 PlayerControls::updateDeltaTime()
 {
-    currTime = timeNow();
+    currTime = timeNowS();
     deltaTime = currTime - lastFrameTime;
     lastFrameTime = currTime;
 }
