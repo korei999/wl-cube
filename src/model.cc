@@ -6,7 +6,6 @@
 
 static void parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, GLint texMode, App* c);
 static void setTanBitan(Vertex* ver1, Vertex* ver2, Vertex* ver3);
-    /* copy buffers to the gpu */
 static void setBuffers(std::vector<Vertex>* vs, std::vector<GLuint>* els, MeshData* mesh, GLint drawMode, App* c);
 
 enum HASH : u64
@@ -128,13 +127,10 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             case HASH::v:
                 /* get 3 floats */
                 objP.nextWord();
-                /*tv.x = std::stof(objP.word);*/
                 tv.x = objP.wordToFloat();
                 objP.nextWord();
-                /*tv.y = std::stof(objP.word);*/
                 tv.y = objP.wordToFloat();
                 objP.nextWord();
-                /*tv.z = std::stof(objP.word);*/
                 tv.z = objP.wordToFloat();
 
                 vs.push_back(tv);
@@ -264,7 +260,8 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
                 .indType = gltf::COMPONENT_TYPE::UNSIGNED_INT,
                 .mode = gltf::PRIMITIVES::TRIANGLES,
                 .triangleCount = NPOS,
-                .vScale = {1, 1, 1}
+                .vScale = {1, 1, 1},
+                .qRot = qtIden()
             });
 
             /* TODO: these will be needed later */
@@ -307,7 +304,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     std::vector<GLuint> aBufferMap;
     for (size_t i = 0; i < a.aBuffers.size(); i++)
     {
-        std::scoped_lock lock(g_mtxGlContext);
+        std::scoped_lock lock(gl::mtxGlContext);
         c->bindGlContext();
 
         GLuint b;
@@ -361,9 +358,10 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             Mesh nMesh {};
             nMesh.mode = mode;
             nMesh.vScale = node.scale;
+            nMesh.qRot = node.rotation;
 
             /* manually unlock before loading texture */
-            g_mtxGlContext.lock();
+            gl::mtxGlContext.lock();
             c->bindGlContext();
 
             glGenVertexArrays(1, &nMesh.meshData.vao);
@@ -417,8 +415,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                                       bvNorm.byteStride, reinterpret_cast<void*>(accNorm.byteOffset + bvNorm.byteOffset));
             }
 
-            std::vector<v3> aBitangets;
-
             /* tangents */
             if (accTanIdx != NPOS)
             {
@@ -432,7 +428,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
             glBindVertexArray(0);
             c->unbindGlContext();
-            g_mtxGlContext.unlock();
+            gl::mtxGlContext.unlock();
 
             /* load textures */
             if (accMatIdx != NPOS)
@@ -476,7 +472,7 @@ setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, G
 {
     /* TODO: use one buffer object (or drop OBJ since gltf is here) */
 
-    std::lock_guard lock(g_mtxGlContext);
+    std::lock_guard lock(gl::mtxGlContext);
 
     c->bindGlContext();
 
@@ -520,29 +516,34 @@ setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, G
 void
 Model::draw(enum DRAW flags)
 {
-    draw(flags, nullptr, "", {});
+    draw(flags, nullptr, "", "", {});
 }
 
 void
-Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
+Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string_view svUniformM3Norm, const m4& tmGlobal)
 {
     for (auto& e : this->objects)
     {
         glBindVertexArray(e.meshData.vao);
 
-        if (flags & DRAW::DIFF_TEX)
+        if (flags & DRAW::DIFF)
             e.meshData.materials.diffuse.bind(GL_TEXTURE0);
-        if (flags & DRAW::NORM_TEX)
+        if (flags & DRAW::NORM)
             e.meshData.materials.normal.bind(GL_TEXTURE1);
 
         m4 m = m4Iden();
         if (flags & DRAW::APPLY_TM)
         {
-            m = m4Scale(m, e.vScale);
-            /* TODO: other transformations */
+            m *= m4Scale(m, e.vScale);
+            m *= qtRot(e.qRot);
         }
 
-        if (sh) sh->setM4(svUniform, m * tmGlobal);
+        if (sh)
+        {
+            m *= tmGlobal;
+            sh->setM4(svUniform, m);
+            if (flags & DRAW::APPLY_NM) sh->setM3(svUniformM3Norm, m3Normal(m));
+        }
 
         if (e.triangleCount != NPOS)
             glDrawArrays(static_cast<GLenum>(e.mode), 0, e.triangleCount);

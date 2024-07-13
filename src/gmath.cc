@@ -155,27 +155,6 @@ v4Dot(const v4& l, const v4& r)
     return (l.x * r.x) + (l.y * r.y) + (l.z * r.z) + (l.w * r.w);
 }
 
-m4
-m4Iden()
-{
-    return m4 {.e {
-        {1, 0, 0, 0},
-        {0, 1, 0, 0},
-        {0, 0, 1, 0},
-        {0, 0, 0, 1}
-    }};
-}
-
-m3
-m3Iden()
-{
-    return {
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, 1
-    };
-}
-
 m4&
 m4::operator*=(const m4& other)
 {
@@ -391,6 +370,12 @@ m3ToString(const m3& m, std::string_view prefix)
         e[1][0], e[1][1], e[1][2],
         e[2][0], e[2][1], e[2][2],
         e[3][0], e[3][1], e[3][2]);
+}
+
+std::string
+v4ToString(const v4& v, std::string_view prefix)
+{
+    return FMT("{}:\n\t{:.3f} {:.3f} {:.3f} {:.3f}\n", prefix, v.x, v.y, v.z, v.w);
 }
 #endif
 

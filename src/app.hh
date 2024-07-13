@@ -14,7 +14,7 @@ struct App
     bool bPaused = false;
     bool bRelativeMode = false;
     bool bFullscreen = false;
-    std::string_view name;
+    std::string_view svName;
     ThreadPool tp {std::thread::hardware_concurrency()};
 
     virtual ~App() = default;

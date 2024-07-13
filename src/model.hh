@@ -10,10 +10,11 @@
 
 enum class DRAW : int
 {
-    NONE = 0,
-    DIFF_TEX = 1, /* bind texture for each drawcall */
-    NORM_TEX = 1 << 1,
+    NONE     = 0,
+    DIFF     = 1,      /* bind diffuse textures */
+    NORM     = 1 << 1, /* bind normal textures */
     APPLY_TM = 1 << 2, /* apply transformation matrix */
+    APPLY_NM = 1 << 3, /* generate and apply normal matrix */
 };
 
 static inline bool
@@ -97,6 +98,7 @@ struct Mesh
     enum gltf::PRIMITIVES mode;
     size_t triangleCount;
     v3 vScale {1, 1, 1};
+    qt qRot;
 };
 
 struct Model
@@ -118,7 +120,7 @@ struct Model
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void draw(enum DRAW flags);
-    void draw(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tm);
+    void draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string_view svUniformM3Norm, const m4& tmGlobal);
     /*void drawInstanced(GLsizei count);*/
     /* bind texture for each drawcall */
 

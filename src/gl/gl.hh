@@ -11,7 +11,7 @@
 #ifdef DEBUG
     #define D(C)                                                                                                       \
         {                                                                                                              \
-            /* call function C and check for error, enabled if -DDEBUG and -DLOGS */                                   \
+            /* call function C then check for an error, enabled with -DDEBUG and -DLOGS */                             \
             C;                                                                                                         \
             while ((glLastErrorCode = glGetError()))                                                                   \
             {                                                                                                          \
@@ -47,5 +47,10 @@
     #define D(C) C;
 #endif
 
-extern GLenum g_glLastErrorCode;
-extern std::mutex g_mtxGlContext;
+namespace gl
+{
+
+extern GLenum lastErrorCode;
+extern std::mutex mtxGlContext;
+
+} /* namespace gl */

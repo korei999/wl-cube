@@ -217,7 +217,7 @@ static const wl_registry_listener registryListener {
 
 WlClient::WlClient(std::string_view name)
 {
-    this->name = name;
+    this->svName = name;
     this->init();
 }
 
@@ -324,8 +324,8 @@ WlClient::init()
     xdgSurface = xdg_wm_base_get_xdg_surface(this->xdgWmBase, this->surface);
     xdgToplevel = xdg_surface_get_toplevel(this->xdgSurface);
 
-    xdg_toplevel_set_title(this->xdgToplevel, this->name.data());
-    xdg_toplevel_set_app_id(this->xdgToplevel, this->name.data());
+    xdg_toplevel_set_title(this->xdgToplevel, this->svName.data());
+    xdg_toplevel_set_app_id(this->xdgToplevel, this->svName.data());
 
     xdg_surface_add_listener(this->xdgSurface, &xdgSurfaceListener, this);
     xdg_toplevel_add_listener(this->xdgToplevel, &xdgToplevelListener, this);

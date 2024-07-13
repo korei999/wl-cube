@@ -1,4 +1,9 @@
 #include "gl.hh"
 
-GLenum g_glLastErrorCode = 0;
-std::mutex g_mtxGlContext;
+namespace gl
+{
+
+GLenum lastErrorCode = 0;
+std::mutex mtxGlContext;
+
+} /* namespace gl */

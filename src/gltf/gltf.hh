@@ -88,8 +88,8 @@ struct Node
     std::vector<size_t> children;
     m4 matrix = m4Iden();
     size_t mesh = NPOS; /* The index of the mesh in this node. */
-    v4 rotation;
-    v3 translation;
+    v4 rotation = qtIden();
+    v3 translation {};
     v3 scale {1, 1, 1};
 };
 

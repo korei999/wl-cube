@@ -80,7 +80,7 @@ Shader shBF;
 Shader shNormalMapping;
 Model mSphere;
 Model mSponza;
-Model mCar;
+Model mBackPack;
 Texture mBoxTex;
 Texture mDirtTex;
 Ubo uboProjView;
@@ -143,7 +143,7 @@ prepareDraw(App* app)
 
     tp.submit([&]{ mSphere.load("test-assets/models/icosphere/obj/icosphere.obj", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mSponza.load("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-    tp.submit([&]{ mCar.load("test-assets/models/backpack/scene.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    tp.submit([&]{ mBackPack.load("test-assets/models/backpack/scene.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.wait();
 
     /* restore context after assets are loaded */
@@ -158,22 +158,13 @@ static void
 renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
-    if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
-    mSponza.draw(DRAW::DIFF_TEX | DRAW::APPLY_TM, sh, "uModel", m);
 
-    /*static f32 i = 0.0f;*/
-    /**/
-    /*m = m4Translate(m4Iden(), {-0.4, 0.6, 0});*/
-    /*qt q = qtAxisAngle({1, 0, 0}, toRad(-90.0f)) * qtAxisAngle({0, 1, 0}, i);*/
-    /*q *= qtAxisAngle({0, 1, 0}, i);*/
-    /*m *= qtRot(q);*/
-    /*m = m4Scale(m, 1.0f);*/
-    /*i += 0.130f * player.deltaTime;*/
-    /**/
-    /*if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));*/
-    /*glDisable(GL_CULL_FACE);*/
-    /*mCar.draw(DRAW::DIFF_TEX | DRAW::APPLY_TM, sh, "uModel", m);*/
-    /*glEnable(GL_CULL_FACE);*/
+    enum DRAW nm = depth ? DRAW::NONE : DRAW::APPLY_NM;
+    mSponza.draw(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
+
+    m = m4Scale(m4Iden(), 0.3);
+    m *= m4Translate(m, {0, 10, 0});
+    mBackPack.draw(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
 }
 
 static void
@@ -239,7 +230,7 @@ drawFrame(App* app)
         tmCube = m4Scale(tmCube, 0.05f);
         shColor.use();
         shColor.setV3("uColor", lightColor);
-        mSphere.draw(DRAW::APPLY_TM, &shColor, "uModel", tmCube);
+        mSphere.draw(DRAW::APPLY_TM, &shColor, "uModel", "", tmCube);
 
         incCounter += 1.0 * player.deltaTime;
     }

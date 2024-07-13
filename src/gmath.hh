@@ -116,15 +116,43 @@ union qt
     f32 p[4];
 
     qt() = default;
-    qt(f32 _x, f32 _y, f32 _z, f32 _s) : x(_x), y(_y), z(_z), s(_s) {}
-    qt(v4 _v) : x(_v.x), y(_v.y), z(_v.z), s(_v.w) {}
-    qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), s(_s) {}
+    constexpr qt(f32 _x, f32 _y, f32 _z, f32 _s) : x(_x), y(_y), z(_z), s(_s) {}
+    constexpr qt(v4 _v) : x(_v.x), y(_v.y), z(_v.z), s(_v.w) {}
+    constexpr qt(v3 _v, f32 _s) : x(_v.x), y(_v.y), z(_v.z), s(_s) {}
 };
 
 #ifdef LOGS
 std::string m4ToString(const m4& m, std::string_view prefix);
 std::string m3ToString(const m3& m, std::string_view prefix = "");
+std::string v4ToString(const v4& v, std::string_view prefix = "");
 #endif
+
+constexpr m4
+m4Iden()
+{
+    return m4 {.e {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 0, 1}
+    }};
+}
+
+constexpr m3
+m3Iden()
+{
+    return {
+        1, 0, 0,
+        0, 1, 0,
+        0, 0, 1
+    };
+}
+
+constexpr qt
+qtIden()
+{
+    return qt(0, 0, 0, 1);
+}
 
 f32 v3Length(const v3& v);
 f32 v4Length(const v4& v);
@@ -140,8 +168,6 @@ f32 v3Rad(const v3& l, const v3& r); /* degree between two vectors */
 f32 v3Dist(const v3& l, const v3& r); /* distance between two points in space */
 f32 v3Dot(const v3& l, const v3& r);
 f32 v4Dot(const v4& l, const v4& r);
-m4 m4Iden();
-m3 m3Iden();
 m4 operator*(const m4& l, const m4& r);
 m4 m4Rot(const m4& m, const f32 th, const v3& ax);
 m4 m4RotX(const m4& m, const f32 angle);
