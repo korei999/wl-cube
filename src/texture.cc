@@ -11,7 +11,7 @@ Texture::~Texture()
     if (this->id != 0)
     {
         glDeleteTextures(1, &this->id);
-        LOG(OK, "texture {}: '{}' deleted\n", this->id, this->texPath);
+        // LOG(OK, "texture {}: '{}' deleted\n", this->id, this->texPath);
     }
 }
 

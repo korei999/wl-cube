@@ -27,7 +27,15 @@ Lexer::loadFile(std::string_view path)
 void
 Lexer::skipWhiteSpace()
 {
-    while (m_pos < m_sFile.size() && (m_sFile[m_pos] == ' ' || m_sFile[m_pos] == '\t' || m_sFile[m_pos] == '\n'))
+    auto oneOf = [](char c) -> bool {
+        constexpr std::string_view skipChars = " \t\n\r";
+        for (auto& s : skipChars)
+            if (c == s) return true;
+
+        return false;
+    };
+
+    while (m_pos < m_sFile.size() && oneOf(m_sFile[m_pos]))
         m_pos++;
 }
 
