@@ -15,22 +15,22 @@ void
 Shader::loadShaders(std::string_view vertexPath, std::string_view fragmentPath)
 {
     GLint linked;
-    GLuint vertex = loadShader(GL_VERTEX_SHADER, vertexPath);
-    GLuint fragment = loadShader(GL_FRAGMENT_SHADER, fragmentPath);
+    GLuint vertex = this->loadShader(GL_VERTEX_SHADER, vertexPath);
+    GLuint fragment = this->loadShader(GL_FRAGMENT_SHADER, fragmentPath);
 
-    id = glCreateProgram();
-    if (id == 0)
-        LOG(FATAL, "glCreateProgram failed: {}\n", id);
+    this->id = glCreateProgram();
+    if (this->id == 0)
+        LOG(FATAL, "glCreateProgram failed: {}\n", this->id);
 
-    glAttachShader(id, vertex);
-    glAttachShader(id, fragment);
+    glAttachShader(this->id, vertex);
+    glAttachShader(this->id, fragment);
 
-    glLinkProgram(id);
-    glGetProgramiv(id, GL_LINK_STATUS, &linked);
+    glLinkProgram(this->id);
+    glGetProgramiv(this->id, GL_LINK_STATUS, &linked);
     if (!linked)
     {
         GLint infoLen = 0;
-        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &infoLen);
+        glGetProgramiv(this->id, GL_INFO_LOG_LENGTH, &infoLen);
         if (infoLen > 1)
         {
             std::vector<char> infoLog(infoLen + 1, {});
@@ -42,7 +42,7 @@ Shader::loadShaders(std::string_view vertexPath, std::string_view fragmentPath)
     }
 
 #ifdef DEBUG
-    glValidateProgram(id);
+    glValidateProgram(this->id);
 #endif
 
     glDeleteShader(vertex);
@@ -53,36 +53,36 @@ void
 Shader::loadShaders(std::string_view vertexPath, std::string_view geometryPath, std::string_view fragmentPath)
 {
     GLint linked;
-    GLuint vertex = loadShader(GL_VERTEX_SHADER, vertexPath);
-    GLuint fragment = loadShader(GL_FRAGMENT_SHADER, fragmentPath);
-    GLuint geometry  = loadShader(GL_GEOMETRY_SHADER, geometryPath);
+    GLuint vertex = this->loadShader(GL_VERTEX_SHADER, vertexPath);
+    GLuint fragment = this->loadShader(GL_FRAGMENT_SHADER, fragmentPath);
+    GLuint geometry = this->loadShader(GL_GEOMETRY_SHADER, geometryPath);
 
-    id = glCreateProgram();
-    if (id == 0)
-        LOG(FATAL, "glCreateProgram failed: {}\n", id);
+    this->id = glCreateProgram();
+    if (this->id == 0)
+        LOG(FATAL, "glCreateProgram failed: {}\n", this->id);
 
-    glAttachShader(id, vertex);
-    glAttachShader(id, fragment);
-    glAttachShader(id, geometry);
+    glAttachShader(this->id, vertex);
+    glAttachShader(this->id, fragment);
+    glAttachShader(this->id, geometry);
 
-    glLinkProgram(id);
-    glGetProgramiv(id, GL_LINK_STATUS, &linked);
+    glLinkProgram(this->id);
+    glGetProgramiv(this->id, GL_LINK_STATUS, &linked);
     if (!linked)
     {
         GLint infoLen = 0;
-        glGetProgramiv(id, GL_INFO_LOG_LENGTH, &infoLen);
+        glGetProgramiv(this->id, GL_INFO_LOG_LENGTH, &infoLen);
         if (infoLen > 1)
         {
             std::vector<char> infoLog(infoLen + 1, {});
-            glGetProgramInfoLog(id, infoLen, nullptr, infoLog.data());
+            glGetProgramInfoLog(this->id, infoLen, nullptr, infoLog.data());
             LOG(FATAL, "error linking program: {}\n", infoLog.data());
         }
-        glDeleteProgram(id);
+        glDeleteProgram(this->id);
         LOG(FATAL, "error linking program.\n");
     }
 
 #ifdef DEBUG
-    glValidateProgram(id);
+    glValidateProgram(this->id);
 #endif
 
     glDeleteShader(vertex);
@@ -104,10 +104,10 @@ Shader::operator=(Shader&& other)
 
 Shader::~Shader()
 {
-    if (id)
+    if (this->id)
     {
-        glDeleteProgram(id);
-        LOG(OK, "Shader '{}' deleted\n", id);
+        glDeleteProgram(this->id);
+        /*LOG(OK, "Shader '{}' deleted\n", this->id);*/
     }
 }
 
@@ -148,7 +148,7 @@ Shader::loadShader(GLenum type, std::string_view path)
 void
 Shader::use() const
 {
-    glUseProgram(id);
+    glUseProgram(this->id);
 }
 
 void
@@ -157,8 +157,8 @@ Shader::queryActiveUniforms()
     GLint maxUniformLen;
     GLint nUniforms;
 
-    glGetProgramiv(id, GL_ACTIVE_UNIFORMS, &nUniforms);
-    glGetProgramiv(id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen);
+    glGetProgramiv(this->id, GL_ACTIVE_UNIFORMS, &nUniforms);
+    glGetProgramiv(this->id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformLen);
 
     std::vector<char> uniformName(maxUniformLen, '\0');
     LOG(OK, "queryActiveUniforms for '{}':\n", this->id);
@@ -169,7 +169,7 @@ Shader::queryActiveUniforms()
         GLenum type;
         std::string_view typeName;
 
-        glGetActiveUniform(id, i, maxUniformLen, nullptr, &size, &type, uniformName.data());
+        glGetActiveUniform(this->id, i, maxUniformLen, nullptr, &size, &type, uniformName.data());
         switch (type)
         {
             case GL_FLOAT:
@@ -212,7 +212,7 @@ void
 Shader::setM4(std::string_view name, const m4& m)
 {
     GLint ul;
-    ul = glGetUniformLocation(id, name.data());
+    ul = glGetUniformLocation(this->id, name.data());
     glUniformMatrix4fv(ul, 1, GL_FALSE, (GLfloat*)m.e);
 }
 
@@ -220,7 +220,7 @@ void
 Shader::setM3(std::string_view name, const m3& m)
 {
     GLint ul;
-    ul = glGetUniformLocation(id, name.data());
+    ul = glGetUniformLocation(this->id, name.data());
     glUniformMatrix3fv(ul, 1, GL_FALSE, (GLfloat*)m.e);
 }
 
@@ -229,7 +229,7 @@ void
 Shader::setV3(std::string_view name, const v3& v)
 {
     GLint ul;
-    ul = glGetUniformLocation(id, name.data());
+    ul = glGetUniformLocation(this->id, name.data());
     glUniform3fv(ul, 1, (GLfloat*)v.e);
 }
 
@@ -237,7 +237,7 @@ void
 Shader::setI(std::string_view name, const GLint i)
 {
     GLint ul;
-    ul = glGetUniformLocation(id, name.data());
+    ul = glGetUniformLocation(this->id, name.data());
     glUniform1i(ul, i);
 }
 
@@ -245,6 +245,6 @@ void
 Shader::setF(std::string_view name, const f32 f)
 {
     GLint ul;
-    ul = glGetUniformLocation(id, name.data());
+    ul = glGetUniformLocation(this->id, name.data());
     glUniform1f(ul, f);
 }

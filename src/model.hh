@@ -89,7 +89,7 @@ struct MeshData
     std::string name;
 };
 
-struct Mesh2
+struct Mesh
 {
     MeshData meshData;
 
@@ -102,7 +102,7 @@ struct Mesh2
 struct Model
 {
     std::string_view savedPath;
-    std::vector<Mesh2> objects;
+    std::vector<Mesh> objects;
     gltf::Asset asset;
 
     Model() = default;

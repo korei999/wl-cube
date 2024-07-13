@@ -12,33 +12,33 @@ Parser::Parser(std::string_view path)
 void
 Parser::load(std::string_view path)
 {
-    m_sName = path;
-    m_l.loadFile(path);
+    this->sName = path;
+    this->lex.loadFile(path);
 
-    m_tCurr = m_l.next();
-    m_tNext = m_l.next();
+    this->tCurr = this->lex.next();
+    this->tNext = this->lex.next();
 
-    if ((m_tCurr.type != Token::LBRACE) && (m_tCurr.type != Token::LBRACKET))
+    if ((this->tCurr.type != Token::LBRACE) && (this->tCurr.type != Token::LBRACKET))
     {
         CERR("wrong first token\n");
         exit(2);
     }
 
-    m_upHead = std::make_unique<Object>();
+    this->upHead = std::make_unique<Object>();
 }
 
 void
 Parser::parse()
 {
-    parseNode(m_upHead.get());
+    this->parseNode(this->upHead.get());
 }
 
 void
 Parser::expect(enum Token::TYPE t)
 {
-    if (m_tCurr.type != t)
+    if (this->tCurr.type != t)
     {
-        CERR("({}): unexpected token\n", m_sName);
+        CERR("({}): unexpected token\n", this->sName);
         exit(2);
     }
 }
@@ -46,44 +46,44 @@ Parser::expect(enum Token::TYPE t)
 void
 Parser::next()
 {
-    m_tCurr = m_tNext;
-    m_tNext = m_l.next();
+    this->tCurr = this->tNext;
+    this->tNext = this->lex.next();
 }
 
 void
 Parser::parseNode(Object* pNode)
 {
-    switch (m_tCurr.type)
+    switch (this->tCurr.type)
     {
         default:
-            next();
+            this->next();
             break;
 
         case Token::IDENT:
-            parseIdent(&pNode->tagVal);
+            this->parseIdent(&pNode->tagVal);
             break;
 
         case Token::NUMBER:
-            parseNumber(&pNode->tagVal);
+            this->parseNumber(&pNode->tagVal);
             break;
 
         case Token::LBRACE:
-            next(); /* skip brace */
-            parseObject(pNode);
+            this->next(); /* skip brace */
+            this->parseObject(pNode);
             break;
 
         case Token::LBRACKET:
-            next(); /* skip bracket */
-            parseArray(pNode);
+            this->next(); /* skip bracket */
+            this->parseArray(pNode);
             break;
 
         case Token::NULL_:
-            parseNull(&pNode->tagVal);
+            this->parseNull(&pNode->tagVal);
             break;
 
         case Token::TRUE:
         case Token::FALSE:
-            parseBool(&pNode->tagVal);
+            this->parseBool(&pNode->tagVal);
             break;
     }
 }
@@ -91,19 +91,19 @@ Parser::parseNode(Object* pNode)
 void
 Parser::parseIdent(TagVal* pTV)
 {
-    *pTV = {TAG::STRING, m_tCurr.svLiteral};
-    next();
+    *pTV = {TAG::STRING, this->tCurr.svLiteral};
+    this->next();
 }
 
 void
 Parser::parseNumber(TagVal* pTV)
 {
-    bool bReal = m_tCurr.svLiteral.find('.') != std::string::npos;
+    bool bReal = this->tCurr.svLiteral.find('.') != std::string::npos;
 
     if (bReal)
-        *pTV = {.tag = TAG::DOUBLE, .val = std::atof(m_tCurr.svLiteral.data())};
+        *pTV = {.tag = TAG::DOUBLE, .val = std::atof(this->tCurr.svLiteral.data())};
     else
-        *pTV = TagVal{.tag = TAG::LONG, .val = std::atol(m_tCurr.svLiteral.data())};
+        *pTV = TagVal{.tag = TAG::LONG, .val = std::atol(this->tCurr.svLiteral.data())};
 
     next();
 }
@@ -115,27 +115,27 @@ Parser::parseObject(Object* pNode)
     pNode->tagVal.val = std::vector<Object>{};
     auto& aObjs = std::get<std::vector<Object>>(pNode->tagVal.val);
 
-    for (; m_tCurr.type != Token::RBRACE; next())
+    for (; this->tCurr.type != Token::RBRACE; this->next())
     {
-        expect(Token::IDENT);
-        aObjs.push_back({.svKey = m_tCurr.svLiteral, .tagVal = {}});
+        this->expect(Token::IDENT);
+        aObjs.push_back({.svKey = this->tCurr.svLiteral, .tagVal = {}});
 
         /* skip identifier and ':' */
-        next();
-        expect(Token::ASSIGN);
-        next();
+        this->next();
+        this->expect(Token::ASSIGN);
+        this->next();
 
-        parseNode(&aObjs.back());
+        this->parseNode(&aObjs.back());
 
-        if (m_tCurr.type != Token::COMMA)
+        if (this->tCurr.type != Token::COMMA)
         {
-            next();
+            this->next();
             break;
         }
     }
 
     if (aObjs.empty())
-        next();
+        this->next();
 }
 
 void
@@ -146,66 +146,66 @@ Parser::parseArray(Object* pNode)
     auto& aTVs = getArray(pNode);
 
     /* collect each key/value pair inside array */
-    for (; m_tCurr.type != Token::RBRACKET; next())
+    for (; this->tCurr.type != Token::RBRACKET; this->next())
     {
         aTVs.push_back({});
 
-        switch (m_tCurr.type)
+        switch (this->tCurr.type)
         {
             default:
             case Token::IDENT:
-                parseIdent(&aTVs.back().tagVal);
+                this->parseIdent(&aTVs.back().tagVal);
                 break;
 
             case Token::NULL_:
-                parseNull(&aTVs.back().tagVal);
+                this->parseNull(&aTVs.back().tagVal);
                 break;
 
             case Token::TRUE:
             case Token::FALSE:
-                parseBool(&aTVs.back().tagVal);
+                this->parseBool(&aTVs.back().tagVal);
                 break;
 
             case Token::NUMBER:
-                parseNumber(&aTVs.back().tagVal);
+                this->parseNumber(&aTVs.back().tagVal);
                 break;
 
             case Token::LBRACE:
-                next();
-                parseObject(&aTVs.back());
+                this->next();
+                this->parseObject(&aTVs.back());
                 break;
         }
 
-        if (m_tCurr.type != Token::COMMA)
+        if (this->tCurr.type != Token::COMMA)
         {
-            next();
+            this->next();
             break;
         }
     }
 
     if (aTVs.empty())
-        next();
+        this->next();
 }
 
 void
 Parser::parseNull(TagVal* pTV)
 {
     *pTV = {.tag = TAG::NULL_, .val = nullptr};
-    next();
+    this->next();
 }
 
 void
 Parser::parseBool(TagVal* pTV)
 {
-    bool b = m_tCurr.type == Token::TRUE? true : false;
+    bool b = this->tCurr.type == Token::TRUE? true : false;
     *pTV = {.tag = TAG::BOOL, .val = b};
-    next();
+    this->next();
 }
 
 void
 Parser::print()
 {
-    printNode(m_upHead.get(), "");
+    this->printNode(upHead.get(), "");
     COUT("\n");
 }
 
@@ -239,7 +239,7 @@ Parser::printNode(Object* pNode, std::string_view svEnd)
                 for (size_t i = 0; i < obj.size(); i++)
                 {
                     std::string slE = (i == obj.size() - 1) ? "\n" : ",\n";
-                    printNode(&obj[i], slE);
+                    this->printNode(&obj[i], slE);
                 }
                 COUT("}}{}", svEnd);
             }
@@ -302,7 +302,7 @@ Parser::printNode(Object* pNode, std::string_view svEnd)
                             break;
 
                         case TAG::OBJECT:
-                                printNode(&arr[i], slE);
+                                this->printNode(&arr[i], slE);
                             break;
                     }
                 }

@@ -218,7 +218,7 @@ static const wl_registry_listener registryListener {
 WlClient::WlClient(std::string_view name)
 {
     this->name = name;
-    init();
+    this->init();
 }
 
 WlClient::~WlClient()
@@ -261,32 +261,32 @@ WlClient::~WlClient()
 void
 WlClient::init()
 {
-    if ((display = wl_display_connect(nullptr)))
+    if ((this->display = wl_display_connect(nullptr)))
         LOG(GOOD, "wayland display connected\n");
     else
         LOG(FATAL, "error connecting wayland display\n");
 
-    registry = wl_display_get_registry(display);
-    wl_registry_add_listener(registry, &registryListener, this);
-    wl_display_dispatch(display);
-    wl_display_roundtrip(display);
+    this->registry = wl_display_get_registry(this->display);
+    wl_registry_add_listener(this->registry, &registryListener, this);
+    wl_display_dispatch(this->display);
+    wl_display_roundtrip(this->display);
 
-    if (compositor == nullptr || xdgWmBase == nullptr)
+    if (this->compositor == nullptr || this->xdgWmBase == nullptr)
         LOG(FATAL, "no wl_shm, wl_compositor or xdg_wm_base support\n");
 
-    EGLD( eglDisplay = eglGetDisplay((EGLNativeDisplayType)display) );
-    if (eglDisplay == EGL_NO_DISPLAY)
+    EGLD( this->eglDisplay = eglGetDisplay(reinterpret_cast<EGLNativeDisplayType>(this->display)) );
+    if (this->eglDisplay == EGL_NO_DISPLAY)
         LOG(FATAL, "failed to create EGL display\n");
 
     EGLint major, minor;
-    if (!eglInitialize(eglDisplay, &major, &minor))
+    if (!eglInitialize(this->eglDisplay, &major, &minor))
         LOG(FATAL, "failed to initialize EGL\n");
     EGLD();
 
     LOG(OK, "egl: major: {}, minor: {}\n", major, minor);
 
     EGLint count;
-    EGLD(eglGetConfigs(eglDisplay, nullptr, 0, &count));
+    EGLD(eglGetConfigs(this->eglDisplay, nullptr, 0, &count));
 
     EGLint configAttribs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
@@ -304,7 +304,7 @@ WlClient::init()
 
     EGLint n = 0;
     std::vector<EGLConfig> configs(count);
-    EGLD( eglChooseConfig(eglDisplay, configAttribs, configs.data(), count, &n) );
+    EGLD( eglChooseConfig(this->eglDisplay, configAttribs, configs.data(), count, &n) );
     if (n == 0)
         LOG(FATAL, "Failed to choose an EGL config\n");
 
@@ -318,131 +318,135 @@ WlClient::init()
         EGL_NONE,
     };
 
-    EGLD( eglContext = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs) );
+    EGLD( eglContext = eglCreateContext(this->eglDisplay, eglConfig, EGL_NO_CONTEXT, contextAttribs) );
 
-    surface = wl_compositor_create_surface(compositor);
-    xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, surface);
-    xdgToplevel = xdg_surface_get_toplevel(xdgSurface);
+    surface = wl_compositor_create_surface(this->compositor);
+    xdgSurface = xdg_wm_base_get_xdg_surface(this->xdgWmBase, this->surface);
+    xdgToplevel = xdg_surface_get_toplevel(this->xdgSurface);
 
-    xdg_toplevel_set_title(xdgToplevel, name.data());
-    xdg_toplevel_set_app_id(xdgToplevel, name.data());
+    xdg_toplevel_set_title(this->xdgToplevel, this->name.data());
+    xdg_toplevel_set_app_id(this->xdgToplevel, this->name.data());
 
-    xdg_surface_add_listener(xdgSurface, &xdgSurfaceListener, this);
-    xdg_toplevel_add_listener(xdgToplevel, &xdgToplevelListener, this);
+    xdg_surface_add_listener(this->xdgSurface, &xdgSurfaceListener, this);
+    xdg_toplevel_add_listener(this->xdgToplevel, &xdgToplevelListener, this);
 
-    eglWindow = wl_egl_window_create(surface, wWidth, wHeight);
-    EGLD( eglSurface = eglCreateWindowSurface(eglDisplay, eglConfig, (EGLNativeWindowType)eglWindow, nullptr) );
+    eglWindow = wl_egl_window_create(this->surface, this->wWidth, this->wHeight);
+    EGLD( eglSurface = eglCreateWindowSurface(this->eglDisplay, eglConfig, reinterpret_cast<EGLNativeWindowType>(this->eglWindow), nullptr) );
 
-    wl_surface_commit(surface);
-    wl_display_roundtrip(display);
+    wl_surface_commit(this->surface);
+    wl_display_roundtrip(this->display);
 }
 
 void
 WlClient::enableRelativeMode()
 {
-    wl_pointer_set_cursor(pointer, pointerSerial, nullptr, 0, 0);
-    cursorSurface ? wl_surface_destroy(cursorSurface) : (void)0;
-    lockedPointer = zwp_pointer_constraints_v1_lock_pointer(pointerConstraints,
-                                                            surface,
-                                                            pointer,
-                                                            nullptr,
-                                                            ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
-    relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(relativePointerManager, pointer);
-    zwp_relative_pointer_v1_add_listener(relativePointer, &relativePointerListener, this);
+    wl_pointer_set_cursor(this->pointer, this->pointerSerial, nullptr, 0, 0);
+    this->cursorSurface ? wl_surface_destroy(this->cursorSurface) : (void)0;
+    this->lockedPointer = zwp_pointer_constraints_v1_lock_pointer(this->pointerConstraints,
+                                                                  this->surface,
+                                                                  this->pointer,
+                                                                  nullptr,
+                                                                  ZWP_POINTER_CONSTRAINTS_V1_LIFETIME_ONESHOT);
+    relativePointer = zwp_relative_pointer_manager_v1_get_relative_pointer(this->relativePointerManager, this->pointer);
+    zwp_relative_pointer_v1_add_listener(this->relativePointer, &relativePointerListener, this);
 }
 
 void
 WlClient::disableRelativeMode()
 {
-    zwp_locked_pointer_v1_destroy(lockedPointer);
-    zwp_relative_pointer_v1_destroy(relativePointer);
+    zwp_locked_pointer_v1_destroy(this->lockedPointer);
+    zwp_relative_pointer_v1_destroy(this->relativePointer);
 
-    setCursorImage("default");
+    this->setCursorImage("default");
 }
 
 void
 WlClient::setCursorImage(std::string_view cursorType)
 {
-    wl_cursor* cursor = wl_cursor_theme_get_cursor(cursorTheme, cursorType.data());
+    wl_cursor* cursor = wl_cursor_theme_get_cursor(this->cursorTheme, cursorType.data());
     if (!cursor)
     {
         LOG(WARNING, "failed to set cursor to '{}', falling back to 'default'\n", cursorType);
-        cursor = wl_cursor_theme_get_cursor(cursorTheme, "default");
+        cursor = wl_cursor_theme_get_cursor(this->cursorTheme, "default");
     }
 
     if (cursor)
     {
         cursorImage = cursor->images[0];
-        wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(cursorImage);
+        wl_buffer* cursorBuffer = wl_cursor_image_get_buffer(this->cursorImage);
 
-        cursorSurface = wl_compositor_create_surface(compositor);
-        wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, 0, 0);
-        wl_surface_attach(cursorSurface, cursorBuffer, 0, 0);
-        wl_surface_commit(cursorSurface);
+        cursorSurface = wl_compositor_create_surface(this->compositor);
+        wl_pointer_set_cursor(this->pointer, this->pointerSerial, this->cursorSurface, 0, 0);
+        wl_surface_attach(this->cursorSurface, cursorBuffer, 0, 0);
+        wl_surface_commit(this->cursorSurface);
 
-        wl_pointer_set_cursor(pointer, pointerSerial, cursorSurface, cursorImage->hotspot_x, cursorImage->hotspot_y);
+        wl_pointer_set_cursor(this->pointer,
+                              this->pointerSerial,
+                              this->cursorSurface,
+                              this->cursorImage->hotspot_x,
+                              this->cursorImage->hotspot_y);
     }
 }
 
 void 
 WlClient::setFullscreen()
 {
-    xdg_toplevel_set_fullscreen(xdgToplevel, output);
+    xdg_toplevel_set_fullscreen(this->xdgToplevel, this->output);
 }
 
 void
 WlClient::unsetFullscreen()
 {
-    xdg_toplevel_unset_fullscreen(xdgToplevel);
+    xdg_toplevel_unset_fullscreen(this->xdgToplevel);
 }
 
 void
 WlClient::togglePointerRelativeMode()
 {
-    bRelativeMode = !bRelativeMode;
-    bRelativeMode ? enableRelativeMode() : disableRelativeMode();
-    LOG(OK, "relative mode: {}\n", bRelativeMode);
+    this->bRelativeMode = !this->bRelativeMode;
+    this->bRelativeMode ? this->enableRelativeMode() : this->disableRelativeMode();
+    LOG(OK, "relative mode: {}\n", this->bRelativeMode);
 }
 
 void
 WlClient::toggleFullscreen()
 {
-    bFullscreen = !bFullscreen;
-    bFullscreen ? setFullscreen() : unsetFullscreen();
+    this->bFullscreen = !this->bFullscreen;
+    this->bFullscreen ? this->setFullscreen() : this->unsetFullscreen();
 }
 
 void 
 WlClient::bindGlContext()
 {
-    EGLD ( eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext) );
+    EGLD ( eglMakeCurrent(this->eglDisplay, this->eglSurface, this->eglSurface, this->eglContext) );
 }
 
 void 
 WlClient::unbindGlContext()
 {
-    EGLD( eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) );
+    EGLD( eglMakeCurrent(this->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) );
 }
 
 void
 WlClient::setSwapInterval(int interval)
 {
-    swapInterval = interval;
-    EGLD( eglSwapInterval(eglDisplay, interval) );
+    this->swapInterval = interval;
+    EGLD( eglSwapInterval(this->eglDisplay, interval) );
 }
 
 void
 WlClient::toggleVSync()
 {
-    swapInterval = !swapInterval;
-    EGLD( eglSwapInterval(eglDisplay, swapInterval) );
-    LOG(OK, "swapInterval: {}\n", swapInterval);
+    this->swapInterval = !this->swapInterval;
+    EGLD( eglSwapInterval(this->eglDisplay, this->swapInterval) );
+    LOG(OK, "swapInterval: {}\n", this->swapInterval);
 }
 
 void
 WlClient::swapBuffers()
 {
-    EGLD( eglSwapBuffers(eglDisplay, eglSurface) );
-    if (wl_display_dispatch(display) == -1)
+    EGLD( eglSwapBuffers(this->eglDisplay, this->eglSurface) );
+    if (wl_display_dispatch(this->display) == -1)
         LOG(FATAL, "wl_display_dispatch error\n");
 }
 

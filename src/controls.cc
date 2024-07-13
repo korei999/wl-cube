@@ -11,8 +11,6 @@
 
 bool pressedKeys[300] {};
 
-static void procMovements(App* c);
-
 void
 PlayerControls::procMouse()
 {
@@ -49,14 +47,12 @@ procKeysOnce(App* app, u32 key, u32 pressed)
             if (pressed)
             {
                 app->bPaused = !app->bPaused;
-                if (app->bPaused)
-                    LOG(WARNING, "paused: {}\n", app->bPaused);
+                if (app->bPaused) LOG(WARNING, "paused: {}\n", app->bPaused);
             }
             break;
 
         case KEY_Q:
-            if (pressed)
-                app->togglePointerRelativeMode();
+            if (pressed) app->togglePointerRelativeMode();
             break;
 
         case KEY_ESC:
@@ -69,20 +65,15 @@ procKeysOnce(App* app, u32 key, u32 pressed)
             break;
 
         case KEY_R:
-            if (pressed)
-                incCounter = 0;
+            if (pressed) incCounter = 0;
             break;
 
         case KEY_F:
-            if (pressed)
-                app->toggleFullscreen();
+            if (pressed) app->toggleFullscreen();
             break;
 
         case KEY_V:
-            if (pressed)
-            {
-                app->toggleVSync();
-            }
+            if (pressed) app->toggleVSync();
             break;
 
         default:
@@ -93,95 +84,95 @@ procKeysOnce(App* app, u32 key, u32 pressed)
 void
 PlayerControls::procKeys(App* app)
 {
-    procMovements(app);
+    this->procMovements(app);
 
     if (pressedKeys[KEY_I])
     {
-        fov += 100.0f * (f32)deltaTime;
+        fov += 100.0f * static_cast<f32>(this->deltaTime);
         LOG(OK, "fov: {:.3f}\n", fov);
     }
     if (pressedKeys[KEY_O])
     {
-        fov -= 100.0f * (f32)deltaTime;
+        fov -= 100.0f * static_cast<f32>(this->deltaTime);
         LOG(OK, "fov: {:.3f}\n", fov);
     }
     if (pressedKeys[KEY_Z])
     {
         f64 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
-        x += inc * deltaTime;
+        x += inc * this->deltaTime;
         LOG(OK, "x: {:.3f}\n", x);
     }
     if (pressedKeys[KEY_X])
     {
         f64 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
-        y += inc * deltaTime;
+        y += inc * this->deltaTime;
         LOG(OK, "y: {:.3f}\n", y);
     }
     if (pressedKeys[KEY_C])
     {
         f64 inc = pressedKeys[KEY_LEFTSHIFT] ? (-4.0) : 4.0;
-        z += inc * deltaTime;
+        z += inc * this->deltaTime;
         LOG(OK, "z: {:.3f}\n", z);
     }
 }
 
-static void
-procMovements([[maybe_unused]] App* c)
+void
+PlayerControls::procMovements([[maybe_unused]] App* c)
 {
-    f64 moveSpeed = player.moveSpeed * player.deltaTime;
+    f64 moveSpeed = this->moveSpeed * this->deltaTime;
 
     v3 combinedMove {};
     if (pressedKeys[KEY_W])
     {
-        v3 forward {player.front.x, 0.0f, player.front.z};
+        v3 forward {this->front.x, 0.0f, this->front.z};
         combinedMove += (v3Norm(forward));
     }
     if (pressedKeys[KEY_S])
     {
-        v3 forward {player.front.x, 0.0f, player.front.z};
+        v3 forward {this->front.x, 0.0f, this->front.z};
         combinedMove -= (v3Norm(forward));
     }
     if (pressedKeys[KEY_A])
     {
-        v3 left = v3Norm(v3Cross(player.front, player.up));
+        v3 left = v3Norm(v3Cross(this->front, this->up));
         combinedMove -= (left);
     }
     if (pressedKeys[KEY_D])
     {
-        v3 left = v3Norm(v3Cross(player.front, player.up));
+        v3 left = v3Norm(v3Cross(this->front, this->up));
         combinedMove += (left);
     }
     if (pressedKeys[KEY_SPACE])
     {
-        combinedMove += player.up;
+        combinedMove += this->up;
     }
     if (pressedKeys[KEY_LEFTCTRL])
     {
-        combinedMove -= player.up;
+        combinedMove -= this->up;
     }
 
     f32 len = v3Length(combinedMove);
     if (len > 0) combinedMove = v3Norm(combinedMove, len);
 
-    player.pos += combinedMove * static_cast<f32>(moveSpeed);
+    this->pos += combinedMove * static_cast<f32>(moveSpeed);
 }
 
 void
 PlayerControls::updateDeltaTime()
 {
-    currTime = timeNowS();
-    deltaTime = currTime - lastFrameTime;
-    lastFrameTime = currTime;
+    this->currTime = timeNowS();
+    this->deltaTime = this->currTime - this->lastFrameTime;
+    this->lastFrameTime = this->currTime;
 }
 
 void 
 PlayerControls::updateView()
 {
-    view = m4LookAt(pos, pos + front, up);
+    this->view = m4LookAt(pos, pos + front, up);
 }
 
 void 
 PlayerControls::updateProj(f32 fov, f32 aspect, f32 near, f32 far)
 {
-    proj = m4Pers(fov, aspect, near, far);
+    this->proj = m4Pers(fov, aspect, near, far);
 }

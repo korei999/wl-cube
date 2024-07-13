@@ -35,7 +35,7 @@ Model::Model(Model&& other)
 
 Model::Model(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
-    loadOBJ(path, drawMode, texMode, c);
+    this->loadOBJ(path, drawMode, texMode, c);
 }
 
 Model::~Model()
@@ -280,9 +280,9 @@ void
 Model::load(std::string_view path, GLint drawMode, GLint texMode, App* c)
 {
     if (path.ends_with(".obj"))
-        loadOBJ(path, drawMode, texMode, c);
+        this->loadOBJ(path, drawMode, texMode, c);
     else if (path.ends_with(".gltf"))
-        loadGLTF(path, drawMode, texMode, c);
+        this->loadGLTF(path, drawMode, texMode, c);
     else
         LOG(FATAL, "trying to load unsupported asset: '{}'\n", path);
 }
@@ -358,34 +358,34 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             auto& bvPos = a.aBufferViews[accPos.bufferView];
             auto& bvTex = a.aBufferViews[accTex.bufferView];
 
-            Mesh2 nMesh2 {};
-            nMesh2.mode = mode;
-            nMesh2.vScale = node.scale;
+            Mesh nMesh {};
+            nMesh.mode = mode;
+            nMesh.vScale = node.scale;
 
             /* manually unlock before loading texture */
             g_mtxGlContext.lock();
             c->bindGlContext();
 
-            glGenVertexArrays(1, &nMesh2.meshData.vao);
-            glBindVertexArray(nMesh2.meshData.vao);
+            glGenVertexArrays(1, &nMesh.meshData.vao);
+            glBindVertexArray(nMesh.meshData.vao);
 
             if (accIndIdx != NPOS)
             {
                 auto& accInd = a.aAccessors[accIndIdx];
                 auto& bvInd = a.aBufferViews[accInd.bufferView];
-                nMesh2.indType = accInd.componentType;
-                nMesh2.meshData.eboSize = accInd.count;
-                nMesh2.triangleCount = NPOS;
+                nMesh.indType = accInd.componentType;
+                nMesh.meshData.eboSize = accInd.count;
+                nMesh.triangleCount = NPOS;
 
                 /* TODO: figure out how to reuse VBO data for index buffer (possible?) */
-                glGenBuffers(1, &nMesh2.meshData.ebo);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh2.meshData.ebo);
+                glGenBuffers(1, &nMesh.meshData.ebo);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, nMesh.meshData.ebo);
                 glBufferData(GL_ELEMENT_ARRAY_BUFFER, bvInd.byteLength,
                              &a.aBuffers[bvInd.buffer].aBin.data()[bvInd.byteOffset + accInd.byteOffset], drawMode);
             }
             else
             {
-                nMesh2.triangleCount = accPos.count;
+                nMesh.triangleCount = accPos.count;
             }
 
             constexpr size_t v3Size = sizeof(v3) / sizeof(f32);
@@ -393,8 +393,8 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 
             /* if there are different VBO's for positions textures or normals,
              * given gltf file should be considered harmful, and this will crash ofc */
-            nMesh2.meshData.vbo = aBufferMap[bvPos.buffer];
-            glBindBuffer(GL_ARRAY_BUFFER, nMesh2.meshData.vbo);
+            nMesh.meshData.vbo = aBufferMap[bvPos.buffer];
+            glBindBuffer(GL_ARRAY_BUFFER, nMesh.meshData.vbo);
 
             /* positions */
             glEnableVertexAttribArray(0);
@@ -445,8 +445,8 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                     size_t diffTexInd = a.aTextures[baseColorSourceIdx].source;
                     if (diffTexInd != NPOS)
                     {
-                        nMesh2.meshData.materials.diffuse = aTex[diffTexInd];
-                        nMesh2.meshData.materials.diffuse.type = TEX_TYPE::DIFFUSE;
+                        nMesh.meshData.materials.diffuse = aTex[diffTexInd];
+                        nMesh.meshData.materials.diffuse.type = TEX_TYPE::DIFFUSE;
                     }
                 }
 
@@ -456,17 +456,17 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
                     size_t normTexIdx = a.aTextures[normalSourceIdx].source;
                     if (normTexIdx != NPOS)
                     {
-                        nMesh2.meshData.materials.normal = aTex[normalSourceIdx];
-                        nMesh2.meshData.materials.normal.type = TEX_TYPE::NORMAL;
+                        nMesh.meshData.materials.normal = aTex[normalSourceIdx];
+                        nMesh.meshData.materials.normal.type = TEX_TYPE::NORMAL;
                     }
                 }
             }
 
-            this->objects.push_back(std::move(nMesh2));
+            this->objects.push_back(std::move(nMesh));
         }
     }
 
-    /* prevent texture destruction */
+    /* prevent destruction */
     for (auto& t : aTex)
         t.id = 0;
 }
@@ -474,7 +474,7 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
 static void
 setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, GLint drawMode, App* c)
 {
-    /* TODO: use one buffer object, or drop OBJ since gltf is here */
+    /* TODO: use one buffer object (or drop OBJ since gltf is here) */
 
     std::lock_guard lock(g_mtxGlContext);
 

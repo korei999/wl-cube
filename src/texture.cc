@@ -5,7 +5,7 @@
 
 Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode, App* c)
 {
-    loadBMP(path, type, flip, texMode, c);
+    this->loadBMP(path, type, flip, texMode, c);
 }
 
 Texture::~Texture()

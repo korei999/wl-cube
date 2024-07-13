@@ -197,7 +197,7 @@ void
 Asset::processJSONObjs()
 {
     /* collect all the top level objects */
-    for (auto& node : json::getObject(this->parser.m_upHead.get()))
+    for (auto& node : json::getObject(this->parser.upHead.get()))
     {
         switch (hashFNV(node.svKey))
         {
@@ -318,7 +318,7 @@ Asset::processBuffers()
         if (pUri)
         {
             svUri = json::getStringView(pUri);
-            auto sNewPath = replacePathSuffix(this->parser.m_sName, svUri);
+            auto sNewPath = replacePathSuffix(this->parser.sName, svUri);
             aBin = loadFileToCharArray(sNewPath);
         }
 

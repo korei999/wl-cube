@@ -30,8 +30,8 @@ struct Token
 
 struct Lexer
 {
-    std::string m_sFile {};
-    size_t m_pos = 0;
+    std::string sFile {};
+    size_t pos = 0;
 
     Lexer() = default;
     Lexer(std::string_view path) { loadFile(path); }

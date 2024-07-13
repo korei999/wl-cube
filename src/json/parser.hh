@@ -12,8 +12,8 @@ namespace json
 
 struct Parser
 {
-    std::string m_sName {};
-    std::unique_ptr<Object> m_upHead {};
+    std::string sName {};
+    std::unique_ptr<Object> upHead {};
 
     Parser() = default;
     Parser(std::string_view path);
@@ -24,9 +24,9 @@ struct Parser
     void printNode(Object* pNode, std::string_view svEnd);
 
 private:
-    Lexer m_l;
-    Token m_tCurr;
-    Token m_tNext;
+    Lexer lex;
+    Token tCurr;
+    Token tNext;
 
     void expect(enum Token::TYPE t);
     void next();
