@@ -8,7 +8,11 @@ Texture::Texture(std::string_view path, TEX_TYPE type, bool flip, GLint texMode,
 
 Texture::~Texture()
 {
-    glDeleteTextures(1, &id);
+    if (this->id != 0)
+    {
+        glDeleteTextures(1, &this->id);
+        LOG(OK, "texture {}: '{}' deleted\n", this->id, this->texPath);
+    }
 }
 
 /* Bitmap file format

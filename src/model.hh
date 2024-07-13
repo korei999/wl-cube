@@ -11,8 +11,9 @@
 enum class DRAW : int
 {
     NONE = 0,
-    TEX = 1, /* bind texture for each drawcall */
-    APPLY_TM = 1 << 1 /* apply transformation matrix */
+    DIFF_TEX = 1, /* bind texture for each drawcall */
+    NORM_TEX = 1 << 1,
+    APPLY_TM = 1 << 2, /* apply transformation matrix */
 };
 
 static inline bool
@@ -116,12 +117,10 @@ struct Model
     void load(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
-    void drawGLTF(enum DRAW flags);
-    void drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tm);
-    /*void draw();*/
+    void draw(enum DRAW flags);
+    void draw(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tm);
     /*void drawInstanced(GLsizei count);*/
     /* bind texture for each drawcall */
-    /*void drawTex(GLint primitives = GL_TRIANGLES);*/
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);

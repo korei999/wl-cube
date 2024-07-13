@@ -421,6 +421,7 @@ Asset::processMeshes()
 {
     auto meshes = this->jsonObjs.meshes;
     auto& arr = json::getArray(meshes);
+    int i = 0;
     for (auto& e : arr)
     {
         auto& obj = json::getObject(&e);

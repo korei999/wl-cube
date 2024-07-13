@@ -266,6 +266,7 @@ Model::parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c)
             mesh.eboSize = (GLuint)inds.size();
 
             auto foundTex = materialsMap.find(hashFNV(faces.usemtl));
+            mesh.materials = std::move(foundTex->second);
 
             this->objects.push_back({
                 .meshData = std::move(mesh),
@@ -328,7 +329,18 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
         c->unbindGlContext();
     }
 
-    /* TODO: preload textures + map duplicates */
+    /* preload texures */
+    std::vector<Texture> aTex(a.aImages.size());
+    for (size_t i = 0; i < a.aImages.size(); i++)
+    {
+        auto* p = &aTex[i];
+        auto uri = a.aImages[i].uri;
+
+        tp.submit([=]{
+            *p = Texture(replacePathSuffix(path, uri), TEX_TYPE::DIFFUSE, true, texMode, c);
+        });
+    }
+    tp.wait();
 
     size_t meshIdx = NPOS;
     for (auto& node : a.aNodes)
@@ -435,39 +447,37 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
             if (accMatIdx != NPOS)
             {
                 auto& mat = a.aMaterials[accMatIdx];
-                size_t baseColorTexIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
-                if (baseColorTexIdx != NPOS)
-                {
-                    size_t diffuseIdx = a.aTextures[baseColorTexIdx].source;
-                    auto& diffuseImg = a.aImages[diffuseIdx];
-                    auto diffuseImgPath = replacePathSuffix(path, diffuseImg.uri);
+                size_t baseColorSourceIdx = mat.pbrMetallicRoughness.baseColorTexture.index;
 
-                    if (diffuseImgPath.ends_with(".bmp"))
+                if (baseColorSourceIdx != NPOS)
+                {
+                    size_t diffTexInd = a.aTextures[baseColorSourceIdx].source;
+                    if (diffTexInd != NPOS)
                     {
-                        tp.submit([=, &nMesh2]{
-                            nMesh2.meshData.materials.diffuse = Texture(diffuseImgPath, TEX_TYPE::DIFFUSE, true, texMode, c);
-                        });
+                        nMesh2.meshData.materials.diffuse = aTex[diffTexInd];
+                        nMesh2.meshData.materials.diffuse.type = TEX_TYPE::DIFFUSE;
                     }
                 }
 
-                size_t normalTexIdx = mat.normalTexture.index;
-                if (normalTexIdx != NPOS)
+                size_t normalSourceIdx = mat.normalTexture.index;
+                if (normalSourceIdx != NPOS)
                 {
-                    auto normalImgPath = replacePathSuffix(path, a.aImages[normalTexIdx].uri);
-                    if (normalImgPath.ends_with(".bmp"))
+                    size_t normTexIdx = a.aTextures[normalSourceIdx].source;
+                    if (normTexIdx != NPOS)
                     {
-                        tp.submit([=, &nMesh2]{
-                            nMesh2.meshData.materials.normal = Texture(normalImgPath, TEX_TYPE::NORMAL, true, texMode, c);
-                        });
+                        nMesh2.meshData.materials.normal = aTex[normalSourceIdx];
+                        nMesh2.meshData.materials.normal.type = TEX_TYPE::NORMAL;
                     }
                 }
-
-                tp.wait();
             }
 
-            this->objects.push_back(nMesh2);
+            this->objects.push_back(std::move(nMesh2));
         }
     }
+
+    /* prevent texture destruction */
+    for (auto& t : aTex)
+        t.id = 0;
 }
 
 static void
@@ -516,35 +526,23 @@ setBuffers(std::vector<Vertex>* verts, std::vector<GLuint>* inds, MeshData* m, G
     c->unbindGlContext();
 }
 
-/*void*/
-/*Model::draw()*/
-/*{*/
-/*    for (auto& meshes : objects)*/
-/*        for (auto& mesh : meshes)*/
-/*        {*/
-/*            glBindVertexArray(mesh.vao);*/
-/*            glDrawElements(GL_TRIANGLES, mesh.eboSize, GL_UNSIGNED_INT, nullptr);*/
-/*        }*/
-/*}*/
-
 void
-Model::drawGLTF(enum DRAW flags)
+Model::draw(enum DRAW flags)
 {
-    drawGLTF(flags, nullptr, "", {});
+    draw(flags, nullptr, "", {});
 }
 
 void
-Model::drawGLTF(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
+Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, const m4& tmGlobal)
 {
     for (auto& e : this->objects)
     {
         glBindVertexArray(e.meshData.vao);
 
-        if (flags & DRAW::TEX)
-        {
+        if (flags & DRAW::DIFF_TEX)
             e.meshData.materials.diffuse.bind(GL_TEXTURE0);
+        if (flags & DRAW::NORM_TEX)
             e.meshData.materials.normal.bind(GL_TEXTURE1);
-        }
 
         m4 m = m4Iden();
         if (flags & DRAW::APPLY_TM)
@@ -846,7 +844,6 @@ parseMtl(std::unordered_map<u64, Materials>* materials, std::string_view path, G
 
             case HASH::diff:
                 p.nextWord("\n");
-                /* TODO: implement thread pool for this kind of stuff */
                 threads.emplace_back(&Texture::loadBMP,
                                      &ins.first->second.diffuse,
                                      replacePathSuffix(path, p.word),

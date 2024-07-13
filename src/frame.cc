@@ -143,7 +143,7 @@ prepareDraw(App* app)
 
     tp.submit([&]{ mSphere.load("test-assets/models/icosphere/gltf/untitled.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
     tp.submit([&]{ mSponza.load("test-assets/models/Sponza/Sponza.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
-    tp.submit([&]{ mCar.load("test-assets/models/ToyCar/ToyCar.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });
+    /*tp.submit([&]{ mCar.load("test-assets/models/backpack/scene.gltf", GL_STATIC_DRAW, GL_MIRRORED_REPEAT, app); });*/
     tp.wait();
 
     /* restore context after assets are loaded */
@@ -159,7 +159,7 @@ renderScene(Shader* sh, bool depth)
 {
     m4 m = m4Iden();
     if (!depth) sh->setM3("uNormalMatrix", m3Normal(m));
-    mSponza.drawGLTF(DRAW::TEX | DRAW::APPLY_TM, sh, "uModel", m);
+    mSponza.draw(DRAW::DIFF_TEX | DRAW::APPLY_TM, sh, "uModel", m);
 
     /*static f32 i = 0.0f;*/
     /**/
@@ -240,7 +240,7 @@ drawFrame(App* app)
         tmCube = m4Scale(tmCube, 0.05f);
         shColor.use();
         shColor.setV3("uColor", lightColor);
-        mSphere.drawGLTF(DRAW::APPLY_TM, &shColor, "uModel", tmCube);
+        mSphere.draw(DRAW::APPLY_TM, &shColor, "uModel", tmCube);
 
         incCounter += 1.0 * player.deltaTime;
     }

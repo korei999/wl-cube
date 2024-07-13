@@ -169,8 +169,8 @@ struct Mesh
 
 struct Texture
 {
-    size_t source = NPOS; /* The index of the sampler used by this texture. When undefined, a sampler with repeat wrapping and auto filtering SHOULD be used. */
-    size_t sampler = NPOS; /* The index of the image used by this texture. */
+    size_t source = NPOS; /* The index of the image used by this texture. */
+    size_t sampler = NPOS; /* The index of the sampler used by this texture. When undefined, a sampler with repeat wrapping and auto filtering SHOULD be used. */
 };
 
 struct TextureInfo
