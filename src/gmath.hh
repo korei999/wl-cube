@@ -4,11 +4,13 @@
 #include <string_view>
 #include <cmath>
 
+#define PI 3.14159265358979323846
+
 template<typename T> T sq(T x) { return x * x; }
-constexpr f64 toDeg(f64 x) { return x * 180.0 / M_PI; }
-constexpr f64 toRad(f64 x) { return x * M_PI / 180.0; }
-constexpr f32 toDeg(f32 x) { return x * 180.0f / static_cast<f32>(M_PI); }
-constexpr f32 toRad(f32 x) { return x * static_cast<f32>(M_PI) / 180.0f; }
+constexpr f64 toDeg(f64 x) { return x * 180.0 / PI; }
+constexpr f64 toRad(f64 x) { return x * PI / 180.0; }
+constexpr f32 toDeg(f32 x) { return x * 180.0f / static_cast<f32>(PI); }
+constexpr f32 toRad(f32 x) { return x * static_cast<f32>(PI) / 180.0f; }
 
 constexpr f64 toRad(int x) { return toRad(static_cast<f64>(x)); }
 constexpr f32 toDeg(int x) { return toDeg(static_cast<f64>(x)); }

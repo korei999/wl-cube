@@ -196,7 +196,7 @@ drawFrame(App* app)
         uboProjView.bufferData(&player, 0, sizeof(m4) * 2);
 
         // v3 lightPos {x, 4, -1};
-        v3 lightPos {std::cos(player.currTime) * 6.0f, 3, std::sin(player.currTime) * 1.1f};
+        v3 lightPos {std::cosf(player.currTime) * 6.0f, 3, std::sinf(player.currTime) * 1.1f};
         constexpr v3 lightColor(Color::snow);
         f32 nearPlane = 0.01f, farPlane = 25.0f;
         m4 shadowProj = m4Pers(toRad(90), shadowAspect, nearPlane, farPlane);

@@ -62,12 +62,8 @@ find_package(PkgConfig REQUIRED)
 
 message(STATUS "CMAKE_SYSTEM_NAME: '${CMAKE_SYSTEM_NAME}'")
 
-pkg_check_modules(PKGS REQUIRED gl)
-target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${PKGS_INCLUDE_DIRS})
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${PKGS_LIBRARIES})
-
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    pkg_check_modules(LINUX_PKGS REQUIRED egl glesv2 wayland-client wayland-egl wayland-cursor)
+    pkg_check_modules(LINUX_PKGS REQUIRED gl egl glesv2 wayland-client wayland-egl wayland-cursor)
     target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LINUX_PKGS_INCLUDE_DIRS})
     target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LINUX_PKGS_LIBRARIES})
 
@@ -82,6 +78,10 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
         src/platform/wayland/wayland-protocols/xdg-shell.c
     )
 elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    find_package(OpenGL REQUIRED)
+    message(STATUS "OpenGL: '${OpenGL}'")
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${OPENGL_gl_LIBRARY})
+
     target_sources(
         ${CMAKE_PROJECT_NAME}
         PRIVATE

@@ -1,8 +1,8 @@
+#include <windowsx.h>
+
 #include "input.hh"
 #include "utils.hh"
-#include "headers/frame.hh"
-
-#include <windowsx.h>
+#include "../../frame.hh"
 
 LRESULT CALLBACK
 windowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

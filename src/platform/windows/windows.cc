@@ -1,7 +1,7 @@
 #include "windows.hh"
 #include "input.hh"
 #include "utils.hh"
-#include "../../headers/gl.hh"
+#include "../../gl/gl.hh"
 #include "wglext.h" /* https://www.khronos.org/registry/OpenGL/api/GL/wglext.h */
 
 static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB {};
@@ -292,7 +292,7 @@ Win32window::procEvents()
         switch(msg.message)
         {
             case WM_QUIT:
-                this->isRunning = false;
+                this->bRunning = false;
                 break;
 
             default:

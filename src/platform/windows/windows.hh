@@ -1,5 +1,5 @@
 #pragma once
-#include "../../headers/app.hh"
+#include "../../app.hh"
 
 #include <windows.h>
 
