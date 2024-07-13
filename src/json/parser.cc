@@ -38,8 +38,7 @@ Parser::expect(enum Token::TYPE t)
 {
     if (m_tCurr.type != t)
     {
-
-        CERR("unexpected token\n");
+        CERR("({}): unexpected token\n", m_sName);
         exit(2);
     }
 }
