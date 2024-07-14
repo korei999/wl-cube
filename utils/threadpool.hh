@@ -28,7 +28,7 @@ public:
     {
         {
             std::unique_lock lock(this->mtxQ);
-            this->qTasks.emplace_back([=]{ f(std::forward<Args>(args)...); });
+            this->qTasks.emplace_back(std::forward<Fn>(f), std::forward<Args>(args)...);
             this->activeTasks++;
         }
         this->cndMtx.notify_one();
