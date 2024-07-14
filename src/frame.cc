@@ -157,14 +157,15 @@ f64 x = 0.0, y = 0.0, z = 0.0;
 static void
 renderScene(Shader* sh, bool depth)
 {
-    m4 m = m4Iden();
+    m4 m = m4Scale(m4Iden(), 0.01);
 
     enum DRAW nm = depth ? DRAW::NONE : DRAW::APPLY_NM;
     mSponza.draw(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
 
-    m = m4Scale(m4Iden(), 0.3);
-    m *= m4Translate(m, {0, 10, 0});
-    mBackPack.draw(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
+    m = m4Iden();
+    m *= m4Translate(m, {0, 0.5, 0});
+    m *= m4Scale(m, 0.002);
+    mBackPack.drawNodes(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
 }
 
 static void

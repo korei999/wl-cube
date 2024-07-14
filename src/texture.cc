@@ -271,8 +271,7 @@ flipCpyBGRAtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     u32* d = reinterpret_cast<u32*>(dest);
     u32* s = reinterpret_cast<u32*>(src);
 
-    auto swapRedBlueBits = [](u32 col) -> u32
-    {
+    auto swapRedBlueBits = [](u32 col) -> u32 {
         u32 r = col & 0x00'ff'00'00;
         u32 b = col & 0x00'00'00'ff;
         return (col & 0xff'00'ff'00) | (r >> (4*4)) | (b << (4*4));
@@ -303,8 +302,7 @@ flipCpyBGRtoRGB(u8* dest, u8* src, int width, int height, bool vertFlip)
     constexpr int nComponents = 3;
     width = width * nComponents;
 
-    auto at = [=](int x, int y, int z) -> int
-    {
+    auto at = [=](int x, int y, int z) -> int {
         return y*width + x + z;
     };
 
@@ -332,8 +330,7 @@ flipCpyBGRtoRGBA(u8* dest, u8* src, int width, int height, bool vertFlip)
     int rgbWidth = width * rgbComp;
     int rgbaWidth = width * rgbaComp;
 
-    auto at = [](int width, int x, int y, int z) -> int
-    {
+    auto at = [](int width, int x, int y, int z) -> int {
         return y*width + x + z;
     };
 

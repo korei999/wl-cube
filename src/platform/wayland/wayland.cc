@@ -297,8 +297,8 @@ WlClient::init()
         EGL_DEPTH_SIZE, 24,
         EGL_STENCIL_SIZE, 8,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
-        EGL_SAMPLE_BUFFERS, 1,
-        EGL_SAMPLES, 4,
+        // EGL_SAMPLE_BUFFERS, 1,
+        // EGL_SAMPLES, 4,
         EGL_NONE
     };
 
@@ -341,7 +341,7 @@ void
 WlClient::enableRelativeMode()
 {
     wl_pointer_set_cursor(this->pointer, this->pointerSerial, nullptr, 0, 0);
-    this->cursorSurface ? wl_surface_destroy(this->cursorSurface) : (void)0;
+    if (this->cursorSurface) wl_surface_destroy(this->cursorSurface);
     this->lockedPointer = zwp_pointer_constraints_v1_lock_pointer(this->pointerConstraints,
                                                                   this->surface,
                                                                   this->pointer,
