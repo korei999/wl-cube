@@ -11,19 +11,32 @@ public:
     ThreadPool(size_t threadCount) { this->start(threadCount); }
     ~ThreadPool() { this->stop(); }
 
+    // void
+    // submit(const std::function<void()> task)
+    // {
+    //     {
+    //         std::unique_lock lock(this->mtxQ);
+    //         this->qTasks.emplace_back(std::move(task));
+    //         this->activeTasks++; /* decrement after completing the task */
+    //     }
+    //     this->cndMtx.notify_one();
+    // }
+
+    template<typename Fn, typename... Args>
     void
-    submit(const std::function<void()> task)
+    submit(Fn&& f, Args&&... args)
     {
         {
             std::unique_lock lock(this->mtxQ);
-            this->qTasks.emplace_back(std::move(task));
-            this->activeTasks++; /* decrement after completing the task */
+            this->qTasks.emplace_back([=]{ f(std::forward<Args>(args)...); });
+            this->activeTasks++;
         }
         this->cndMtx.notify_one();
     }
 
     template<typename Fn, typename... Args>
-    auto future(Fn&& f, Args&&... args)
+    auto
+    future(Fn&& f, Args&&... args)
     {
         auto task {
             std::make_shared<std::packaged_task<std::invoke_result_t<Fn, Args...>()>>(
