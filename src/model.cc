@@ -578,7 +578,7 @@ Model::drawGraph(enum DRAW flags,
             for (int j = 0; j < aTmCounters[i]; j++)
             {
                 /* collect each transformation from parent's map */
-                auto& n = aNodes[ aTmIdxs[ at(i, j) ] ];
+                auto& n = aNodes[ aTmIdxs[at(i, j)] ];
 
                 tm = m4Scale(tm, n.scale);
                 rot *= n.rotation;

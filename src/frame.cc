@@ -165,6 +165,7 @@ renderScene(Shader* sh, bool depth)
     m = m4Iden();
     m *= m4Translate(m, {0, 0.5, 0});
     m *= m4Scale(m, 0.002);
+    m = m4RotY(m, toRad(90));
     mBackPack.drawGraph(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
 }
 
