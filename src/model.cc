@@ -549,7 +549,7 @@ Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string
 }
 
 void
-Model::drawNodes(enum DRAW flags,
+Model::drawScene(enum DRAW flags,
                  Shader* sh,
                  std::string_view svUniform,
                  std::string_view svUniformM3Norm,
@@ -567,9 +567,7 @@ Model::drawNodes(enum DRAW flags,
     {
         auto& node = aNodes[i];
         for (auto& ch : node.children)
-        {
             aTmIdxs[at(ch, aTmCounters[ch]++)] = i;
-        }
 
         if (node.mesh != NPOS)
         {
@@ -579,7 +577,9 @@ Model::drawNodes(enum DRAW flags,
             qt rot = qtIden();
             for (int j = 0; j < aTmCounters[i]; j++)
             {
-                tm *= aNodes[ aTmIdxs[ at(i, j) ] ].matrix;
+                /* TODO: translation rotation scale? */
+                auto& n = aNodes[ aTmIdxs[ at(i, j) ] ];
+                tm *= n.matrix;
             }
 
             glBindVertexArray(e.meshData.vao);
@@ -635,7 +635,7 @@ Ubo::createBuffer(size_t _size, GLint drawMode)
     this->size = _size;
     glGenBuffers(1, &this->id);
     glBindBuffer(GL_UNIFORM_BUFFER, this->id);
-    glBufferData(GL_UNIFORM_BUFFER, this->size, nullptr, drawMode);
+    glBufferData(GL_UNIFORM_BUFFER, _size, nullptr, drawMode);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -649,7 +649,7 @@ Ubo::bindBlock(Shader* sh, std::string_view block, GLuint _point)
 
     glBindBufferBase(GL_UNIFORM_BUFFER, _point, this->id);
     /* or */
-    // glBindBufferRange(GL_UNIFORM_BUFFER, point, id, 0, size);
+    // glBindBufferRange(GL_UNIFORM_BUFFER, _point, this->id, 0, size);
 }
 
 void
