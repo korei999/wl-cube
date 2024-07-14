@@ -103,7 +103,8 @@ struct Mesh
 struct Model
 {
     std::string_view savedPath;
-    std::vector<Mesh> aMeshes;
+    /*std::vector<Mesh> aMeshes;*/
+    std::vector<std::vector<Mesh>> aaMeshes;
     gltf::Asset asset;
 
     Model() = default;
@@ -118,16 +119,14 @@ struct Model
     void load(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
-    void draw(enum DRAW flags);
-    void draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string_view svUniformM3Norm, const m4& tmGlobal);
+    void draw(enum DRAW flags, Shader* sh = nullptr, std::string_view svUniform = "", std::string_view svUniformM3Norm = "", const m4& tmGlobal = {});
     void drawScene(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string_view svUniformM3Norm, const m4& tmGlobal);
     /*void drawInstanced(GLsizei count);*/
-    /* bind texture for each drawcall */
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
 
-    std::vector<int> aTmIdxs; /* children map */
+    std::vector<int> aTmIdxs; /* parents map */
     std::vector<int> aTmCounters; /* map's sizes */
 };
 

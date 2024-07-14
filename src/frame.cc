@@ -160,7 +160,7 @@ renderScene(Shader* sh, bool depth)
     m4 m = m4Scale(m4Iden(), 0.01);
 
     enum DRAW nm = depth ? DRAW::NONE : DRAW::APPLY_NM;
-    mSponza.draw(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
+    mSponza.drawScene(DRAW::DIFF | DRAW::APPLY_TM | nm, sh, "uModel", "uNormalMatrix", m);
 
     m = m4Iden();
     m *= m4Translate(m, {0, 0.5, 0});
