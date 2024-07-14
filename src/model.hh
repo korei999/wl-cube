@@ -126,6 +126,9 @@ struct Model
 
 private:
     void parseOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
+
+    std::vector<int> aTmIdxs; /* children map */
+    std::vector<int> aTmCounters; /* map's sizes */
 };
 
 inline u64

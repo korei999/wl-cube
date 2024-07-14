@@ -280,6 +280,8 @@ Model::load(std::string_view path, GLint drawMode, GLint texMode, App* c)
         this->loadGLTF(path, drawMode, texMode, c);
     else
         LOG(FATAL, "trying to load unsupported asset: '{}'\n", path);
+
+    this->savedPath = path;
 }
 
 void
@@ -331,13 +333,6 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     size_t meshIdx = NPOS;
     for (auto& mesh : a.aMeshes)
     {
-        /*if (node.mesh == NPOS)*/
-        /*    continue;*/
-
-        /*meshIdx = node.mesh;*/
-        /**/
-        /*auto& mesh = a.aMeshes[meshIdx];*/
-
         for (auto& primitive : mesh.aPrimitives)
         {
             size_t accIndIdx = primitive.indices;
@@ -462,6 +457,9 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
     /* prevent destruction */
     for (auto& t : aTex)
         t.id = 0;
+
+    this->aTmIdxs = decltype(this->aTmIdxs)(sq(this->asset.aNodes.size()), {});
+    this->aTmCounters = decltype(this->aTmCounters)(this->asset.aNodes.size(), {});
 }
 
 static void
@@ -556,8 +554,8 @@ Model::drawScene(enum DRAW flags,
                  const m4& tmGlobal)
 {
     auto& aNodes = this->asset.aNodes;
-    std::vector<int> aTmIdxs(sq(aNodes.size()), {});
-    std::vector<int> aTmCounters(aNodes.size(), {});
+    std::fill(this->aTmIdxs.begin(), this->aTmIdxs.end(), 0);
+    std::fill(this->aTmCounters.begin(), this->aTmCounters.end(), 0);
 
     auto at = [&](int r, int c) -> int {
         return r*aNodes.size() + c;
