@@ -120,7 +120,7 @@ struct Model
     void loadOBJ(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c);
     void draw(enum DRAW flags, Shader* sh = nullptr, std::string_view svUniform = "", std::string_view svUniformM3Norm = "", const m4& tmGlobal = {});
-    void drawScene(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string_view svUniformM3Norm, const m4& tmGlobal);
+    void drawGraph(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string_view svUniformM3Norm, const m4& tmGlobal);
     /*void drawInstanced(GLsizei count);*/
 
 private:

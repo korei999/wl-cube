@@ -551,7 +551,7 @@ Model::draw(enum DRAW flags, Shader* sh, std::string_view svUniform, std::string
 }
 
 void
-Model::drawScene(enum DRAW flags,
+Model::drawGraph(enum DRAW flags,
                  Shader* sh,
                  std::string_view svUniform,
                  std::string_view svUniformM3Norm,
@@ -569,7 +569,7 @@ Model::drawScene(enum DRAW flags,
     {
         auto& node = aNodes[i];
         for (auto& ch : node.children)
-            aTmIdxs[at(ch, aTmCounters[ch]++)] = i; /* give each children it's parent idx */
+            aTmIdxs[at(ch, aTmCounters[ch]++)] = i; /* give each children it's parent's idx's */
 
         if (node.mesh != NPOS)
         {
@@ -584,7 +584,10 @@ Model::drawScene(enum DRAW flags,
                 rot *= n.rotation;
                 tm *= n.matrix;
             }
-            tm *= qtRot(rot);
+            tm = m4Scale(tm, node.scale);
+            tm *= qtRot(rot * node.rotation);
+            tm = m4Translate(tm, node.translation);
+            tm *= node.matrix;
 
             for (auto& e : this->aaMeshes[node.mesh])
             {
