@@ -4,37 +4,14 @@ set -x
 
 BIN=$(cat name)
 
-WLP="./src/platform/wayland/"
-WLPD="$WLP/wayland-protocols"
-
-wayland()
-{
-    WAYLAND_PROTOCOLS_DIR=$(pkg-config wayland-protocols --variable=pkgdatadir)
-    WAYLAND_SCANNER=$(pkg-config --variable=wayland_scanner wayland-scanner)
-
-    XDG_SHELL="$WAYLAND_PROTOCOLS_DIR/stable/xdg-shell/xdg-shell.xml"
-    POINTER_CONSTRAINTS="$WAYLAND_PROTOCOLS_DIR/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml"
-    RELATIVE_POINTER="$WAYLAND_PROTOCOLS_DIR/unstable/relative-pointer/relative-pointer-unstable-v1.xml"
-
-    mkdir -p $WLPD
-
-    $WAYLAND_SCANNER client-header $RELATIVE_POINTER $WLPD/relative-pointer-unstable-v1.h
-    $WAYLAND_SCANNER private-code $RELATIVE_POINTER $WLPD/relative-pointer-unstable-v1.c
-    $WAYLAND_SCANNER client-header $POINTER_CONSTRAINTS $WLPD/pointer-constraints-unstable-v1.h
-    $WAYLAND_SCANNER private-code $POINTER_CONSTRAINTS $WLPD/pointer-constraints-unstable-v1.c
-    $WAYLAND_SCANNER client-header $XDG_SHELL $WLPD/xdg-shell.h
-    $WAYLAND_SCANNER private-code $XDG_SHELL $WLPD/xdg-shell.c
-}
-
 _clean()
 {
-    rm -rf build $WLPD
+    rm -rf build
 }
 
 release()
 {
     _clean
-    wayland
 
     if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=Release "$@"
     then
@@ -45,7 +22,6 @@ release()
 default()
 {
     _clean
-    wayland
 
     if cmake -GNinja -S . -B build/ -DCMAKE_BUILD_TYPE=RelWithDebInfo "$@"
     then
@@ -56,7 +32,6 @@ default()
 debug()
 {
     _clean
-    wayland
 
     if CC=clang CXX=clang++ CC_LD=mold CXX_LD=mold cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Debug "$@"
     then
@@ -67,7 +42,6 @@ debug()
 asan()
 {
     _clean
-    wayland
 
     if CC=clang CXX=clang++ CC_LD=mold CXX_LD=mold cmake -G "Ninja" -S . -B build/ -DCMAKE_BUILD_TYPE=Asan "$@"
     then

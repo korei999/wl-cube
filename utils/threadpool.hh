@@ -22,25 +22,25 @@ public:
     //     this->cndMtx.notify_one();
     // }
 
-    template<typename Fn, typename... Args>
+    template<typename F, typename... A>
     void
-    submit(Fn&& f, Args&&... args)
+    submit(F&& f, A&&... args)
     {
         {
             std::unique_lock lock(this->mtxQ);
-            this->qTasks.emplace_back(std::forward<Fn>(f), std::forward<Args>(args)...);
+            this->qTasks.emplace_back(std::forward<F>(f), std::forward<A>(args)...);
             this->activeTasks++;
         }
         this->cndMtx.notify_one();
     }
 
-    template<typename Fn, typename... Args>
+    template<typename F, typename... A>
     auto
-    future(Fn&& f, Args&&... args)
+    future(F&& f, A&&... args)
     {
         auto task {
-            std::make_shared<std::packaged_task<std::invoke_result_t<Fn, Args...>()>>(
-                [&f, &args...]() { return f(std::forward<Args>(args)...); }
+            std::make_shared<std::packaged_task<std::invoke_result_t<F, A...>()>>(
+                [&f, &args...]{ return f(std::forward<A>(args)...); }
             )
         };
 

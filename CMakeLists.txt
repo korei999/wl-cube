@@ -63,6 +63,7 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 
 message(STATUS "CMAKE_SYSTEM_NAME: '${CMAKE_SYSTEM_NAME}'")
+message(STATUS "CMAKE_SOURCE_DIR: '${CMAKE_SOURCE_DIR}'")
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(PkgConfig REQUIRED)
@@ -70,15 +71,47 @@ if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${LINUX_PKGS_INCLUDE_DIRS})
     target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${LINUX_PKGS_LIBRARIES})
 
+    set(WLP "./src/platform/wayland")
+    set(WLPD "${WLP}/wayland-protocols")
+    execute_process(
+        COMMAND pkg-config wayland-protocols --variable=pkgdatadir
+        OUTPUT_VARIABLE WAYLAND_PROTOCOLS_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    execute_process(
+        COMMAND pkg-config --variable=wayland_scanner wayland-scanner
+        OUTPUT_VARIABLE WAYLAND_SCANNER
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    set(XDG_SHELL "${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml")
+    set(POINTER_CONSTRAINTS "${WAYLAND_PROTOCOLS_DIR}/unstable/pointer-constraints/pointer-constraints-unstable-v1.xml")
+    set(RELATIVE_POINTER "${WAYLAND_PROTOCOLS_DIR}/unstable/relative-pointer/relative-pointer-unstable-v1.xml")
+
+    message(STATUS "WLP: '${WLP}'")
+    message(STATUS "WLPD: '${WLPD}'")
+    message(STATUS "WAYLAND_PROTOCOLS_DIR: '${WAYLAND_PROTOCOLS_DIR}'")
+    message(STATUS "WAYLAND_SCANNER: '${WAYLAND_SCANNER}'")
+    message(STATUS "XDG_SHELL: '${XDG_SHELL}'")
+    message(STATUS "POINTER_CONSTRAINTS: '${POINTER_CONSTRAINTS}'")
+    message(STATUS "RELATIVE_POINTER: '${RELATIVE_POINTER}'")
+
+    execute_process(COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/${WLPD})
+    execute_process(COMMAND ${WAYLAND_SCANNER} client-header ${RELATIVE_POINTER}    ${CMAKE_SOURCE_DIR}/${WLPD}/relative-pointer-unstable-v1.h)
+    execute_process(COMMAND ${WAYLAND_SCANNER} private-code  ${RELATIVE_POINTER}    ${CMAKE_SOURCE_DIR}/${WLPD}/relative-pointer-unstable-v1.c)
+    execute_process(COMMAND ${WAYLAND_SCANNER} client-header ${POINTER_CONSTRAINTS} ${CMAKE_SOURCE_DIR}/${WLPD}/pointer-constraints-unstable-v1.h)
+    execute_process(COMMAND ${WAYLAND_SCANNER} private-code  ${POINTER_CONSTRAINTS} ${CMAKE_SOURCE_DIR}/${WLPD}/pointer-constraints-unstable-v1.c)
+    execute_process(COMMAND ${WAYLAND_SCANNER} client-header ${XDG_SHELL}           ${CMAKE_SOURCE_DIR}/${WLPD}/xdg-shell.h)
+    execute_process(COMMAND ${WAYLAND_SCANNER} private-code  ${XDG_SHELL}           ${CMAKE_SOURCE_DIR}/${WLPD}/xdg-shell.c)
+
     target_sources(
         ${CMAKE_PROJECT_NAME}
         PRIVATE
-        src/platform/wayland/input.cc
-        src/platform/wayland/wayland.cc
-        src/platform/wayland/input.cc
-        src/platform/wayland/wayland-protocols/pointer-constraints-unstable-v1.c
-        src/platform/wayland/wayland-protocols/relative-pointer-unstable-v1.c
-        src/platform/wayland/wayland-protocols/xdg-shell.c
+        ${WLP}/input.cc
+        ${WLP}/wayland.cc
+        ${WLP}/input.cc
+        ${WLPD}/pointer-constraints-unstable-v1.c
+        ${WLPD}/relative-pointer-unstable-v1.c
+        ${WLPD}/xdg-shell.c
     )
 elseif (CMAKE_SYSTEM_NAME MATCHES "Windows")
     find_package(OpenGL REQUIRED)
