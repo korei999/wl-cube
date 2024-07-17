@@ -146,7 +146,7 @@ Texture::bind(GLint glTexture)
 }
 
 void
-Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsizei height, App* c)
+Texture::setTexture(u8* pData, GLint texMode, GLint format, GLsizei width, GLsizei height, App* c)
 {
     std::lock_guard lock(gl::mtxGlContext);
     c->bindGlContext();
@@ -160,7 +160,7 @@ Texture::setTexture(u8* data, GLint texMode, GLint format, GLsizei width, GLsize
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     /* load image, create texture and generate mipmaps */
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, pData);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     c->unbindGlContext();

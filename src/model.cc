@@ -327,9 +327,10 @@ Model::loadGLTF(std::string_view path, GLint drawMode, GLint texMode, App* c)
         auto* p = &aTex[i];
         auto uri = a.aImages[i].uri;
 
-        tp.submit([=]{
-            *p = Texture(replacePathSuffix(path, uri), TEX_TYPE::DIFFUSE, true, texMode, c);
-        });
+        if (uri.ends_with(".bmp"))
+            tp.submit([=]{
+                *p = Texture(replacePathSuffix(path, uri), TEX_TYPE::DIFFUSE, true, texMode, c);
+            });
     }
     tp.wait();
 
